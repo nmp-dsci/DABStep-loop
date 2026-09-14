@@ -1,0 +1,58 @@
+{
+ "id": "F05",
+ "name": "delta-mcc-change",
+ "pattern": "changed its mcc code",
+ "operation": "yearly fees with the merchant's MCC swapped, minus yearly fees as is",
+ "invariant": "the merchant's own MCC gives 0; delta = fees(new) − fees(old), both via F03",
+ "members": 20,
+ "templates": 1,
+ "dev_anchor": [],
+ "status": "open",
+ "canonical_method": {
+  "helper": "total_fees_paid(fees, transactions, mcc=<candidate>, ...) — reuse F03's per-month loop for both the current and hypothetical MCC",
+  "exists": true,
+  "steps": [
+   "info = get_merchant_info(merchant); cd_bucket = capture_delay_bucket(info['capture_delay'])",
+   "for each month: stats = monthly_merchant_stats(...); old = sum(total_fees_paid(fees, stats['transactions'], mcc=info['merchant_category_code'], account_type=..., capture_delay=cd_bucket, monthly_fraud_level=..., monthly_volume=...).values())",
+   "new = same call with mcc=<hypothetical mcc>",
+   "delta = sum(new) - sum(old) across months, rounded to 6 decimals"
+  ],
+  "manual": [
+   "§3 Merchant Category Code",
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "task 2537's per-month total_fees_paid loop (old mcc vs new mcc, both bucketed via monthly_merchant_stats) is the right shape; task 2551 abandoned the helper module entirely mid-task after a 120s timeout and fell back to raw pd.read_csv/json.load, which both burns the turn budget and produced a malformed prose answer instead of a number.",
+ "pitfalls": [
+  "Recomputing total_fees_paid from scratch with raw pandas/json after a timeout (2551) instead of simplifying the existing helper-based call — burns the turn budget and produces an unparseable answer",
+  "Two of three probe tasks (2537, 2551) disagreed between pass 1 and pass 2 — this family is currently unstable even before checking correctness",
+  "No dev-10 anchor exists yet, so a plausible-looking delta (e.g. 2544's 0.0 'MCCs are grouped identically') cannot currently be trusted without gold verification"
+ ],
+ "few_shot": null,
+ "prompt_rule": "if the question asks the fee delta from hypothetically changing a merchant's MCC for a year → reuse the F03 per-month total_fees_paid loop twice (old mcc, new mcc) and subtract; never fall back to raw pd.read_csv/json.load on a timeout — simplify the existing helper call instead; format: number rounded to 6 decimals.",
+ "note": "Needs a dev-10 gold anchor before it can be promoted past provisional even after the timeout/format bug is fixed.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2537.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2551.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.333,
+  "s2_agreement": 0.333,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 0.667,
+  "turns_mean": 16.7
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "open"
+  }
+ ]
+}

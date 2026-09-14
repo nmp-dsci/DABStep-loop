@@ -1,0 +1,58 @@
+{
+ "id": "F08",
+ "name": "cheapest-or-priciest-choice",
+ "pattern": "(most expensive authorization|in the average scenario, which card scheme|most expensive mcc)",
+ "operation": "the same per-option fee table F07 averages, then argmin or argmax over options",
+ "invariant": "the chosen option's cost is ≤ (or ≥) every alternative in the same table; max ≥ mean",
+ "members": 46,
+ "templates": 4,
+ "dev_anchor": [],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "average_fee_across_rules(fees, transaction_value, card_scheme=scheme) looped over the 4 known schemes",
+  "exists": true,
+  "steps": [
+   "for scheme in ['GlobalCard','NexPay','SwiftCharge','TransactPlus']: cost = average_fee_across_rules(fees, transaction_value=value, card_scheme=scheme, **other filters)",
+   "argmin/argmax over the resulting dict as asked"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "",
+ "pitfalls": [
+  "Scanning fees/payments to (re)discover the 4 card schemes each time wastes turns and occasionally timed out (task 1517) — the scheme set is fixed and known",
+  "Answer format is '{card_scheme}:{fee}' with fee rounded to 2 decimals, not just the scheme name — check the guideline text on each task, some templates want only the scheme"
+ ],
+ "few_shot": {
+  "task_id": "1505",
+  "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 10 EUR?",
+  "code": "min({s: helper.average_fee_across_rules(fees, 10, card_scheme=s) for s in schemes}, key=...)"
+ },
+ "prompt_rule": "if the question asks which card scheme is cheapest/most-expensive in the 'average scenario' → average_fee_across_rules per scheme over the fixed 4-scheme list, then argmin/argmax; format: just the scheme name unless the guideline asks for scheme:fee.",
+ "note": "No dev-10 anchor yet but invariant (min≠max, min≤max) passed on all 3 probe pairs.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1505.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1518.json"
+ ],
+ "signals": {
+  "n": 6,
+  "s1_modal_share": 0.833,
+  "s2_agreement": 1.0,
+  "s3_passed": 3,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 6.7
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "id": "F03",
+ "name": "total-fees-paid",
+ "pattern": "total fees \\(in euros\\) that <merchant>",
+ "operation": "sum of fee(rule, transaction) over every matching rule for a merchant in a period",
+ "invariant": "Σ months = year; Σ days of a month = month",
+ "members": 45,
+ "templates": 3,
+ "dev_anchor": [],
+ "status": "provisional",
+ "canonical_method": {
+  "helper": "total_fees_paid(fees, transactions, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume) -> dict[id, amount]",
+  "exists": true,
+  "steps": [
+   "info = get_merchant_info(merchant); cd_bucket = capture_delay_bucket(info['capture_delay'])",
+   "for each month touching the period: stats = monthly_merchant_stats(payments, merchant, year, month)",
+   "fee_dict = total_fees_paid(fees, stats['transactions'] (or day/month-filtered subset), account_type=info['account_type'], mcc=info['merchant_category_code'], capture_delay=cd_bucket, monthly_fraud_level=stats['monthly_fraud_level_bucket'], monthly_volume=stats['monthly_volume_bucket'])",
+   "accumulate sum(fee_dict.values()) across months; round to 2 decimals"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "all six probe traces used total_fees_paid correctly for the core sum; the split is whether capture_delay_bucket() is called first — 1861/1749/1711 do, 1857/1746 don't list it in their method trace, which is the same latent bug flagged in F01 even though it didn't visibly break these particular invariant checks.",
+ "pitfalls": [
+  "Omitting capture_delay_bucket() before total_fees_paid under-or-over-counts rules keyed on capture_delay bucket, same failure mode as F01",
+  "3 of 6 probe tasks (1711, 1750, 1746) disagreed between pass 1 and pass 2 despite passing invariants — indicates run-to-run non-determinism in how the monthly loop or bucket lookup is assembled, not just an occasional slip",
+  "total_fees_paid returns a dict keyed by rule id — must sum(.values()), a bare total_fees_paid(...) call is not a number"
+ ],
+ "few_shot": {
+  "task_id": "1861",
+  "question": "What are the total fees (in euros) that Rafa_AI paid in March 2023?",
+  "code": "sum(helper.total_fees_paid(fees, month_txns, account_type=info['account_type'], mcc=info['merchant_category_code'], capture_delay=helper.capture_delay_bucket(info['capture_delay']), monthly_fraud_level=stats['monthly_fraud_level_bucket'], monthly_volume=stats['monthly_volume_bucket']).values())"
+ },
+ "prompt_rule": "if the question asks total fees a merchant paid in a day/month/year → capture_delay_bucket + monthly_merchant_stats (per month) + total_fees_paid, sum dict values and accumulate across months; format: number rounded to 2 decimals.",
+ "note": "No dev-10 anchor exists for this family yet — recommend prioritizing it for the next gold-anchored dev batch given its size (45 tasks) and the pass-to-pass disagreement signal.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1861.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1746.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1857.json"
+ ],
+ "signals": {
+  "n": 6,
+  "s1_modal_share": 0.167,
+  "s2_agreement": 0.5,
+  "s3_passed": 9,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 21.5
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "provisional"
+  }
+ ]
+}

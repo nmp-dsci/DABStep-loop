@@ -1,0 +1,56 @@
+{
+ "id": "F06",
+ "name": "merchants-affected-by-fee",
+ "pattern": "(which merchants would have been affected|which merchants were affected by the fee)",
+ "operation": "the merchants with at least one transaction matching a rule (or losing it under a change)",
+ "invariant": "affected ⊆ merchants matching the rule today",
+ "members": 27,
+ "templates": 2,
+ "dev_anchor": [],
+ "status": "open",
+ "canonical_method": {
+  "helper": "transactions_matching_rule(transactions, rule_id) then filter by the new restriction",
+  "exists": true,
+  "steps": [
+   "txns = transactions_matching_rule(payments_period, rule_id) — this is 'merchants matching the rule today', satisfying the stated invariant",
+   "today_merchants = txns['merchant'].unique()",
+   "affected = [m for m in today_merchants if get_merchant_info(m)[<changed field>] != <new restricted value>]",
+   "sort and comma-join; empty string if none"
+  ],
+  "manual": [
+   "§5 fee-rule field semantics"
+  ]
+ },
+ "conflict_ruling": "task 2571 computes today's matching merchant set via transactions_matching_rule first, then filters by account_type — this correctly grounds the answer in actual matching transactions and satisfies affected⊆merchants-matching-rule-today. Task 2555 instead reasons from the static full merchant list's account_type without first confirming those merchants had matching transactions this period, which can overcount if a merchant qualifies by account_type but never actually triggered the rule.",
+ "pitfalls": [
+  "Filtering by merchant's static account_type alone (2555) instead of first restricting to transactions_matching_rule's actual matching set can add merchants who never triggered the original rule",
+  "2 of 3 probe tasks (2571, 2557) disagreed between passes — self-consistency is not yet reliable in this family"
+ ],
+ "few_shot": null,
+ "prompt_rule": "if the question asks which merchants would be affected by narrowing a fee rule's criteria → transactions_matching_rule(payments_period, rule_id) to get today's matching merchants, then filter out those still matching the narrowed criteria; format: comma-separated sorted merchant names, empty string if none.",
+ "note": "No dev-10 anchor; needs one before promotion given the self-agreement failures.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2571.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2555.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.333,
+  "s2_agreement": 0.333,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 17.7
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "open"
+  }
+ ]
+}

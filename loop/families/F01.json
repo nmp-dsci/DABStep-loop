@@ -1,0 +1,70 @@
+{
+ "id": "F01",
+ "name": "fee-ids-for-merchant-period",
+ "pattern": "(applicable fee ids for <merchant>|fee ids applicable to <merchant>)",
+ "operation": "the fee rules whose criteria match a merchant's transactions in a day, month or year",
+ "invariant": "ids(day) ⊆ ids(month) ⊆ ids(year) for one merchant",
+ "members": 45,
+ "templates": 3,
+ "dev_anchor": [
+  "1681",
+  "1753"
+ ],
+ "status": "open",
+ "canonical_method": {
+  "helper": "applicable_fee_ids(fees, transactions, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume)",
+  "exists": true,
+  "steps": [
+   "info = get_merchant_info(merchant)",
+   "cd_bucket = capture_delay_bucket(info['capture_delay'])  — MANDATORY, never pass the raw capture_delay string",
+   "for each calendar month touching the period: stats = monthly_merchant_stats(payments, merchant, year, month)",
+   "call applicable_fee_ids(fees, transactions=<period-filtered txns>, account_type=info['account_type'], mcc=info['merchant_category_code'], capture_delay=cd_bucket, monthly_fraud_level=stats['monthly_fraud_level_bucket'], monthly_volume=stats['monthly_volume_bucket'])",
+   "day/month answers: transactions = that day's/month's rows only, but the fraud/volume bucket still comes from the containing natural month's monthly_merchant_stats",
+   "year answer: union the id sets returned per month"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees",
+   "§5 natural-month bucketing rules"
+  ]
+ },
+ "conflict_ruling": "task 1709 (day-level, PASS-worthy: calls capture_delay_bucket() then applicable_fee_ids()) is right. task 1808 (month-level) hardcoded capture_delay='7' instead of bucketing it, which is why ids 17/427/634 are present in the day answer but silently absent from the month/year answers — that is the root cause of the two FAILED subset-invariant checks, not a data issue.",
+ "pitfalls": [
+  "Passing merchant_info['capture_delay'] raw (e.g. '7') instead of capture_delay_bucket(...) silently drops fee rules that key on the bucket string (e.g. '>5'), breaking ids(day)⊆ids(month)⊆ids(year)",
+  "Hand-rolling the wildcard-match loop instead of applicable_fee_ids/fee_rule_matches (task 1745) risks missing the null/[]-means-everything rule on scalar fields",
+  "Year-level answers must union per-month id sets, not run applicable_fee_ids once with a single annual fraud/volume bucket",
+  "applicable_fee_ids takes fees/transactions positionally plus keyword-only merchant filters — no 'merchant='/'year='/'month=' kwargs (task 1773's first attempt)"
+ ],
+ "few_shot": {
+  "task_id": "1709",
+  "question": "For the 300th of the year 2023, what are the Fee IDs applicable to Rafa_AI?",
+  "code": "helper.applicable_fee_ids(fees, rafa_day300, account_type=rafa_info['account_type'], mcc=rafa_info['merchant_category_code'], capture_delay=capture_delay_bucket(rafa_info['capture_delay']), monthly_fraud_level=stats['monthly_fraud_level_bucket'], monthly_volume=stats['monthly_volume_bucket'])"
+ },
+ "prompt_rule": "if the question asks for applicable/fee IDs for a merchant over a day/month/year → get_merchant_info + capture_delay_bucket + monthly_merchant_stats (per month) + applicable_fee_ids, union across months for year; answer format: comma-separated sorted ids, empty string if none, 'Not Applicable' only if the merchant/period has no defined concept.",
+ "note": "45 tasks, largest family alongside F03/F08 — the capture_delay_bucket omission bug likely recurs in F03/F05/F09/F10 wherever the same fee-matching preamble is needed.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1709.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1808.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1745.json",
+  "manual.md §5"
+ ],
+ "signals": {
+  "n": 7,
+  "s1_modal_share": 0.286,
+  "s2_agreement": 0.143,
+  "s3_passed": 2,
+  "s3_failed": 2,
+  "s3_skipped": 1,
+  "s5_compliance": 1.0,
+  "turns_mean": 17.1
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "open"
+  }
+ ]
+}

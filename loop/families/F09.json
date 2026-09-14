@@ -1,0 +1,58 @@
+{
+ "id": "F09",
+ "name": "steer-traffic-scheme",
+ "pattern": "steer traffic",
+ "operation": "a merchant's period fees recomputed per card scheme, then argmin or argmax",
+ "invariant": "min-scheme ≠ max-scheme; per-scheme totals reconcile with F03's total",
+ "members": 30,
+ "templates": 4,
+ "dev_anchor": [],
+ "status": "open",
+ "canonical_method": {
+  "helper": "total_fees_paid(fees, scheme-filtered transactions, ...) per month, summed per scheme — needs resolution before shipping",
+  "exists": true,
+  "steps": [
+   "info = get_merchant_info(merchant); cd_bucket = capture_delay_bucket(info['capture_delay'])",
+   "for each scheme: for each month: stats = monthly_merchant_stats(payments, merchant, year, month) computed over ALL of the merchant's transactions that month (not scheme-filtered) so the fraud/volume bucket reflects real merchant behaviour",
+   "fee_dict = total_fees_paid(fees, scheme-and-month-filtered transactions, account_type=..., mcc=..., capture_delay=cd_bucket, monthly_fraud_level=stats['monthly_fraud_level_bucket'], monthly_volume=stats['monthly_volume_bucket'])",
+   "sum per scheme, argmin/argmax"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "Cannot rule cleanly: tasks 2766 and 2765 computed the SAME merchant/year/scheme (Rafa_AI, 2023, TransactPlus) and got TransactPlus flagged as BOTH the minimum (437.25) and the maximum (7700.35) across two different probe tasks — an outright contradiction. This means at least one run's monthly_fraud_level/volume bucket was computed inconsistently (most likely: one used the scheme-filtered subset to derive the monthly bucket instead of the merchant's full monthly transactions, understating or overstating volume).",
+ "pitfalls": [
+  "Using the scheme-filtered subset (instead of the merchant's full monthly transactions) to compute monthly_merchant_stats produces a different, wrong volume/fraud bucket per scheme — the bucket must come from the merchant's total monthly activity",
+  "3 of 4 probe tasks disagreed between pass 1 and pass 2 — this family is currently the least stable in the probe",
+  "No dev-10 anchor exists to settle the ambiguity"
+ ],
+ "few_shot": null,
+ "prompt_rule": "if the question asks which card scheme a merchant should steer traffic to for min/max fees → do NOT ship this family's system.md rule until the optimiser resolves whether the monthly bucket should be computed on the scheme-filtered or full-merchant transaction set; flag every such answer as unverified in the interim.",
+ "note": "Highest-confidence correctness bug found in the probe besides F10 — same merchant/year/scheme contradicted itself across two tasks.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2766.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2765.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2634.json"
+ ],
+ "signals": {
+  "n": 4,
+  "s1_modal_share": 0.25,
+  "s2_agreement": 0.25,
+  "s3_passed": 0,
+  "s3_failed": 1,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 16.8
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "open"
+  }
+ ]
+}

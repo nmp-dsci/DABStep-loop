@@ -1,0 +1,67 @@
+{
+ "id": "F12",
+ "name": "easy-descriptive",
+ "pattern": ".*",
+ "operation": "descriptive statistics over payments.csv; format discipline, not fee logic",
+ "invariant": "two runs agree and the answer matches the guideline format",
+ "members": 72,
+ "templates": 72,
+ "dev_anchor": [
+  "5",
+  "49",
+  "70"
+ ],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "no single call — direct pandas/manual lookups per template, disciplined by the ground rules",
+  "exists": true,
+  "steps": [
+   "check manual.md first if the question references any named concept (threshold, fine, penalty, bucket) — if undefined, answer 'Not Applicable'",
+   "for fraud/volume-bucket questions use fraud_rate_by/volume_bucket/fraud_level_bucket rather than re-deriving bucket edges by hand",
+   "for plain descriptive stats (mean/count/mode over payments.csv) a single vectorised pandas call is sufficient",
+   "match the guideline's exact format (yes/no, letter+country, bare number, etc.)"
+  ],
+  "manual": [
+   "§9 Appendix / Glossary",
+   "whichever section the specific template references"
+  ]
+ },
+ "conflict_ruling": "",
+ "pitfalls": [
+  "Task 69 invented a 'median rate per volume bucket' heuristic to answer a fee-tier comparison question that manual.md does not actually define this way — for any question about fee tiers/thresholds not explicitly named in manual.md, prefer 'Not Applicable' over a constructed proxy metric",
+  "72 distinct templates share this family — format discipline (letter-prefixed choices, Not Applicable, empty-list) is the main failure surface, not data logic"
+ ],
+ "few_shot": {
+  "task_id": "2",
+  "question": "What is the average transaction amount (in EUR)?",
+  "code": "payments['eur_amount'].mean()"
+ },
+ "prompt_rule": "if the question is a plain descriptive stat or references an undefined manual.md concept → answer directly from payments.csv/manual.md per the ground rules, defaulting to 'Not Applicable' when a referenced concept/threshold is not explicitly defined in manual.md; format: follow the guideline text exactly.",
+ "note": "3/3 dev anchors pass; residual risk is entirely in template-specific format compliance across the 72 templates, not in a shared method.",
+ "evidence": [
+  "runs/20260914T024154Z_v1_dev_haiku/traces/5.json",
+  "runs/20260914T034447Z_v2_dev_haiku/traces/49.json",
+  "runs/20260914T034447Z_v2_dev_haiku/traces/70.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/69.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.333,
+  "s2_agreement": 1.0,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 9.3
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}

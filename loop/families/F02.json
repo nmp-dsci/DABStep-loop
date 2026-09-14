@@ -1,0 +1,63 @@
+{
+ "id": "F02",
+ "name": "fee-ids-by-attributes",
+ "pattern": "fee id or ids that apply to account_type",
+ "operation": "the fee rules whose account_type and aci fields match, wildcards included",
+ "invariant": "rules with both fields null appear in every (account_type, aci) answer",
+ "members": 20,
+ "templates": 1,
+ "dev_anchor": [
+  "1464"
+ ],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "fee_rule_matches(rule, account_type=X, aci=Y)",
+  "exists": true,
+  "steps": [
+   "fees = load_fees()",
+   "for rule in fees: if fee_rule_matches(rule, account_type=account_type, aci=aci): collect rule['ID']",
+   "sort ids ascending"
+  ],
+  "manual": [
+   "§4 Authorization Characteristics Indicator",
+   "§2 Account Type",
+   "fee-rule wildcard convention (null/[] matches everything)"
+  ]
+ },
+ "conflict_ruling": "applicable_fee_ids does not accept account_type/aci as standalone kwargs (TypeError in 1485) — task's fallback to fee_rule_matches per rule is correct and matches the manual's wildcard rule; tasks 1493/1494 hand-rolled the identical wildcard check instead of calling fee_rule_matches, which is unnecessary duplication but happened to be correct here.",
+ "pitfalls": [
+  "applicable_fee_ids() has no account_type=/aci=-only calling convention — it requires a transactions DataFrame; use fee_rule_matches per-rule instead for attribute-only questions",
+  "Hand-looping the null/[]-wildcard check by hand (1493, 1494) duplicates fee_rule_matches logic and risks drifting from it if the wildcard rule is ever refined"
+ ],
+ "few_shot": {
+  "task_id": "1485",
+  "question": "What is the fee ID or IDs that apply to account_type = F and aci = B?",
+  "code": "[f['ID'] for f in fees if helper.fee_rule_matches(f, account_type='F', aci='B')]"
+ },
+ "prompt_rule": "if the question asks which fee IDs apply to a given account_type/aci combination (no merchant, no transactions) → loop fees calling helper.fee_rule_matches(rule, account_type=, aci=); format: comma-separated sorted ids.",
+ "note": "Consider adding a thin helper.fee_ids_by_attributes(fees, **filters) wrapper around this loop so future agents stop rediscovering the pattern by trial and error.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1485.json",
+  "manual.md §4"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.667,
+  "s2_agreement": 1.0,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 5.3
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}

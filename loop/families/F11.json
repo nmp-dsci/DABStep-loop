@@ -1,0 +1,62 @@
+{
+ "id": "F11",
+ "name": "avg-value-grouped-by",
+ "pattern": "average transaction value grouped by",
+ "operation": "mean eur_amount of a merchant's scheme transactions in a month range, per group",
+ "invariant": "the count-weighted mean of the groups equals the ungrouped mean",
+ "members": 20,
+ "templates": 6,
+ "dev_anchor": [],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "pandas groupby on payments filtered by merchant/card_scheme/period, mean('eur_amount')",
+  "exists": true,
+  "steps": [
+   "payments['month'] = payments.apply(lambda r: day_of_year_to_month(int(r['day_of_year']), int(r['year'])), axis=1) or filter day_of_year ranges derived from day_of_year_to_month, not hardcoded day numbers",
+   "filter merchant == X, card_scheme == Y, year == Z, month in range",
+   "df.groupby(group_col)['eur_amount'].mean().round(2).sort_values()",
+   "format as [group: amount, ...] ascending by amount"
+  ],
+  "manual": [
+   "§5 natural-month bucketing (day_of_year_to_month)"
+  ]
+ },
+ "conflict_ruling": "",
+ "pitfalls": [
+  "Use day_of_year_to_month() per row rather than fixed day-of-year cutoffs for month boundaries — leap years shift the boundary by a day",
+  "Country groupings must use the ISO country_code, not a full country name",
+  "Sort must be ascending by amount, not by group label"
+ ],
+ "few_shot": {
+  "task_id": "341",
+  "question": "What is the average transaction value grouped by issuing_country for Crossfit_Hanna's NexPay transactions between September and October 2023?",
+  "code": "df.groupby('issuing_country')['eur_amount'].mean().round(2).sort_values()"
+ },
+ "prompt_rule": "if the question asks average transaction value grouped by some column for a merchant/scheme/period → filter payments then pandas groupby(col)['eur_amount'].mean(); format: [group: amount, ...] ascending by amount, 2 decimals.",
+ "note": "No dev-10 anchor yet but all 3 probe invariant checks (weighted-mean/sort) passed and self-agreement is perfect.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/341.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1012.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/842.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.667,
+  "s2_agreement": 1.0,
+  "s3_passed": 3,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 12.7
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}
