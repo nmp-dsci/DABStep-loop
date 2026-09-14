@@ -1,0 +1,85 @@
+{
+  "diagnoses": [
+    {
+      "task_id": "2697",
+      "symptom": "Agent answered E:77.68 against gold E:13.57 — correct ACI letter, wrong fee magnitude, after 19 turns of ad hoc hand-rolled per-ACI fee computation with no helper support for the pattern.",
+      "root_cause": "No helper existed for 'recompute fees for a transaction set under a hypothetical ACI override, excluding the current ACI(s) from the candidate set.' The agent hand-rolled it inconsistently across turns and, per the family card, siblings 2746/2755 hand-rolled the same pattern and picked the CURRENT aci as their 'different' answer — a clear correctness bug distinct from 2697's. I added helper.cheapest_alternative_aci/fraud_fee_by_aci using the same additive every-matching-rule model already verified for total_fees_paid/fee_total_for_rule (task 1871). Re-run against 2697's own data it reproduces the agent's letter (E) and the additive-model magnitude (77.68), and the invariant (excl-current, argmin-correct) holds on 3 merchants. I could NOT reproduce gold's exact 13.57 after testing the additive-all-rules model, a most-specific-rule-only model (16.63), and an averaged-across-rules model (41.66) — same three approaches already tried in cycles 1/3 without success. Flagging this as still unresolved on magnitude; the fix targets the more common and more clearly diagnosed bug (excluding current ACI) that affects the wider F10 family.",
+      "surface": "both",
+      "change": "Added helper.fraud_fee_by_aci/cheapest_alternative_aci (additive per-ACI cost table, argmin excluding current ACI) and a system.md routing row pointing F10 questions at it.",
+      "verified_in_session": true,
+      "verification": "Ran cheapest_alternative_aci for Belles_cookbook_store/Jan (current={G}, best=E@77.68), Rafa_AI/Oct (current={G}, best=E@116.13), Martinis_Fine_Steakhouse/Dec (current={G}, best=D@44.04): in all three, best_aci not in current-aci set and best_cost <= every other alternative's cost (argmin invariant holds). Could not reproduce gold 13.57 for 2697 by any of three tried fee models (additive-all, most-specific-only, averaged) — magnitude mismatch remains unexplained; letter (E) does match gold."
+    },
+    {
+      "task_id": "1808 (F01 family, and F03 siblings 1711/1750/1746)",
+      "symptom": "ids(day)/fees(day) not a subset of ids(month)/fees(month) in probe invariant checks; pass-to-pass disagreement in F01/F03 traces.",
+      "root_cause": "Trace for 1808 passed the raw merchant_data.json capture_delay string ('7') directly to applicable_fee_ids instead of running it through capture_delay_bucket() first ('>5'), silently dropping rules keyed on the bucket string. Several F01/F03 traces omit the capture_delay_bucket() call inconsistently, which also explains the run-to-run disagreement (whether the agent happens to bucket it or not).",
+      "surface": "system.md",
+      "change": "Added an explicit ground rule mandating helper.capture_delay_bucket(merchant_info['capture_delay']) before any fee-matching call, never the raw string.",
+      "verified_in_session": false,
+      "verification": "Not independently re-run against 1808/1711 (no gold available in this cycle for those specific tasks); the rule directly targets the documented mechanism (raw '7' vs bucketed '>5') already confirmed in the family card's CONFLICT RULING."
+    },
+    {
+      "task_id": "F02 (fee-ids-by-attributes, verified family)",
+      "symptom": "applicable_fee_ids has no account_type=/aci=-only calling convention (requires a transactions DataFrame), so attribute-only questions (no merchant/transactions) forced agents to hand-loop fee_rule_matches by hand each time (tasks 1493/1494), risking drift from the canonical wildcard semantics.",
+      "root_cause": "Missing helper entry point for the attribute-only shape, as flagged in the family card's NOTE.",
+      "surface": "both",
+      "change": "Added helper.fee_ids_by_attributes(fees, **filters) thin wrapper around fee_rule_matches, and a routing row for it.",
+      "verified_in_session": true,
+      "verification": "Ran fee_ids_by_attributes(fees, account_type='F', aci='B') and got a non-empty sorted id list including wildcard rules (matches the shape of task 1485's hand-rolled equivalent)."
+    },
+    {
+      "task_id": "F09 (steer-traffic-scheme, open family with a proven contradiction)",
+      "symptom": "Tasks 2766 and 2765 (same merchant/year/scheme, Rafa_AI/2023/TransactPlus) both flagged TransactPlus as the minimum (437.25) AND the maximum (7700.35) across two probe tasks — an outright contradiction traced to one run computing the monthly_fraud_level/monthly_volume bucket from the scheme-filtered transaction subset instead of the merchant's full monthly activity.",
+      "root_cause": "No prompt discipline existed telling the agent which transaction set to bucket on before calling total_fees_paid per scheme; the underlying helper (total_fees_paid) is correct and unchanged, this was purely a prompt/methodology gap.",
+      "surface": "system.md",
+      "change": "Added a routing row requiring monthly_merchant_stats to run over the merchant's full monthly transactions (never scheme-filtered) before filtering by scheme for the fee total.",
+      "verified_in_session": false,
+      "verification": "No new helper code to test; the rule directly encodes the mechanism identified in the family card's CONFLICT RULING and doesn't change any function signature or math, only which transaction subset feeds monthly_merchant_stats."
+    }
+  ],
+  "prompt_diff_summary": "Added a mandatory capture_delay_bucket-before-fee-matching ground rule, and a 'Question families (route first, then compute)' table with one row per family (F01-F12) pointing each question shape at its canonical helper call and answer format, including F09's full-vs-scheme-filtered bucket fix and F10's new cheapest-alternative-ACI helper.",
+  "helper_diff_summary": "Added fee_ids_by_attributes (F02, attribute-only fee-id lookup) and fraud_fee_by_aci/cheapest_alternative_aci (F10, per-ACI fee table with current-ACI exclusion, using the same additive model already verified for total_fees_paid); no existing function changed or removed.",
+  "expected_to_fix": ["2746", "2755", "1808", "2571", "2557"],
+  "risks": [
+    "cheapest_alternative_aci reproduces task 2697's letter (E) but not its exact fee magnitude (77.68 vs gold 13.57) — if leaderboard scoring requires exact value match, 2697-family tasks may still fail on magnitude even where they previously failed on wrong-letter; this should still net-fix the wrong-letter subset (2746/2755-shaped tasks) without making magnitude-only mismatches worse than they already were.",
+    "The system.md routing table is additive prose (one table, one row each) on top of unchanged ground rules and unchanged existing helper functions, so it should not regress any family that was already passing (F02/F04/F07/F08/F11/F12) — verified fee_total_for_rule's task-1871 regression value (-0.948103) still reproduces unchanged after the edits.",
+    "capture_delay_bucket ground rule is a stricter instruction, not a code change, so it cannot break correct traces that already bucketed correctly; worst case is no effect if Haiku ignores the added text."
+  ],
+  "changes": [
+    {
+      "file": "helper.py",
+      "anchor": "def fee_ids_by_attributes",
+      "what": "Added a thin wrapper filtering fees by fee_rule_matches(**filters) with no transactions/merchant argument required.",
+      "why": "F02 family card NOTE: applicable_fee_ids has no attribute-only calling convention, forcing hand-rolled wildcard loops (tasks 1493/1494) that risk drifting from the canonical semantics.",
+      "task_ids": ["1485", "1493", "1494"]
+    },
+    {
+      "file": "helper.py",
+      "anchor": "def fraud_fee_by_aci",
+      "what": "Added a helper computing total EUR fee for a set of fraud transactions per hypothetical ACI override, using the additive every-matching-rule model.",
+      "why": "F10 family card: no helper existed for this pattern (exists in helper.py: False); agents hand-rolled it inconsistently, and 2 of 3 probe traces (2746, 2755) got the exclusion logic wrong as a result.",
+      "task_ids": ["2697", "2746", "2755", "2767"]
+    },
+    {
+      "file": "helper.py",
+      "anchor": "def cheapest_alternative_aci",
+      "what": "Added the argmin-over-alternatives wrapper around fraud_fee_by_aci, excluding the fraud transactions' current ACI(s) from the candidate set.",
+      "why": "F10 family card CONFLICT RULING: task 2767 (correct) explicitly excludes current ACI; 2746/2755 (wrong) select the already-current ACI as their 'different' choice — this is the leading suspect for dev task 2697's failure.",
+      "task_ids": ["2697", "2746", "2755"]
+    },
+    {
+      "file": "system.md",
+      "anchor": "ALWAYS pass `helper.capture_delay_bucket",
+      "what": "Added a ground rule mandating capture_delay_bucket() before any fee-matching call instead of the raw merchant_data.json string.",
+      "why": "F01 family card CONFLICT RULING: task 1808 hardcoded capture_delay='7' instead of bucketing it, dropping ids 17/427/634 and breaking the day⊆month⊆year invariant; same latent bug flagged as present but not yet visibly breaking F03.",
+      "task_ids": ["1808", "1711", "1750", "1746"]
+    },
+    {
+      "file": "system.md",
+      "anchor": "## Question families (route first, then compute)",
+      "what": "Added a 12-row routing table (one row per family F01-F12) mapping question shape to canonical helper call and answer format, plus one blank-templated example.",
+      "why": "Loop method step 4b: route every family whose card exists in the reflector's output through one prompt row so the agent picks the right helper/method before writing code, instead of rediscovering the pattern per task.",
+      "task_ids": ["1709", "1808", "1745", "1742", "1780", "1743", "1711", "1750", "1746", "2537", "2551", "2571", "2557", "2766", "2765", "2644", "2746", "2755", "2697"]
+    }
+  ]
+}
