@@ -3,6 +3,102 @@
  "tracking_uri": "http://127.0.0.1:5600",
  "runs": [
   {
+   "mlflow_run_id": "1a0eb2cd85ab483a82794c64d357e47a",
+   "name": "cycle-6",
+   "status": "FINISHED",
+   "start_time": 1789377323559,
+   "end_time": 1789377323590,
+   "tags": {
+    "kind": "ucycle",
+    "champion": "v2",
+    "challenger": "v4",
+    "verdict": "hold"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_optimiser_in": 5091947.0,
+    "tokens_optimiser_out": 44503.0
+   }
+  },
+  {
+   "mlflow_run_id": "db6b090b53974985abb3ed98c0634b8a",
+   "name": "20260914T085557Z_v4_probe_haiku",
+   "status": "FINISHED",
+   "start_time": 1789377323061,
+   "end_time": 1789377323396,
+   "tags": {
+    "agent": "v4",
+    "fingerprint": "b2a567cbd86e",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v4",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "workers": "3",
+    "passes": "2",
+    "n_tasks": "47",
+    "fingerprint": "b2a567cbd86e"
+   },
+   "metrics": {
+    "cost_usd": 4.3929399,
+    "duration_s": 3427.934,
+    "errors": 0.0,
+    "turns_total": 560.0,
+    "input_tokens": 19055876.0,
+    "output_tokens": 253586.0
+   }
+  },
+  {
+   "mlflow_run_id": "8a4dbdd39b934980b82acf47385a1f1d",
+   "name": "20260914T085441Z_v4_dev_haiku",
+   "status": "FINISHED",
+   "start_time": 1789376157059,
+   "end_time": 1789376157204,
+   "tags": {
+    "agent": "v4",
+    "fingerprint": "b2a567cbd86e",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v4",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "workers": "3",
+    "passes": "1",
+    "n_tasks": "10",
+    "fingerprint": "b2a567cbd86e"
+   },
+   "metrics": {
+    "passed": 6.0,
+    "pass_rate": 0.6,
+    "easy_passed": 1.0,
+    "hard_passed": 5.0,
+    "cost_usd": 0.3415087,
+    "duration_s": 186.78,
+    "errors": 0.0,
+    "turns_total": 38.0,
+    "input_tokens": 1259034.0,
+    "output_tokens": 15703.0,
+    "task_5": 1.0,
+    "task_49": 0.0,
+    "task_70": 0.0,
+    "task_1273": 1.0,
+    "task_1305": 1.0,
+    "task_1464": 1.0,
+    "task_1681": 0.0,
+    "task_1753": 1.0,
+    "task_1871": 1.0,
+    "task_2697": 0.0
+   }
+  },
+  {
    "mlflow_run_id": "8d304fc36e3b4ad09b3c5f02cfac44c1",
    "name": "20260914T075909Z_v3_probe_haiku",
    "status": "FINISHED",

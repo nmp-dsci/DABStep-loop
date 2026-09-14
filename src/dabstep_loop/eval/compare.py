@@ -111,3 +111,35 @@ def gate_a(dev: Verdict, before: dict[str, Any], after: dict[str, Any]) -> Signa
     ]
     reason = ("promote: " if improved else "hold: no paired improvement; ") + " · ".join(parts)
     return SignalVerdict(improved, [], dev.fixed, dev.p_value, b, a, reason)
+
+
+def gate_dev(dev: Verdict, before: dict[str, Any], after: dict[str, Any]) -> SignalVerdict:
+    """Promote on dev-10 alone: strictly more passes with no break, or a one-sided McNemar win.
+
+    The probe signals are recorded next to the verdict but do not decide. Nathan's
+    rule for cycle 6: "either improvement in correct answers and no regression, or
+    McNemar one-sided statistical significance"."""
+    keys = ("s3_passed", "s3_failed", "s1_mean", "s2_mean", "s5_mean", "errors")
+    b = {k: before.get(k) for k in keys}
+    a = {k: after.get(k) for k in keys}
+    strict = bool(dev.fixed) and not dev.broken
+    promote = strict or dev.promote
+    how = (
+        f"{len(dev.fixed)} fixed, 0 broken"
+        if strict
+        else f"McNemar p = {dev.p_value:.3f} < {dev.alpha}"
+        if dev.promote
+        else f"fixed {len(dev.fixed)}, broke {len(dev.broken)}, p = {dev.p_value:.3f}"
+    )
+    reason = (
+        ("promote: " if promote else "hold: ")
+        + how
+        + (
+            f" · probe S3 {b['s3_passed']}/{b['s3_failed']} → {a['s3_passed']}/{a['s3_failed']}"
+            f" · S1 {b['s1_mean']} → {a['s1_mean']} · S2 {b['s2_mean']} → {a['s2_mean']} (recorded, not required)"
+        )
+    )
+    return SignalVerdict(promote, dev.broken, dev.fixed, dev.p_value, b, a, reason)
+
+
+GATES = {"a": gate_a, "dev": gate_dev}

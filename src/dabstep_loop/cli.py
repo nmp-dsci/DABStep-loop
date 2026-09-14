@@ -208,11 +208,15 @@ def uloop(
     seed: int = 0,
     passes: int = 2,
     workers: int = 3,
+    gate: str = "a",
 ) -> None:
-    """The unsupervised loop: probe the 450 by family → cards → optimiser → paired eval → gate A → ledger."""
+    """The unsupervised loop: probe the 450 by family → cards → optimiser → paired eval → gate → ledger.
+
+    --gate a (default): no dev break and the paired probe signals improve.
+    --gate dev: strictly more dev passes with no break, or a one-sided McNemar win; probe signals recorded only."""
     from dabstep_loop.loop.run import run_uloop
 
-    asyncio.run(run_uloop(cycles, agent, optimiser_model, k, seed, passes, workers))
+    asyncio.run(run_uloop(cycles, agent, optimiser_model, k, seed, passes, workers, gate=gate))
 
 
 @app.command()
