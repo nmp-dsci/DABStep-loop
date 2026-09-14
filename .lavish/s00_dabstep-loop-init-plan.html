@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>s00 · DABstep-loop — initialise the project, ship agent v0, score it, open the loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Design source (2): the project's own system — DESIGN.md, a port of
+   nmp-dsci.github.io/assets/css/tokens.css ("Field Guide"). Tokens verbatim. */
+:root{
+  --bg:#F7F6F2; --panel:#FFFFFF; --band:#EFEEE8;
+  --ink:#1A1D1B; --ink-2:#3B403D; --muted:#4A514D; --faint:#5C635E;
+  --line:#DCDAD2; --line-2:#C7C5BC; --line-3:#8A8880;
+  --accent:#0A6552; --accent-ink:#FFFFFF; --accent-soft:#DFEFE8;
+  --amber:#8A5006; --amber-soft:#F6E6CF;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --t-2:0.8rem; --t-1:0.875rem; --t0:1rem; --t1:1.125rem; --t2:1.406rem; --t3:1.758rem; --t4:2.197rem;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --r:10px; --r-sm:6px;
+  --shadow:0 1px 2px rgb(20 25 22 / .05), 0 12px 28px -18px rgb(20 25 22 / .22);
+  --dur:300ms; --ease:cubic-bezier(.2,.7,.2,1); --focus:var(--accent);
+  --w:1140px; --measure:68ch; --track-label:.08em;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --panel:#191E1B; --band:#161A18;
+    --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+    --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+    --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+    --amber:#D99A4E; --amber-soft:#3A2A14;
+    --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#191E1B; --band:#161A18;
+  --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+  --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+  --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+  --amber:#D99A4E; --amber-soft:#3A2A14;
+  --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+}
+@media (prefers-reduced-motion: reduce){ :root{ --dur:0.01ms; } }
+*,*::before,*::after{box-sizing:border-box}
+:where(.grid,.flex,.kpi,.slide,.cards)>*{min-width:0}
+:where(p,h1,h2,h3,h4,li,dd,figcaption,td,th,.chip,.label){overflow-wrap:anywhere}
+:where(img,svg,video,iframe){max-width:100%;height:auto}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:var(--t0);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.15;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:var(--t4);font-family:var(--serif);font-weight:400} h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+h2{font-size:var(--t3)} h3{font-size:var(--t1)} h4{font-size:var(--t0)}
+p{margin:0 0 var(--s4);text-wrap:pretty}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:.2em} a:hover{text-decoration-thickness:2px}
+strong,b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:max(var(--t-2),.86em);background:var(--band);padding:.08em .32em;border-radius:var(--r-sm);color:var(--ink-2)}
+.wrap{max-width:var(--w);margin-inline:auto;padding-inline:var(--s5)}
+.label{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0}
+.lead{font-family:var(--serif);font-size:var(--t1);line-height:1.5;color:var(--ink-2);max-width:72ch}
+.small{font-size:var(--t-1);color:var(--muted)}
+.top{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--w);margin-inline:auto;padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.top b{font-family:var(--mono);font-size:var(--t-1);color:var(--ink);white-space:nowrap}
+.top nav{display:flex;gap:var(--s4);margin-left:auto;flex-wrap:wrap;font-size:var(--t-1);font-weight:500}
+.top nav a{color:var(--ink-2);text-decoration:none;padding:var(--s1) 0} .top nav a:hover{color:var(--accent)}
+header.hero{padding:var(--s7) 0 var(--s5)}
+.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) 0 0}
+.chip{font-family:var(--mono);font-size:var(--t-2);padding:.3em .6em;border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--ink-2);background:var(--panel)}
+.chip.ok{border-color:var(--accent);color:var(--accent)} .chip.warn{border-color:var(--amber);color:var(--amber)}
+section.blk{padding-top:var(--s8)} section.blk:last-of-type{padding-bottom:var(--s9)}
+section.band-sec{background:var(--band);margin-top:var(--s8);padding:var(--s7) 0}
+section.band-sec + section.blk{padding-top:var(--s7)}
+.hd{margin-bottom:var(--s5);max-width:80ch} .hd .label{margin-bottom:var(--s2)} .hd h2{margin-bottom:var(--s3)}
+.panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5)}
+.grid{display:grid;gap:var(--s4)} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.loopg{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media (max-width:900px){.g3,.g2,.loopg{grid-template-columns:minmax(0,1fr)}}
+.card h3{margin-bottom:var(--s2)} .card p{margin-bottom:var(--s2);font-size:var(--t-1)} .card p:last-child{margin:0}
+.card.pro{box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);box-shadow:var(--shadow);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--t-1)}
+caption{text-align:left;padding:var(--s4) var(--s5) var(--s2);color:var(--muted);font-size:var(--t-1);caption-side:top}
+th,td{text-align:left;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+thead th{font-family:var(--mono);font-size:var(--t-2);font-weight:500;color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.sub{font-weight:600;color:var(--ink);white-space:nowrap}
+td.num{font-family:var(--mono);font-size:var(--t-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.pro td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.v-ok{color:var(--accent);font-weight:600} .v-no{color:var(--muted)} .v-warn{color:var(--amber);font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4)}
+@media(max-width:900px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi .k{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s4)}
+.kpi .k b{display:block;font-family:var(--mono);font-size:var(--t3);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k span{display:block;font-size:var(--t-2);color:var(--muted);margin-top:var(--s2);line-height:1.4}
+blockquote{margin:0;padding:var(--s3) var(--s4);border-left:2px solid var(--accent);background:var(--band);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:var(--t-1)}
+blockquote.warn{border-left-color:var(--amber)}
+.fig{margin:var(--s5) 0 0}
+.fig-title{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0 0 var(--s3);text-wrap:balance}
+.dia-frame{background:var(--panel);border-radius:var(--r);padding:var(--s4);box-shadow:var(--shadow)}
+.fig figcaption{font-family:var(--sans);font-size:var(--t-1);color:var(--muted);line-height:1.5;margin-top:var(--s3)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+.dia{display:block;width:100%;height:auto;color:var(--ink-2);overflow:visible}
+.dia .nd{fill:var(--bg);stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}
+.dia .nd.hi{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.dia .nd.ext{fill:none;stroke:var(--line-3);stroke-dasharray:4 3}
+.dia .rg{fill:none;stroke:var(--line-2);stroke-dasharray:5 4}
+.dia .tx{font-family:var(--mono);font-size:11.5px;fill:currentColor}
+.dia .tx.k{fill:var(--ink);font-weight:500;font-family:var(--sans);font-size:12.5px}
+.dia .tx.s{font-size:10.5px;fill:var(--faint)}
+.dia .cap{font-family:var(--mono);font-size:10.5px;fill:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase}
+.dia .ed{stroke:currentColor;stroke-width:1.25;vector-effect:non-scaling-stroke;fill:none;marker-end:url(#arr)}
+.dia .ed.hi{stroke:var(--accent);stroke-width:1.6}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:var(--s3)}
+.steps li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:var(--s3);align-items:start;font-size:var(--t-1)}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--mono);color:var(--accent);font-weight:500;padding-top:2px}
+form.q{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5);display:grid;gap:var(--s3);margin-top:var(--s4)}
+form.q h3{margin:0} form.q .why{font-size:var(--t-1);color:var(--muted);margin:0}
+form.q label{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;min-height:24px}
+form.q label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+form.q input[type=radio]{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px}
+form.q textarea{width:100%;font:inherit;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2);min-height:3.2rem;resize:vertical}
+form.q .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap}
+form.q.bare{box-shadow:none;padding:0;background:transparent;margin-top:var(--s3)}
+.btn{font:500 var(--t-1) var(--sans);background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;min-height:24px;transition:filter var(--dur) var(--ease)}
+.btn:hover{filter:brightness(1.08)} .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.queued{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);min-height:1.2em}
+.rec{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);margin-left:.4em}
+.done{font-family:var(--mono);font-size:var(--t-2);color:var(--accent-ink);background:var(--accent);padding:.2em .5em;border-radius:var(--r-sm);letter-spacing:var(--track-label);text-transform:uppercase}
+ul.tight{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.tight li{margin-bottom:var(--s1)}
+ul.qa{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.qa li{margin-bottom:var(--s2)}
+.tree,pre.md{font-family:var(--mono);font-size:var(--t-2);line-height:1.65;white-space:pre;overflow-x:auto;margin:0;background:var(--band);border-radius:var(--r);padding:var(--s4)}
+.insight{font-size:var(--t-1);color:var(--muted);margin:var(--s3) 0 0;max-width:var(--measure)}
+footer{border-top:1px solid var(--line);padding:var(--s5) 0;font-size:var(--t-2);color:var(--faint);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="top"><div class="top-in"><b>s00 · DABstep-loop · plan</b>
+<nav><a href="#goal">Goal</a><a href="#bench">Benchmark</a><a href="#labels">Labels</a><a href="#arch">Architecture</a><a href="#track">Tracking</a><a href="#agent">Agent v0</a><a href="#viewer">Frontend</a><a href="#nvidia">The loop</a><a href="#repo">Repo</a><a href="#deploy">Deploy</a><a href="#ms">Milestones</a><a href="#approve">Approve</a></nav></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="label">plan · new project · 2026-09-14 · design source: DESIGN.md (Field Guide)</p>
+  <h1>One harness that runs a Claude agent over DABstep, scores it, versions it, and <em>learns</em> from every run</h1>
+  <p class="lead">A new Python project downloads the Adyen DABstep benchmark, runs a Claude Agent SDK data-analysis agent over its 450 questions, scores answers with the benchmark's own scorer, tracks each run as a registered agent version, and writes the leaderboard submission. Phase 2 replicates NVIDIA's 1st-place recipe: learn on the ten labelled tasks with a strong model, distil a helper library, run inference with Haiku.</p>
+  <div class="chips">
+    <span class="chip ok">decided: labels = NVIDIA protocol (dev-10 gold, no test labels)</span>
+    <span class="chip ok">decided: public repo nmp-dsci/DABStep-loop</span>
+    <span class="chip ok">decided: React frontend, demo-only AWS App Runner site on merge to main</span>
+    <span class="chip ok">decided: self-hosted tracking, MLflow 3 local</span>
+    <span class="chip ok">decided: subscription billing in dev only, prod never calls a model</span>
+    <span class="chip ok">this build: Haiku only on dev-10 · error loop · frontend · demo deploy · reflection on the smoke set</span>
+    <span class="chip warn">open: approve the scope below</span>
+  </div>
+</div></header>
+
+<section class="blk" id="goal"><div class="wrap">
+  <div class="hd"><p class="label">01 · goal &amp; state</p>
+  <h2>1 · Goal — a scored, versioned run in one command, then the loop</h2>
+  <p>Done for <b>this build</b> means <code>make eval AGENT=v0 MODEL=haiku SPLIT=dev</code> runs Haiku 4.5 over the ten gold tasks, scores it, logs a comparable run with traces, and <code>make loop</code> turns every failure into a helper and examples that the next Haiku version passes with. The frontend, the AWS demo and a reflection cycle on the smoke set ship in this build too. Only the full 450-task scoring and the Sonnet baseline are deferred to the next build on the same harness.</p></div>
+  <div class="kpi">
+    <div class="k"><b>450</b><span>test tasks · 72 easy, 378 hard · every answer field empty</span></div>
+    <div class="k"><b>10</b><span>dev tasks with answers · 3 easy, 7 hard · the only gold labels</span></div>
+    <div class="k"><b>89.95%</b><span>NVIDIA hard score on Haiku 4.5, against 19.84% for plain Sonnet 4 ReAct (378 hard tasks)</span></div>
+    <div class="k"><b>$0 so far</b><span>empty directory · uv 0.10, Python 3.14, Docker 29, Claude Code 2.1.270 verified · no keys in the shell</span></div>
+  </div>
+  <p class="insight">The gap between the last two numbers is the whole project: an honest baseline first, then a loop that closes it.</p>
+  <blockquote class="warn" style="margin-top:var(--s4)"><b>Two facts from the research reshape the build.</b> The test split ships with empty answers, so local scoring needs a label strategy (settled in §3). And the leaderboard's Validated tab is closed pending DABstep-v2: new uploads land on the Unvalidated tab, which already holds many 100/100 entries. Your leaderboard number stays the honest holdout, but it is no longer a differentiator.</blockquote>
+</div></section>
+
+<section class="band-sec" id="bench"><div class="wrap">
+  <div class="hd"><p class="label">02 · the benchmark, verified from source</p>
+  <h2>2 · Benchmark — 23 fee questions, permuted, decide the hard score</h2>
+  <p>Every task is a factoid question over one fixed context folder. The 378 hard tasks are 23 core fee-calculation questions permuted over merchant, month and threshold, and all of them hinge on rules in <code>manual.md</code> plus matching logic over <code>fees.json</code>. That is why a plain ReAct agent scores about 20% hard and NVIDIA's helper library scores about 90%.</p></div>
+  <div class="tw"><table>
+    <caption>The context folder · sizes from the Hugging Face API · <code>adyen/DABstep</code> at <code>data/context/</code></caption>
+    <thead><tr><th>File</th><th>Size</th><th>What it holds</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">payments.csv</td><td class="num">23.6 MB</td><td>~138k synthetic transactions, 21 columns (merchant, card_scheme, eur_amount, is_credit, aci, issuing_country, acquirer_country, has_fraudulent_dispute, day_of_year …)</td><td>Every question aggregates this</td></tr>
+      <tr><td class="sub">fees.json</td><td class="num">531 KB</td><td>1000 fee rules; <code>null</code> or <code>[]</code> means "applies to all"</td><td>The hard-task trap: wildcard semantics, ranges as strings</td></tr>
+      <tr><td class="sub">manual.md</td><td class="num">22 KB</td><td>Merchant guide: account types, MCC, ACI, fee formula <code>fixed + rate × amount / 10000</code>, monthly volume and fraud buckets, intracountry definition</td><td>Must be read before computing; models that skip it fail</td></tr>
+      <tr><td class="sub">merchant_data.json</td><td class="num">7 KB</td><td>30 merchants: capture_delay, acquirers, MCC, account_type</td><td>Joins merchant to rule attributes</td></tr>
+      <tr><td class="sub">three lookups</td><td class="num">&lt; 30 KB</td><td><code>acquirer_countries.csv</code>, <code>merchant_category_codes.csv</code>, <code>payments-readme.md</code></td><td>Intracountry flag, MCC descriptions, column docs</td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>A task row, and what the empty field means</h3>
+<pre class="md">{"task_id": "1273",
+ "question": "For credit transactions, what would be the average fee
+   that the card scheme GlobalCard would charge for a transaction
+   value of 10 EUR?",
+ "guidelines": "Answer must be just a number expressed in EUR rounded
+   to 6 decimals. If a question does not have a relevant or applicable
+   answer for the task, please respond with 'Not Applicable'",
+ "level": "hard",
+ "answer": "0.120132"}   ← "" on every one of the 450 test rows</pre>
+      <p class="small" style="margin-top:var(--s3)">Source: <code>data/tasks/dev.jsonl</code>, downloaded this session; the 450-row file has zero non-empty answers.</p></div>
+    <div class="panel card"><h3>The submission row the space validates</h3>
+<pre class="md">{"task_id": "1273",
+ "agent_answer": "0.120132",
+ "reasoning_trace": "..."}   ← optional, filled with "" if absent</pre>
+      <p style="margin-top:var(--s3)">All 450 <code>task_id</code>s are required or evaluation raises. <code>validate_submission</code> rejects NaN, non-string columns, and any extra column other than <code>reasoning_trace</code>. Upload is a Gradio form behind a Hugging Face login: agent name, model family, system-prompt example, repo URL, organisation, contact email.</p></div>
+  </div>
+  <div class="panel" style="margin-top:var(--s4)">
+    <h3>The scorer is lenient on numbers and strict on strings, so extraction matters more than prose</h3>
+    <div class="grid g2" style="margin-top:var(--s3);align-items:start">
+      <div>
+        <p class="label" style="margin-bottom:var(--s2)">the five comparison steps, in order</p>
+        <ol class="steps">
+          <li>Lowercase and strip both sides.</li>
+          <li>If either looks numeric with commas, compare numerically: both under 1 uses <code>isclose(1e-4)</code>; otherwise round both to the <b>fewer</b> decimals of the two.</li>
+          <li>Else if <code>,</code> or <code>;</code> is present, split, strip brackets, <b>sort</b>, compare element-wise recursively.</li>
+          <li>Else extract the first number from each and compare numerically if both parse.</li>
+          <li>Else compare strings: exact after stripping non-word characters; a single word passes a subset test; otherwise <code>SequenceMatcher.ratio() &gt; 0.95</code>.</li>
+        </ol>
+      </div>
+      <div>
+        <p class="label" style="margin-bottom:var(--s2)">consequences, each becomes a test</p>
+        <div class="tw" style="box-shadow:none;background:var(--band)"><table style="min-width:0">
+          <thead><tr><th>Agent answer</th><th>Ground truth</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td class="num">$42.00</td><td class="num">42</td><td class="v-ok">correct</td></tr>
+            <tr><td class="num">73.15%</td><td class="num">73.1495</td><td class="v-ok">correct</td></tr>
+            <tr><td class="num">0.731495413640441</td><td class="num">0.731495</td><td class="v-ok">correct</td></tr>
+            <tr><td class="num">3.14</td><td class="num">3.1483</td><td class="v-warn">wrong</td></tr>
+            <tr><td class="num">Netherlands</td><td class="num">NL</td><td class="v-warn">wrong</td></tr>
+            <tr><td class="num">"" (empty)</td><td class="num">"" (empty)</td><td class="v-ok">correct</td></tr>
+            <tr><td class="num">Not Applicable</td><td class="num">Not Applicable</td><td class="v-ok">correct · dev task 70</td></tr>
+          </tbody></table></div>
+        <p class="insight">A sentence that contains the right number also scores, so a clean <code>agent_answer</code> extraction step beats prose control. We vendor <code>scorer.py</code> from the space verbatim and never re-implement it.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk" id="labels"><div class="wrap">
+  <div class="hd"><p class="label">03 · decision A · settled in review</p>
+  <h2>3 · Labels — ten gold tasks are all anyone gets, so we learn NVIDIA's way</h2>
+  <p>DABstep publishes exactly two task splits. Only the ten-row one has answers; the 450 answers live in a private <code>adyen/DABstep-internal</code> dataset that only the leaderboard reads. Your call in review: replicate how NVIDIA did it.</p></div>
+  <div class="tw"><table>
+    <caption>Both split files downloaded and counted this session · dataset card <code>tasks</code> config</caption>
+    <thead><tr><th>Split</th><th>File</th><th>Rows</th><th>Rows with an answer</th><th>Role in this project</th></tr></thead>
+    <tbody>
+      <tr class="pro"><td class="sub">dev</td><td class="num">data/tasks/dev.jsonl</td><td class="num">10</td><td class="num">10</td><td>The gold regression set: 3 easy, 7 hard. Every helper function and agent version must pass it first.</td></tr>
+      <tr><td class="sub">default</td><td class="num">data/tasks/all.jsonl</td><td class="num">450</td><td class="num">0</td><td>The leaderboard test set, run unlabelled. Learned from only by reflection.</td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card pro"><p class="label" style="margin-bottom:var(--s2)"><span class="done">decided</span></p>
+      <h3>What the protocol commits us to</h3>
+      <ul class="qa">
+        <li><b>Where does learning signal come from?</b> One optimiser session per cycle sees the failed dev tasks with their gold answers and traces, and rewrites the system prompt and <code>helper.py</code> for the next version (§8).</li>
+        <li><b>How do the 450 teach anything without labels?</b> Reflection: a strong model reviews traces for helper misuse and code mistakes, and checks group consistency across permutations of the same core question. Conflicts become prompt notes for the next version.</li>
+        <li><b>What is the official number?</b> The leaderboard upload. Locally we report dev-10 accuracy plus label-free signals on the 450: answer-format validity, timeout rate, group-consistency rate, agreement between self-consistency passes.</li>
+      </ul></div>
+    <div class="panel card"><h3>What it rules out, and what it costs</h3>
+      <ul class="qa">
+        <li><b>Not done:</b> no answer key is derived from the dataset's published <code>task_scores</code> files, though the data makes it possible. The submission notes can say "dev-10 only, NVIDIA-style".</li>
+        <li><b>The cost:</b> ranking two prompts on ten tasks is noisy, so the phase-2 gate uses dev-10 pass/fail plus the consistency metrics, and each leaderboard upload is a manual form submit. Sonnet versus Haiku on v0 is measured by uploading both.</li>
+        <li><b>Room later:</b> once the helper is verified, generating our own labelled question permutations is a clean add-on that touches no test data. Out of scope until asked.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="band-sec" id="arch"><div class="wrap">
+  <div class="hd"><p class="label">04 · proposed architecture</p>
+  <h2>4 · Architecture — one package, one CLI, five planes, files first</h2>
+  <p>Everything a comparison needs is a file on disk first (predictions, scores, a run manifest) and a tracking-server record second, so the tracking backend stays replaceable. The highlighted path is v0's critical path.</p></div>
+  <figure class="fig" style="margin:0">
+    <p class="fig-title">Figure · the five planes and the v0 critical path</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 1100 560" role="img" aria-label="Architecture: data plane feeds an agent plane built on the Claude Agent SDK with a stateful Python tool; an eval plane runs, scores and writes run folders; a tracking plane mirrors runs to MLflow, a React frontend served by FastAPI reads run folders and deploys as a demo site, and a submission goes to the leaderboard space.">
+      <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".7"/></marker></defs>
+      <g id="r-data"><title>Data plane</title><rect class="rg" x="20" y="20" width="250" height="520" rx="10"/><text class="cap" x="34" y="42">data plane</text></g>
+      <g id="r-agent"><title>Agent plane</title><rect class="rg" x="290" y="20" width="330" height="300" rx="10"/><text class="cap" x="304" y="42">agent plane · claude agent sdk</text></g>
+      <g id="r-eval"><title>Eval plane</title><rect class="rg" x="290" y="340" width="330" height="200" rx="10"/><text class="cap" x="304" y="362">eval plane</text></g>
+      <g id="r-track"><title>Tracking, viewer, submission</title><rect class="rg" x="640" y="20" width="440" height="520" rx="10"/><text class="cap" x="654" y="42">tracking · viewer · submission</text></g>
+      <g id="n-hf"><title>Hugging Face dataset adyen/DABstep</title><rect class="nd ext" x="40" y="60" width="210" height="52" rx="6"/><text class="tx k" x="50" y="82">HF adyen/DABstep</text><text class="tx s" x="50" y="100">tasks · dev · context/*</text></g>
+      <g id="n-data"><title>data/context</title><rect class="nd" x="40" y="140" width="210" height="64" rx="6"/><text class="tx k" x="50" y="162">data/context/ (gitignored)</text><text class="tx s" x="50" y="180">payments.csv · fees.json · manual.md …</text><text class="tx s" x="50" y="196">file_structures.json (generated)</text></g>
+      <g id="n-splits"><title>Task splits and groups</title><rect class="nd" x="40" y="230" width="210" height="76" rx="6"/><text class="tx k" x="50" y="252">data/tasks/</text><text class="tx s" x="50" y="270">dev-10 (gold) · test-450 (no labels)</text><text class="tx s" x="50" y="286">core-question groups for reflection</text><text class="tx s" x="50" y="302">NVIDIA protocol, decision A</text></g>
+      <g id="n-ws"><title>Per-task sandbox workspace</title><rect class="nd" x="40" y="340" width="210" height="52" rx="6"/><text class="tx k" x="50" y="362">workspace/&lt;run&gt;/&lt;task&gt;/</text><text class="tx s" x="50" y="380">read-only context, code dumps</text></g>
+      <g id="n-agent"><title>Agent version: ClaudeSDKClient with options</title><rect class="nd hi" x="310" y="60" width="290" height="70" rx="6"/><text class="tx k" x="320" y="82">agents/&lt;version&gt;/ → ClaudeSDKClient</text><text class="tx s" x="320" y="100">system prompt · model · max_turns · cwd</text><text class="tx s" x="320" y="116">fingerprint = sha(prompt, tools, helper, model)</text></g>
+      <g id="n-tools-builtin"><title>Built-in SDK tools</title><rect class="nd" x="310" y="150" width="140" height="60" rx="6"/><text class="tx k" x="320" y="172">built-in tools</text><text class="tx s" x="320" y="190">Read · Grep · Glob</text><text class="tx s" x="320" y="204">(Bash restricted)</text></g>
+      <g id="n-tools-py"><title>In-process MCP tool: execute_python</title><rect class="nd hi" x="460" y="150" width="140" height="60" rx="6"/><text class="tx k" x="470" y="172">execute_python</text><text class="tx s" x="470" y="190">stateful namespace,</text><text class="tx s" x="470" y="204">pandas loaded, 120 s</text></g>
+      <g id="n-answer"><title>Answer extraction</title><rect class="nd" x="310" y="230" width="290" height="70" rx="6"/><text class="tx k" x="320" y="252">answer.py</text><text class="tx s" x="320" y="270">parse {"agent_answer": …} · guideline formatting</text><text class="tx s" x="320" y="286">loop-breaker · timeout → "Not Applicable"</text></g>
+      <g id="n-runner"><title>Eval runner</title><rect class="nd hi" x="310" y="380" width="140" height="64" rx="6"/><text class="tx k" x="320" y="402">runner.py</text><text class="tx s" x="320" y="420">asyncio, N workers</text><text class="tx s" x="320" y="436">resume · retries</text></g>
+      <g id="n-scorer"><title>Vendored scorer</title><rect class="nd" x="460" y="380" width="140" height="64" rx="6"/><text class="tx k" x="470" y="402">scorer.py</text><text class="tx s" x="470" y="420">verbatim from the space</text><text class="tx s" x="470" y="436">+ compare gate</text></g>
+      <g id="n-runs"><title>Run folder on disk</title><rect class="nd" x="310" y="464" width="290" height="60" rx="6"/><text class="tx k" x="320" y="486">runs/&lt;run_id&gt;/</text><text class="tx s" x="320" y="504">manifest · predictions · scores · submission.jsonl</text></g>
+      <g id="n-mlflow"><title>MLflow 3 tracking server</title><rect class="nd hi" x="660" y="60" width="400" height="90" rx="6"/><text class="tx k" x="670" y="82">MLflow 3 (sqlite, :5600) · decision B</text><text class="tx s" x="670" y="100">experiment dabstep/evals: params (fingerprint, model, split), metrics</text><text class="tx s" x="670" y="116">registered model dabstep-agent: one version per fingerprint, @champion</text><text class="tx s" x="670" y="132">traces: autolog over ClaudeSDKClient + CLI OTel spans (OTLP)</text></g>
+      <g id="n-viewer"><title>Viewer app</title><rect class="nd" x="660" y="180" width="190" height="80" rx="6"/><text class="tx k" x="670" y="202">frontend · React + FastAPI</text><text class="tx s" x="670" y="220">data · architecture · ask · runs · loop</text><text class="tx s" x="670" y="236">demo-only on AWS App Runner</text><text class="tx s" x="670" y="252">ships on merge to main</text></g>
+      <g id="n-lb"><title>DABstep leaderboard space</title><rect class="nd ext" x="870" y="180" width="190" height="80" rx="6"/><text class="tx k" x="880" y="202">HF space adyen/DABstep</text><text class="tx s" x="880" y="220">Gradio upload form</text><text class="tx s" x="880" y="236">→ Unvalidated tab</text><text class="tx s" x="880" y="252">easy % · hard %</text></g>
+      <g id="n-loop"><title>Improvement loop</title><rect class="nd" x="660" y="300" width="400" height="110" rx="6"/><text class="tx k" x="670" y="322">the loop · phase 2 (§8)</text><text class="tx s" x="670" y="342">eval champion on dev-10 (Haiku) → failures + traces</text><text class="tx s" x="670" y="358">optimiser: one Sonnet 5 session, reads ledger, edits only system.md + helper.py</text><text class="tx s" x="670" y="374">eval v(n+1) (Haiku) → gate → promote or hold → outcome into ledger</text><text class="tx s" x="670" y="390">later: reflection over the 450, self-consistency passes</text></g>
+      <g id="n-cli"><title>CLI entry points</title><rect class="nd" x="660" y="440" width="400" height="80" rx="6"/><text class="tx k" x="670" y="462">CLI · uv run dabstep …</text><text class="tx s" x="670" y="480">data pull · eval · score · compare · register · promote · submit</text><text class="tx s" x="670" y="496">learn · distil · reflect · viewer</text><text class="tx s" x="670" y="512">Makefile wraps the same verbs (make eval AGENT= MODEL= SPLIT=)</text></g>
+      <g id="edges"><title>Data and control flow</title>
+        <path class="ed" d="M145,112 L145,140"/><path class="ed" d="M145,204 L145,230"/><path class="ed" d="M145,306 L145,340"/>
+        <path class="ed hi" d="M250,366 L310,366 L310,380"/>
+        <path class="ed hi" d="M250,260 L290,260 L290,412 L310,412"/>
+        <path class="ed" d="M380,130 L380,150"/><path class="ed" d="M530,130 L530,150"/><path class="ed" d="M455,210 L455,230"/>
+        <path class="ed hi" d="M455,300 L455,340 L380,340 L380,380"/>
+        <path class="ed" d="M450,412 L460,412"/><path class="ed" d="M455,444 L455,464"/>
+        <path class="ed hi" d="M600,494 L640,494 L640,105 L660,105"/><path class="ed" d="M600,494 L660,494"/>
+        <path class="ed" d="M755,150 L755,180"/><path class="ed" d="M965,150 L965,180"/><path class="ed" d="M755,260 L755,300"/>
+        <path class="ed hi" d="M660,355 L630,355 L630,95 L600,95"/>
+      </g>
+    </svg></div>
+    <figcaption><b>Tasks flow into a fresh SDK session per task, through the stateful Python tool, into the runner, the vendored scorer and a run folder, which MLflow mirrors.</b> External systems are dashed; the loop feeds back into the next agent version. Source: this plan; every box maps to a module in §9.</figcaption>
+  </figure>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>The Agent SDK plus an in-process Python tool is the right v0 shape</h3>
+      <ul class="qa">
+        <li><b>Why the Agent SDK?</b> You asked for it first, it gives Read/Grep/Glob for manual lookups free, and data-qa-agent and ConvFinQA already carry the exact <code>ClaudeAgentOptions</code> and <code>ClaudeSDKClient</code> call shape and env-sanitising rules to copy.</li>
+        <li><b>Why not just Bash?</b> NVIDIA's decisive tool is a <b>stateful</b> Python executor (persistent namespace, pandas preloaded, REPL auto-print, timeout, repeat-code loop-breaker). Bash is stateless, so the executor is exposed as an in-process MCP tool and Bash stays off the v0 allow-list.</li>
+        <li><b>How does the answer come out?</b> The system prompt demands a final <code>{"agent_answer": …}</code>; <code>answer.py</code> parses it, applies guideline hints, and falls back to "Not Applicable" on timeout. One session per task, a semaphore of 4 to start.</li>
+      </ul></div>
+    <div class="panel card"><h3>Versioning borrows the gate your other two projects already run</h3>
+      <ul class="qa">
+        <li><b>What is a version?</b> A folder: <code>agents/v0/</code> holds <code>agent.yaml</code>, <code>system.md</code>, optional <code>helper.py</code> and <code>examples.md</code>. Its fingerprint is the content hash plus the model id.</li>
+        <li><b>How is it registered?</b> <code>dabstep register</code> mirrors each fingerprint into the MLflow model registry with the folder tarred as an artifact, so any past version can be checked out and re-run.</li>
+        <li><b>What passes the gate?</b> <code>dabstep compare A B</code>: challenger's dev-10 score at or above champion's <b>and</b> no task flips pass to fail, plus no regression on the label-free 450 metrics. Different splits are refused as not comparable.</li>
+        <li><b>Where are models built?</b> One module only; <code>subscription_env()</code> blanks <code>ANTHROPIC_API_KEY</code> and strips <code>CLAUDE_CODE_*</code> when billing is by subscription, so a run inside Claude Code never bills that session.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="blk" id="track"><div class="wrap">
+  <div class="hd"><p class="label">05 · decision B · settled in review</p>
+  <h2>5 · Tracking — self-hosted MLflow 3, and the backend stays swappable</h2>
+  <p>Your call in review: self-hosted. That rules out every cloud tracker and settles on MLflow 3 running locally on SQLite, with Phoenix as the self-hosted alternative if the trace UI ever matters more than the registry. Nine tools were scored against local-first, cheap, minimal ops, a real compare UI and a documented Claude Agent SDK integration; the table keeps the rejected ones for the record.</p></div>
+  <div class="grid g3">
+    <div class="panel card pro"><p class="label" style="margin-bottom:var(--s2)"><span class="done">decided</span> self-hosted</p><h3>MLflow 3 (≥ 3.5)</h3>
+      <p>Apache-2, <code>pip</code> only, one process on SQLite; the same stack as data-qa-agent (port 5500) and ConvFinQA (port 5000), so this uses 5600.</p>
+      <p><b>Official</b> <code>mlflow.anthropic.autolog()</code> traces <code>ClaudeSDKClient</code>: prompts, tool calls, subagents, tokens and cost. Bare <code>query()</code> is not traced, so we use the client.</p>
+      <p><code>mlflow.genai.evaluate()</code> with a custom scorer wrapping the vendored one; runs compared in the Experiments UI; the model registry gives champion and challenger aliases.</p>
+      <p class="small">Cost: the trace UI is functional, not pretty; <code>evaluate()</code> wants a sync predict function, so the async runner is wrapped.</p></div>
+    <div class="panel card"><p class="label" style="margin-bottom:var(--s2)">self-hosted alternative</p><h3>Arize Phoenix</h3>
+      <p><code>phoenix serve</code>, SQLite, one process. Elastic License 2.0: fine for internal use, not OSI.</p>
+      <p>Official <code>ClaudeAgentSDKInstrumentor</code> over OpenInference/OTel gives agent and tool spans; per-LLM-call spans come from the CLI's OTel export.</p>
+      <p>Datasets, experiments, evaluators and a comparison UI cleaner than MLflow's.</p>
+      <p class="small">Cost: no model registry or alias concept; versioning stays in run manifests.</p></div>
+    <div class="panel card"><p class="label" style="margin-bottom:var(--s2)">rejected: cloud only</p><h3>Pydantic Logfire</h3>
+      <p>Free tier of 10M records a month, hard-capped at $0. Self-host only on Enterprise, so not local-first.</p>
+      <p><code>logfire.instrument_claude_agent_sdk()</code> is documented; Pydantic Evals compares baseline against candidate grouped regressed, improved, unchanged, with trace drill-in.</p>
+      <p class="small">Cost: the data leaves the machine. data-qa-agent already emits through the Logfire SDK into MLflow, so this is additive, never a cutover.</p></div>
+  </div>
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>The full field · Claude Agent SDK support checked against each tool's own docs, September 2026</caption>
+    <thead><tr><th>Tool</th><th>Licence · hosting</th><th>Claude Agent SDK</th><th>Datasets + experiments + compare</th><th>Ops weight</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr class="pro"><td class="sub">MLflow 3</td><td>Apache-2 · pip + SQLite</td><td class="v-ok">official autolog</td><td>yes, plus model registry</td><td>minimal</td><td class="v-ok">pick</td></tr>
+      <tr><td class="sub">Phoenix</td><td>ELv2 · pip + SQLite</td><td class="v-ok">official instrumentor</td><td>yes</td><td>minimal</td><td>runner-up; swap in via OTLP endpoint</td></tr>
+      <tr><td class="sub">Logfire</td><td>SaaS · free 10M rec/mo</td><td class="v-ok">official</td><td>yes, best compare UI</td><td>none, cloud</td><td class="v-no">rejected: not self-hosted</td></tr>
+      <tr><td class="sub">Langfuse</td><td>MIT · 6-service docker, 16 GiB</td><td>via OpenInference</td><td>yes, most mature</td><td class="v-warn">heaviest</td><td>team platform, overkill here</td></tr>
+      <tr><td class="sub">Opik</td><td>Apache-2 · docker + ClickHouse</td><td>via CLI OTel only</td><td>yes, polished</td><td>medium</td><td>good, heavier than needed</td></tr>
+      <tr><td class="sub">Braintrust · Weave</td><td>proprietary SaaS</td><td class="v-ok">official</td><td>best-in-class · good</td><td>cloud</td><td class="v-no">not local; paid tiers</td></tr>
+      <tr><td class="sub">Inspect AI</td><td>Apache-2 · pip</td><td>sandbox bridge (proxy)</td><td>dataset + scorer; compare is DIY</td><td>minimal</td><td>complement for rigorous logs, not a tracker</td></tr>
+      <tr><td class="sub">promptfoo</td><td>MIT · Node + SQLite</td><td>TypeScript provider only</td><td>matrix compare</td><td>low</td><td>red-team and prompt matrices later</td></tr>
+    </tbody></table></div>
+  <blockquote style="margin-top:var(--s4)"><b>Whatever the pick, the backend stays swappable.</b> The CLI's OTel env goes in <code>ClaudeAgentOptions.env</code> (<code>CLAUDE_CODE_ENABLE_TELEMETRY=1</code>, <code>OTEL_TRACES_EXPORTER=otlp</code>, the enhanced-telemetry beta, tool content on, a 1 s export interval, and an endpoint) so spans nest under the runner's span. Predictions and scores live in <code>runs/</code> as JSONL; the tracker only mirrors them, and a down server prints "mlflow · skipped" instead of failing an eval.</blockquote>
+  <p class="insight" style="margin-top:var(--s4)">Self-hosting in the demo image is not needed: the public site reads a committed MLflow snapshot, so the tracking server only ever runs on your machine and in CI.</p>
+</div></section>
+
+<section class="band-sec" id="agent"><div class="wrap">
+  <div class="hd"><p class="label">06 · agent v0 · decision C · settled in review</p>
+  <h2>6 · Agent v0 — an honest baseline with no helper and no examples</h2>
+  <p>Expected to land near the published baselines: 75–85% easy, 15–30% hard. That gap is the number the loop has to close, so v0 is deliberately plain.</p></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>The v0 prompt and config, in full</h3>
+<pre class="md"># agents/v0/system.md
+You are a data science expert answering tabular data QA.
+Data files live in data/context/ (structures below). manual.md
+defines every term; read the relevant section BEFORE computing fees.
+Use execute_python to explore (don't over-explore) and compute.
+When done, stop calling tools and reply ONLY with:
+{"agent_answer": &lt;answer formatted per GUIDELINES&gt;}
+
+# agents/v0/agent.yaml
+model: claude-haiku-4-5          # or claude-sonnet-5
+max_turns: 20
+tools: [Read, Grep, Glob, mcp__py__execute_python]
+effort: medium                   # sonnet only
+timeout_s: 270</pre></div>
+    <div class="panel card"><h3>Token spend is measured on dev-10 before any full run</h3>
+      <div class="tw" style="box-shadow:none"><table style="min-width:0">
+        <thead><tr><th>Run</th><th>Tasks</th><th>Model</th><th>Est. cost</th><th>Wall @ 4 workers</th></tr></thead>
+        <tbody>
+          <tr><td class="sub">smoke</td><td class="num">10</td><td>Haiku 4.5</td><td class="num">≈ $1–3</td><td class="num">≈ 3 min</td></tr>
+          <tr><td class="sub">smoke</td><td class="num">10</td><td>Sonnet 5</td><td class="num">≈ $3–8</td><td class="num">≈ 4 min</td></tr>
+          <tr><td class="sub">full</td><td class="num">450</td><td>Haiku 4.5</td><td class="num">≈ $40–120</td><td class="num">≈ 1.5–2.5 h</td></tr>
+          <tr><td class="sub">full</td><td class="num">450</td><td>Sonnet 5</td><td class="num">≈ $100–300</td><td class="num">≈ 2–3 h</td></tr>
+        </tbody></table></div>
+      <p class="insight">Ranges are what the same runs would cost at API prices, assuming about 15 turns of 8–15k input tokens with caching. Under subscription billing they read as token budget against plan limits, not dollars; NVIDIA's helper-equipped Haiku ran at about 20 s a task, so phase 2 gets cheaper, not dearer.</p></div>
+  </div>
+  <div class="panel card pro" style="margin-top:var(--s4)"><p class="label" style="margin-bottom:var(--s2)"><span class="done">decided</span> billing</p>
+    <h3>Subscription in dev, never in prod, enforced in code rather than by care</h3>
+    <div class="grid g2">
+      <ul class="qa">
+        <li><b>How does dev bill?</b> Through your Claude subscription via the CLI login. <code>agent/llm.py</code> is the only place a model is built; its <code>subscription_env()</code> blanks <code>ANTHROPIC_API_KEY</code> and strips every <code>CLAUDE_CODE_*</code> variable before spawning a session, the ConvFinQA rule, so a run started inside Claude Code never bills that session and never falls back to a key.</li>
+        <li><b>What if a key is present?</b> The runner refuses to start with both a key and <code>BILLING=subscription</code> set, so which one paid is never ambiguous in a run manifest.</li>
+      </ul>
+      <ul class="qa">
+        <li><b>How does prod bill?</b> It does not. The image carries <code>DEMO_MODE=1</code> and no credentials of any kind; <code>llm.py</code> raises under demo mode; <code>/ask</code> replays a recorded pack. Nothing in App Runner can reach a model.</li>
+        <li><b>What replaces the cost metric?</b> Input, output and cached tokens per task are still captured from the SDK's usage messages and logged to MLflow; the dollar figure is computed from the price table as an estimate and labelled as such. Plan limits are the cap: full 450 runs are sharded and resumable so a rate limit pauses rather than loses a run.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk" id="viewer"><div class="wrap">
+  <div class="hd"><p class="label">07 · decision D · settled in review</p>
+  <h2>7 · Frontend — see the data, the architecture, and the versioned agent live</h2>
+  <p>Your calls in review: a simple frontend to see the input data, the architecture and use the versioned agent live, deployed to AWS on merge to main as a demo-only site like data-qa-agent and ConvFinQA. That fixes the shape: React + Vite + TypeScript served from FastAPI in one container, styled with the tokens in <code>DESIGN.md</code>, read-only in production, and keyless by construction. The Streamlit option is dropped.</p></div>
+  <div class="tw"><table>
+    <caption>The pages · the three you asked for first, then the evaluation and loop pages · each evidences one engineering claim</caption>
+    <thead><tr><th>Route</th><th>Page</th><th>What it shows</th><th>Reads</th><th>The claim it evidences</th></tr></thead>
+    <tbody>
+      <tr class="pro"><td class="num">/data</td><td class="sub">Data</td><td>The input data: a paged, sortable view of <code>payments.csv</code> with column docs from the readme; <code>fees.json</code> as a filterable rule table (scheme, ACI, MCC, null means all); <code>merchant_data.json</code>; the two lookups; <code>manual.md</code> rendered with a section index; the file-structures summary the agent sees</td><td><code>data/context/*</code> via the API, the CSV sampled to 5k rows in the image</td><td>The benchmark is one folder and one manual</td></tr>
+      <tr class="pro"><td class="num">/architecture</td><td class="sub">Architecture</td><td>The five-plane figure from §4 as a live page: click a plane for its modules; the registered agent versions with fingerprint, model, tools, prompt, helper API and champion or challenger alias; the loop figure from §8</td><td><code>registry.json</code>, <code>agents/*/agent.yaml</code>, the committed SVGs</td><td>The agent is a versioned artifact, not a prompt in a notebook</td></tr>
+      <tr class="pro"><td class="num">/ask</td><td class="sub">Ask the agent</td><td>Pick an agent version and model, type a question (or pick a dev task), and watch the session stream: each tool call, the Python it ran, its output, tokens and seconds, then the extracted <code>agent_answer</code> and, for a dev task, the scorer's verdict. Locally this runs the real Claude Agent SDK session; in the demo it replays a recorded pack, paced, and declines questions it has no recording for</td><td>local: live SDK session · demo: <code>demo_pack/pack.json</code></td><td>The versioned agent can be used, and its work is inspectable</td></tr>
+      <tr><td class="num">/</td><td class="sub">Overview</td><td>What DABstep is, the two split counts, the champion's leaderboard score against the plain baseline, links to the three chapters: build, evaluation, loop</td><td><code>registry.json</code>, <code>leaderboard.json</code></td><td>Outcome first, with baseline and caveat</td></tr>
+      <tr><td class="num">/tasks</td><td class="sub">Tasks</td><td>Dev-10 with answers; the 450 test tasks grouped by core question, filtered by level and guideline family; "ask this" opens it in /ask</td><td><code>data/tasks/*</code>, groups</td><td>The benchmark is 23 questions permuted</td></tr>
+      <tr><td class="num">/runs</td><td class="sub">Runs</td><td>Every registered run: agent version, model, split, easy and hard scores, cost, p50 seconds; per-task table with answer, expected, verdict, trace link</td><td><code>runs/*/manifest</code>, <code>scores.jsonl</code></td><td>Evaluation is reproducible and versioned</td></tr>
+      <tr><td class="num">/compare</td><td class="sub">Compare</td><td>Run A against run B: pass-to-fail flips, agreement, the gate verdict JSON</td><td>two run folders</td><td>Promotion is a gate, not a feeling</td></tr>
+      <tr><td class="num">/traces/:id</td><td class="sub">Trace</td><td>One task's tool calls, code executed, tokens, timing, from the committed trace snapshot</td><td><code>traces_snapshot.jsonl.gz</code></td><td>The agent's work is inspectable</td></tr>
+      <tr><td class="num">/loop</td><td class="sub">The loop</td><td>Learning over time: each cycle's diagnoses, the surface changed, prior attempts consulted, the gate verdict, tasks fixed and broken, tokens</td><td><code>loop/ledger.jsonl</code></td><td>The cheap model got there by distillation</td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>Stack and discipline, copied from ConvFinQA's frontend</h3>
+      <ul class="tight">
+        <li>React 18, Vite 5, TypeScript, react-router-dom 7, TanStack Query and Table, Tailwind 4, Radix, Recharts; IBM Plex fonts self-hosted.</li>
+        <li><code>frontend/src/tokens.css</code> is the DESIGN.md token block; <code>frontend/scripts/design_lint.mjs</code> hard-fails on any hex outside it and ratchets raw pixel sizes against <code>design-baseline.json</code>, wired into <code>npm run lint</code> and CI.</li>
+        <li>Served in prod from FastAPI (<code>_mount_frontend</code> mounting <code>frontend/dist</code>): same origin, one container, no nginx. Locally <code>make dev</code> runs Vite and the API side by side.</li>
+        <li>The only live control is /ask. Locally it drives a real session; in the demo the same UI replays a recorded pack, and any control that would spend money is a real <code>&lt;fieldset disabled&gt;</code> with a "not available, demo only" chip, backed by a server 403.</li>
+      </ul></div>
+    <div class="panel card"><h3>The API is a thin reader over the run folders</h3>
+      <ul class="tight">
+        <li><code>src/dabstep_loop/serving/app.py</code>: FastAPI, <code>/healthz</code> reporting <code>mode=demo|live</code>, <code>/api/context/{file}</code> (paged), <code>/api/registry</code>, <code>/api/architecture</code>, <code>/api/tasks</code>, <code>/api/runs</code>, <code>/api/runs/{id}/scores</code>, <code>/api/compare?a=&amp;b=</code>, <code>/api/traces/{id}</code>, <code>/api/story</code>, and <code>POST /api/ask</code> streaming SSE events (<code>tool_call</code>, <code>tool_result</code>, <code>text</code>, <code>answer</code>, <code>verdict</code>, <code>usage</code>).</li>
+        <li><code>/api/ask</code> calls the same <code>agent/session.py</code> the eval runner uses, one session per request behind an <code>asyncio</code> lock and the 270 s timeout, so what you see in the browser is exactly what a run does. Under <code>DEMO_MODE</code> it is served by <code>serving/demo_pack/replay.py</code> from a pack recorded with <code>dabstep demo-pack --n 12</code> (all dev-10 plus two hard test tasks) at zero extra cost: the pack is cut from real run traces.</li>
+        <li>Locally it reads <code>runs/</code> and <code>agents/</code> directly; in the image it reads the same paths, copied in at build time. One code path, two data sources, so the demo cannot drift from the real thing.</li>
+        <li>A test pins the Dockerfile's COPY list against the paths the routes actually open, the ConvFinQA rule that stopped a missing-file 500 shipping.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="band-sec" id="deploy"><div class="wrap">
+  <div class="hd"><p class="label">07b · deployment · settled in review</p>
+  <h2>7b · Deploy — merge to main ships a keyless demo to App Runner</h2>
+  <p>ConvFinQA's deployment is the minimal version of this pattern and is copied file for file: one Terraform module, one Dockerfile with demo mode baked into the image, one CI-gated workflow, no secrets, no database. Cost is roughly $5–15 a month at idle, from ConvFinQA's README.</p></div>
+  <figure class="fig" style="margin:0 0 var(--s5)">
+    <p class="fig-title">Figure · what happens on a merge to main</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 1100 170" role="img" aria-label="Pipeline left to right: CI passes on main, the deploy workflow assumes an OIDC role, builds and pushes the image to ECR, applies Terraform, App Runner auto-deploys, a smoke test asserts demo mode and the champion, and the URL is written to the job summary.">
+      <defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".7"/></marker></defs>
+      <g id="d-ci"><title>CI on main</title><rect class="nd" x="20" y="40" width="150" height="90" rx="6"/><text class="tx k" x="32" y="64">CI green on main</text><text class="tx s" x="32" y="84">lint · test · design_lint</text><text class="tx s" x="32" y="100">workflow_run trigger,</text><text class="tx s" x="32" y="116">conclusion == success</text></g>
+      <g id="d-oidc"><title>OIDC assume role</title><rect class="nd" x="200" y="40" width="150" height="90" rx="6"/><text class="tx k" x="212" y="64">assume role</text><text class="tx s" x="212" y="84">GitHub OIDC, no keys</text><text class="tx s" x="212" y="100">dabstep-github-deploy</text><text class="tx s" x="212" y="116">bootstrapped once</text></g>
+      <g id="d-build"><title>Build and push</title><rect class="nd hi" x="380" y="40" width="150" height="90" rx="6"/><text class="tx k" x="392" y="64">build · push</text><text class="tx s" x="392" y="84">buildx linux/amd64</text><text class="tx s" x="392" y="100">ECR :latest + :sha</text><text class="tx s" x="392" y="116">DEMO_MODE=1 in image</text></g>
+      <g id="d-tf"><title>Terraform apply</title><rect class="nd" x="560" y="40" width="150" height="90" rx="6"/><text class="tx k" x="572" y="64">terraform apply</text><text class="tx s" x="572" y="84">infra/terraform/demo</text><text class="tx s" x="572" y="100">ECR + App Runner + alarm</text><text class="tx s" x="572" y="116">ap-southeast-1</text></g>
+      <g id="d-run"><title>App Runner</title><rect class="nd hi" x="740" y="40" width="150" height="90" rx="6"/><text class="tx k" x="752" y="64">App Runner</text><text class="tx s" x="752" y="84">auto-deploy on :latest</text><text class="tx s" x="752" y="100">512 CPU · 1 GB · :8080</text><text class="tx s" x="752" y="116">poll until RUNNING</text></g>
+      <g id="d-smoke"><title>Smoke test</title><rect class="nd" x="920" y="40" width="160" height="90" rx="6"/><text class="tx k" x="932" y="64">smoke · summary</text><text class="tx s" x="932" y="84">mode=demo · champion</text><text class="tx s" x="932" y="100">served = registered</text><text class="tx s" x="932" y="116">URL + rollback note</text></g>
+      <g id="d-edges"><title>Flow</title>
+        <path class="ed" style="marker-end:url(#arr3)" d="M170,85 L200,85"/><path class="ed" style="marker-end:url(#arr3)" d="M350,85 L380,85"/><path class="ed" style="marker-end:url(#arr3)" d="M530,85 L560,85"/><path class="ed" style="marker-end:url(#arr3)" d="M710,85 L740,85"/><path class="ed" style="marker-end:url(#arr3)" d="M890,85 L920,85"/>
+        <text class="tx s" x="20" y="158">rollback: retag a previous :sha image as :latest in ECR · the 2-services-per-region App Runner cap in ap-southeast-2 is why the region is Singapore</text>
+      </g>
+    </svg></div>
+    <figcaption><b>A red main cannot ship, and the shipped image cannot bill: demo mode is an environment variable in the Dockerfile, not a Terraform setting.</b> Source: ConvFinQA-agent <code>.github/workflows/deploy-aws.yml</code>, <code>infra/terraform/demo/main.tf</code>, <code>Dockerfile</code>.</figcaption>
+  </figure>
+  <div class="grid g2">
+    <div class="panel card"><h3>Keyless by construction, so a public URL is never a billable one</h3>
+      <ul class="qa">
+        <li><b>Where is the choke point?</b> <code>agent/llm.py</code>, the only place models are built, raises under <code>DEMO_MODE=1</code>. No API key exists in the container's environment at all.</li>
+        <li><b>What about /ask in the demo?</b> It replays the recorded pack, paced like a real 20–60 s session, and declines anything outside the pack rather than serving a near-miss, the ConvFinQA rule. A visitor sees a real session; nothing they type reaches a model.</li>
+        <li><b>What does the site read then?</b> Committed artifacts copied into the image: <code>runs/&lt;id&gt;/</code> manifests and scores for milestone runs, <code>registry.json</code>, <code>loop/ledger.jsonl</code>, <code>leaderboard.json</code>, and a trimmed <code>traces_snapshot.jsonl.gz</code> built by <code>dabstep snapshot</code> from MLflow at zero API cost.</li>
+        <li><b>Is there a login?</b> No. Fully public, read-only, an in-memory per-IP rate limit on the API, and a 5xx CloudWatch alarm.</li>
+      </ul></div>
+    <div class="panel card"><h3>The files this adds to the layout</h3>
+<pre class="tree">infra/terraform/bootstrap/main.tf   # once, locally: the OIDC deploy role
+infra/terraform/demo/main.tf        # ECR + App Runner + 5xx alarm
+infra/terraform/demo/variables.tf   # region with a reason, sizing
+Dockerfile                          # node build → python slim + uv, DEMO_MODE=1
+scripts/aws_build_push.sh           # buildx, :latest + :sha, ECR login
+scripts/demo_smoke.sh               # health, champion, evidence, 403
+.github/workflows/ci.yml            # lint · test · design_lint
+.github/workflows/deploy-aws.yml    # workflow_run on CI success on main
+src/dabstep_loop/serving/app.py     # FastAPI + SSE /api/ask + mounted frontend/dist
+src/dabstep_loop/serving/demo_pack/ # pack.json · replay.py · cli.py
+src/dabstep_loop/tracking/snapshot.py  # MLflow → committed JSON</pre>
+      <p class="small" style="margin-top:var(--s3)">Shared with the siblings: the AWS account, the GitHub OIDC provider, and the tfstate bucket (key <code>dabstep-loop/demo.tfstate</code>). Bootstrap runs once with your admin credentials, by you, not by CI.</p></div>
+  </div>
+</div></section>
+
+<section class="band-sec" id="nvidia"><div class="wrap">
+  <div class="hd"><p class="label">08 · the loop · settled in review</p>
+  <h2>8 · The loop — one optimiser session, two surfaces, a ledger it must read first</h2>
+  <p>This is the "optimisation loop on error" as you described it, confirmed: one Claude Agent SDK session sees every dev-10 failure with its trace, reads what earlier cycles tried and how they scored, diagnoses each failure, may change only the system prompt and the helper library, verifies each fix against the gold answer by running code, writes the next agent version, and records its diagnosis and proposals in a ledger. The harness then runs Haiku on the new version, gates it, and writes the outcome back into the same ledger entry so the next optimiser never repeats a change that did not work. NVIDIA's learn and distil stages collapse into this one session because it has the same tools they used across two.</p></div>
+  <figure class="fig" style="margin:0 0 var(--s5)">
+    <p class="fig-title">Figure · one cycle: eval → optimiser session → new version → eval → gate → ledger</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 1100 250" role="img" aria-label="One loop cycle: Haiku evaluates the champion on dev-10 and produces failures with traces; a single optimiser session reads the ledger of past cycles, the failures and traces, diagnoses, edits only system.md and helper.py, verifies against gold answers, writes the next version and appends to the ledger; Haiku evaluates the new version; the gate promotes or holds; the outcome is written back to the ledger entry.">
+      <defs><marker id="arr4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" opacity=".7"/></marker></defs>
+      <g id="c-eval"><title>Eval the champion</title><rect class="nd" x="20" y="60" width="180" height="96" rx="6"/><text class="tx k" x="32" y="84">01 · eval champion</text><text class="tx s" x="32" y="104">Haiku 4.5 on dev-10</text><text class="tx s" x="32" y="120">→ failures + traces</text><text class="tx s" x="32" y="136">→ runs/&lt;id&gt;/</text></g>
+      <g id="c-opt"><title>The optimiser session</title><rect class="nd hi" x="230" y="30" width="330" height="156" rx="6"/><text class="tx k" x="242" y="54">02 · optimiser · one Agent SDK session, Sonnet 5</text><text class="tx s" x="242" y="76">reads: ledger of past cycles · failures · traces · gold answers</text><text class="tx s" x="242" y="92">diagnoses each failed task, one entry per task</text><text class="tx s" x="242" y="108">may edit only: agents/v(n+1)/system.md · helper.py</text><text class="tx s" x="242" y="124">verifies each fix by running code against the gold answer</text><text class="tx s" x="242" y="140">runs the dev-10 regression tests before it may finish</text><text class="tx s" x="242" y="156">writes the version folder · appends the ledger entry</text><text class="tx s" x="242" y="172">tools: Read · Grep · Edit · Write · execute_python</text></g>
+      <g id="c-eval2"><title>Eval the new version</title><rect class="nd" x="590" y="60" width="180" height="96" rx="6"/><text class="tx k" x="602" y="84">03 · eval v(n+1)</text><text class="tx s" x="602" y="104">Haiku 4.5 on dev-10</text><text class="tx s" x="602" y="120">same harness, same</text><text class="tx s" x="602" y="136">scorer, logged to MLflow</text></g>
+      <g id="c-gate"><title>Gate</title><rect class="nd hi" x="800" y="60" width="140" height="96" rx="6"/><text class="tx k" x="812" y="84">04 · gate</text><text class="tx s" x="812" y="104">passes ≥ champion</text><text class="tx s" x="812" y="120">no pass → fail flip</text><text class="tx s" x="812" y="136">promote or hold</text></g>
+      <g id="c-ledger"><title>The ledger</title><rect class="nd ext" x="970" y="60" width="110" height="96" rx="6"/><text class="tx k" x="982" y="84">ledger</text><text class="tx s" x="982" y="104">outcome written</text><text class="tx s" x="982" y="120">back: verdict,</text><text class="tx s" x="982" y="136">fixed, broken</text></g>
+      <g id="c-edges"><title>Flow</title>
+        <path class="ed" style="marker-end:url(#arr4)" d="M200,108 L230,108"/><path class="ed" style="marker-end:url(#arr4)" d="M560,108 L590,108"/><path class="ed" style="marker-end:url(#arr4)" d="M770,108 L800,108"/><path class="ed" style="marker-end:url(#arr4)" d="M940,108 L970,108"/>
+        <path class="ed hi" style="marker-end:url(#arr4)" d="M1025,156 L1025,220 L395,220 L395,186"/>
+        <text class="tx s" x="600" y="214">next cycle: the optimiser reads every earlier entry before it diagnoses</text>
+        <path class="ed hi" style="marker-end:url(#arr4)" d="M870,156 L870,236 L110,236 L110,156"/>
+        <text class="tx s" x="120" y="230">promoted version becomes the champion</text>
+      </g>
+    </svg></div>
+    <figcaption><b>The optimiser is the only stage that spends strong-model tokens, and it cannot finish until its own regression tests pass; the gate, not the optimiser, decides promotion.</b> Source: NVIDIA's learn and distil stages (<code>dabstep_agent/learn</code>) merged into one session; the gate is ConvFinQA's comparator rule.</figcaption>
+  </figure>
+
+  <div class="grid g2">
+    <div class="panel card"><h3>Confirmed, with two refinements you should know about</h3>
+      <ul class="qa">
+        <li><b>One session?</b> Yes. One <code>ClaudeSDKClient</code> session per cycle, Sonnet 5, up to 60 turns, with Read, Grep, Edit, Write and the same <code>execute_python</code> tool the agent uses, so it can reproduce a failure and test a fix in place.</li>
+        <li><b>Only the system prompt and <code>helper.py</code>?</b> Yes, enforced: the session's Write and Edit tools are allowed only under <code>agents/v(n+1)/</code>, and a post-cycle check diffs the folder and rejects the version if anything but <code>system.md</code> and <code>helper.py</code> changed. Worked examples live inside <code>system.md</code> as a section rather than a third file, so "prompt" stays one surface. <code>agent.yaml</code> (model, turns, tools) is frozen for the loop; changing it is a human decision.</li>
+        <li><b>Does it make the new agent?</b> Yes. Its output is the folder <code>agents/v(n+1)/</code>, fingerprinted and registered as <code>@challenger</code>. It never edits the champion in place, so a bad cycle costs nothing but tokens.</li>
+        <li><b>Refinement 1:</b> the session must run the dev-10 regression tests and see them pass before it is allowed to end; a fix that breaks a passing task is caught inside the session, not by the gate.</li>
+        <li><b>Refinement 2:</b> the gate is separate code, not the optimiser's opinion. Promotion needs the Haiku pass count to hold or rise and no task to flip pass to fail.</li>
+      </ul></div>
+    <div class="panel card"><h3>The ledger is how learning survives across cycles</h3>
+      <p><code>loop/ledger.jsonl</code>, one entry per cycle, committed. The optimiser's system prompt includes every prior entry, newest first, and instructs it to state for each diagnosis whether a similar change was tried before and what happened.</p>
+<pre class="md">{"cycle": 3, "champion": "v2", "challenger": "v3",
+ "failed": ["1273", "1681", "2697"],
+ "diagnoses": [
+   {"task_id": "1273",
+    "symptom": "fee 0.10 vs gold 0.120132",
+    "root_cause": "rules with is_credit=null excluded",
+    "surface": "helper.py",
+    "change": "matches_bool_field treats null as wildcard",
+    "prior_attempts": [{"cycle": 1, "change": "prompt note on nulls", "outcome": "hold: 1273 still failed"}],
+    "verified_in_session": true}],
+ "prompt_diff_summary": "+ section: manual §5 null semantics",
+ "helper_diff_summary": "+ matches_bool_field, ~ find_matching_fees",
+ "outcome": {"verdict": "promote", "passes": "8 → 10",
+             "fixed": ["1273", "1681", "2697"], "broken": []},
+ "tokens": {"optimiser": 1.9e6, "eval": 1.4e6}}</pre>
+      <p class="small" style="margin-top:var(--s3)">The harness writes <code>outcome</code> after the gate; the optimiser writes everything else. <code>prior_attempts</code> is what stops it re-proposing a prompt note that already failed. The frontend's /loop page (§7) is a reader over this file, and MLflow gets the same entry as run tags so the two never disagree.</p></div>
+  </div>
+
+  <div class="panel" style="margin-top:var(--s4)">
+    <h3>What <code>make loop</code> does, cycle by cycle, and when it stops</h3>
+    <div class="grid g2 loopg" style="align-items:start">
+      <ol class="steps">
+        <li><code>eval</code> the champion on dev-10 with Haiku; write the run folder; log it; list the failed task ids. If none, stop: dev-10 passes.</li>
+        <li>Build the optimiser prompt: the ledger (all prior entries), each failed task with question, guidelines, gold answer, the agent's answer, and its full trace (tool calls, code, outputs).</li>
+        <li>Run the optimiser session: diagnose per task, check prior attempts, edit <code>system.md</code> and <code>helper.py</code> under <code>agents/v(n+1)/</code>, verify each fix by running code, run the dev-10 regression tests, append the ledger entry.</li>
+        <li>Reject the version if the folder diff touches anything else; register it as <code>@challenger</code>.</li>
+        <li><code>eval</code> the challenger on dev-10 with Haiku; <code>compare</code> against the champion; promote or hold; write the outcome, fixed and broken task ids into the ledger entry.</li>
+        <li>Repeat from step 1 with the new champion, up to <code>CYCLES</code> (default 4) or until dev-10 is 10 of 10.</li>
+      </ol>
+      <div>
+        <p class="label" style="margin-bottom:var(--s2)">budget for this build, per cycle, under subscription</p>
+        <div class="tw" style="box-shadow:none;background:var(--band)"><table style="min-width:0">
+          <thead><tr><th>Stage</th><th>Model</th><th>Scope</th><th>Est. tokens</th></tr></thead>
+          <tbody>
+            <tr><td class="sub">eval</td><td>Haiku 4.5</td><td class="num">10 tasks</td><td class="num">≈ 1–2M in, 50k out</td></tr>
+            <tr><td class="sub">optimiser</td><td>Sonnet 5</td><td class="num">1 session, ≤ 60 turns</td><td class="num">≈ 2–4M in, 150k out</td></tr>
+            <tr><td class="sub">re-eval + gate</td><td>Haiku 4.5</td><td class="num">10 tasks</td><td class="num">≈ 1–2M in, 50k out</td></tr>
+          </tbody></table></div>
+        <p class="insight">Four cycles is within a day of plan limits at these sizes; every stage is resumable, so a rate limit pauses a cycle rather than losing it. The loop never touches the 450 test tasks in this build.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="blk" id="repo"><div class="wrap">
+  <div class="hd"><p class="label">09 · repository, layout, commands · settled in review</p>
+  <h2>9 · Repo — public under nmp-dsci from the first commit, secrets never</h2>
+  <p>This directory is empty and not a git repository. Your four other agent projects are public repos under <code>github.com/nmp-dsci</code> and <code>gh</code> is logged in to that account, so M0 runs <code>git init</code> then <code>gh repo create nmp-dsci/DABStep-loop --public --source . --push</code>. The repo URL goes in the leaderboard form.</p></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>Layout follows your template and data-qa-agent</h3>
+<pre class="tree">DABStep-loop/
+├── AGENTS.md            # source of truth (architecture, invariants, loop)
+├── CLAUDE.md            # pointer + quick reference + delegation policy
+├── DESIGN.md            # the visual brief (this artifact's source)
+├── README.md · LICENSE · Makefile · pyproject.toml · uv.lock · .env.example
+├── .gitignore · .pre-commit-config.yaml (ruff, gitleaks)
+├── ai_specs/ · skills/ · opensrc/ · .lavish/
+├── src/dabstep_loop/
+│   ├── cli.py           # typer: data · eval · score · compare · register
+│   │                    #        promote · submit · learn · distil · reflect
+│   ├── config.py        # pydantic-settings, .env
+│   ├── data/            # hf_download · file_structures · splits · groups
+│   ├── agent/           # llm.py (only place models are built) · session.py
+│   │                    # tools/python_executor.py (MCP) · answer.py · versions.py
+│   ├── eval/            # runner · scorer (vendored) · compare · submission
+│   ├── tracking/        # mlflow_log · registry · otel
+│   ├── loop/            # optimiser.py (one session) · ledger.py · gate wiring · reflect.py
+├── loop/ledger.jsonl    # one entry per cycle: diagnoses, changes, outcome (committed)
+│   └── serving/         # FastAPI API · SSE /api/ask · demo_pack/ · mounted frontend/dist
+├── frontend/            # React + Vite + TS · tokens.css · design_lint.mjs
+├── infra/terraform/     # bootstrap/ (OIDC role) · demo/ (ECR, App Runner, alarm)
+├── Dockerfile · scripts/aws_build_push.sh · scripts/demo_smoke.sh
+├── .github/workflows/   # ci.yml · deploy-aws.yml
+├── agents/              # v0/ v1/ …  agent.yaml (frozen in the loop) · system.md · helper.py
+├── data/                # context/ (gitignored, 24 MB) · tasks/ · file_structures.json
+├── runs/                # &lt;run_id&gt;/ manifest · predictions · scores · submission.jsonl
+├── workspace/           # per-run sandboxes, learning traces (gitignored)
+├── tests/               # test_scorer (space cases) · test_answer · test_runner_dryrun
+└── docker-compose.yml   # mlflow only (sqlite volume ./.mlflow, port 5600)</pre></div>
+    <div class="panel card"><h3>Public-safety rules and the commands, baked into the scaffold</h3>
+      <ul class="tight">
+        <li><code>.gitignore</code>: <code>.env</code>, <code>data/context/</code>, <code>workspace/</code>, <code>.mlflow/</code>, <code>.venv/</code>. Never <code>.lavish/</code>.</li>
+        <li><code>runs/</code> is committed selectively: manifests, scores and the submission file for milestone runs, as ConvFinQA commits its evaluation snapshots; raw traces stay local.</li>
+        <li>No answer key for the 450 is ever derived or committed; the README states the dev-10-only protocol.</li>
+        <li>A pre-push secret scan (gitleaks via pre-commit) and an <code>.env.example</code> with placeholders only.</li>
+        <li>Python 3.12 via <code>uv python install 3.12</code>: the pinned SDKs and MLflow are tested there, and it matches the siblings.</li>
+      </ul>
+<pre class="md" style="margin-top:var(--s3)">make setup        # uv sync, .env check, python 3.12
+make data         # pull tasks + context from HF, build file_structures.json
+make mlflow-up    # docker compose up mlflow (:5600)
+make eval AGENT=v0 MODEL=haiku SPLIT=dev WORKERS=4 [PASSES=1]
+make score RUN=&lt;id&gt; · make compare A=&lt;id&gt; B=&lt;id&gt;
+make register · make promote
+make submit RUN=&lt;id&gt;    # writes + validates submission.jsonl
+make loop CYCLES=4 · make optimise (one cycle) · make ledger (print it)
+make dev          # vite + api side by side
+make demo-up      # the production image locally, DEMO_MODE=1
+make snapshot     # MLflow → committed JSON for the demo
+make demo-pack    # record /ask replays from real run traces
+make test · make lint</pre>
+<pre class="md" style="margin-top:var(--s3)">dependencies = ["claude-agent-sdk&gt;=0.2.152", "anthropic&gt;=0.71",
+  "datasets&gt;=3", "huggingface_hub&gt;=0.30", "pandas&gt;=2.2", "pyarrow",
+  "pydantic&gt;=2.7", "pydantic-settings", "typer", "rich", "mlflow&gt;=3.5",
+  "fastapi", "uvicorn[standard]"]   # serving; frontend deps live in frontend/package.json
+dev = ["pytest", "pytest-asyncio", "ruff&gt;=0.14.2", "mypy&gt;=1.11"]</pre></div>
+  </div>
+</div></section>
+
+<section class="band-sec" id="ms"><div class="wrap">
+  <div class="hd"><p class="label">10 · milestones</p>
+  <h2>10 · Milestones — this build proves the whole loop on the smoke set, then ships it as a demo</h2>
+  <p>M0 to M3 are deterministic except one Haiku smoke run. M4 is the error loop. M5 to M7 make it a public demo site with the frontend, the deploy, and the reflection stage demonstrated on dev-10. Only the full 450-task scoring is deferred: nothing in this build touches the test tasks.</p></div>
+  <div class="tw"><table>
+    <caption>Each milestone has a deliverable, an acceptance test and a spend note · tokens are estimates against plan limits, measured on the first dev-10 run</caption>
+    <thead><tr><th>#</th><th>Milestone</th><th>Delivers</th><th>Accepted when</th><th>Spend</th></tr></thead>
+    <tbody>
+      <tr class="pro"><td class="num">M0</td><td class="sub">Scaffold, data, public repo</td><td>uv project, AGENTS/CLAUDE/DESIGN/README, Makefile, <code>make data</code>, file_structures.json, .env.example; git init and <code>gh repo create nmp-dsci/DABStep-loop --public</code>, first commit pushed</td><td><code>make data</code> is idempotent and sha-verified; splits load with the 450 and 10 counts; the repo is public and the tree holds no secrets or data</td><td class="num">none</td></tr>
+      <tr class="pro"><td class="num">M1</td><td class="sub">Scorer, gold loader, dry-run harness</td><td>Vendored scorer with tests, dev-10 gold loader, core-question grouping of the 450, runner with a stub agent, run folder and manifest, submission writer and validator</td><td><code>make test</code> green; a stub run yields a submission that passes the space's validator; dev-10 gold scores 10 of 10 against itself</td><td class="num">none</td></tr>
+      <tr class="pro"><td class="num">M2</td><td class="sub">Agent v0, Haiku smoke</td><td>Session module with subscription env, in-process Python tool, answer extraction, Haiku 4.5 config (a Sonnet 5 config exists but is not run)</td><td>Haiku completes dev-10; tokens and seconds captured per task; no state leaks between sessions; the failed task ids are listed</td><td class="num">≈ 2M tokens</td></tr>
+      <tr class="pro"><td class="num">M3</td><td class="sub">Tracking, registry, gate</td><td>MLflow compose, autolog plus OTel, run logging, register and promote, compare gate</td><td>The M2 run is visible with traces; <code>make compare</code> on two runs returns a verdict JSON; v0 is <code>@champion</code></td><td class="num">none extra</td></tr>
+      <tr class="pro"><td class="num">M4</td><td class="sub">The error loop on dev-10</td><td><code>make loop CYCLES=4</code>: one optimiser session per cycle (Sonnet 5) reading the ledger, failures and traces, editing only system.md and helper.py, verifying against gold, writing v(n+1); Haiku re-eval, gate, promote; the ledger entry completed with the outcome</td><td>Each cycle is a registered version, a gate verdict and a ledger entry with per-task diagnoses and prior-attempt checks; a version touching any file other than system.md or helper.py is rejected; the champion's pass count never drops; the build ends at 10 of 10 or after the cycle budget with the best version promoted</td><td class="num">≈ 4–8M tokens per cycle</td></tr>
+      <tr class="pro"><td class="num">M5</td><td class="sub">Frontend</td><td>React + Vite app per §7: data, architecture, ask-the-agent, then overview, tasks, runs, compare, trace, loop; FastAPI API with the SSE ask endpoint; <code>make dev</code></td><td>You can page the payments data and read the manual in the browser; the architecture page lists the registered versions; asking dev task 1273 live on Haiku from the browser streams its tool calls and ends with an answer and a verdict; the loop page shows every ledger entry; design_lint passes</td><td class="num">none</td></tr>
+      <tr class="pro"><td class="num">M6</td><td class="sub">Demo deployment</td><td>Dockerfile with <code>DEMO_MODE=1</code>, snapshot and demo-pack commands, Terraform bootstrap and demo modules, build-push and smoke scripts, CI and deploy workflows</td><td><code>make demo-up</code> serves the site locally with no credentials in the environment; the first merge to main yields a public App Runner URL, the smoke test passes, and the URL and rollback note are in the job summary</td><td class="num">≈ $5–15 / month</td></tr>
+      <tr class="pro"><td class="num">M7</td><td class="sub">Reflection stage, demonstrated on the smoke set</td><td><code>make reflect SPLIT=dev</code>: a strong model reviews the champion's dev-10 traces (helper use, prompt adherence, code mistakes) and checks consistency across the dev tasks that share a core question with each other and with their siblings in the 450 (unlabelled, read-only); its notes go into the ledger and the next optimiser prompt; <code>--passes 3</code> self-consistency on dev-10 with agreement as a metric</td><td>One reflection cycle runs end to end on dev-10, produces a ledger entry of type <code>reflect</code>, and the next <code>make loop</code> cycle shows it consulted those notes; the 450 are read for grouping only, never scored</td><td class="num">≈ 3–5M tokens</td></tr>
+      <tr><td class="num">M8</td><td class="sub">Later · first full scoring</td><td>Champion over the 450 with Haiku, submission uploaded; Sonnet 5 baseline run for the comparison; reflection over the 450 at scale</td><td>Leaderboard rows exist; label-free metrics logged next to the leaderboard easy and hard numbers</td><td class="num">≈ 60–150M tokens</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section class="blk" id="risks"><div class="wrap">
+  <div class="hd"><p class="label">11 · risks &amp; open questions</p>
+  <h2>11 · Risks — each one has a mechanism in the plan, not a hope</h2></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>Failure modes and the handling already designed in</h3>
+      <ul class="qa">
+        <li><b>DABstep-v2 lands mid-build?</b> The data layer is one module keyed by dataset revision; splits and scorer version are in every run manifest, so v1 runs stay comparable and v2 becomes a new split.</li>
+        <li><b>Subprocess overhead and rate limits at 450 tasks?</b> The runner resumes per task, retries transient failures, caps workers, and shards by task id.</li>
+        <li><b>Answer-format loss?</b> <code>answer.py</code> is unit-tested against every guideline family: sorted lists, decimals, <code>{scheme}:{fee}</code>, "Not Applicable".</li>
+        <li><b>Sandbox safety?</b> The Python tool runs in-process against a read-only symlinked workspace with no network; if Bash is ever enabled it gets NVIDIA's read-only allow-list.</li>
+        <li><b>Ten labels is a weak local signal?</b> Mitigated by the label-free 450 metrics and by treating each leaderboard upload as the real measurement.</li>
+        <li><b>Autolog gaps?</b> The CLI OTel export is the second source; both land in the same experiment.</li>
+      </ul></div>
+    <div class="panel card"><h3>Open questions beyond decisions B to D</h3>
+      <ul class="tight">
+        <li><b>Learning model for phase 2:</b> Sonnet 5 (cheaper, likely enough) or Opus 5 (NVIDIA used Opus 4.5 and 4.6)? Default Sonnet 5; escalate if dev-10 traces are wrong.</li>
+        <li><b>Deploy prerequisites:</b> the bootstrap Terraform (OIDC role) is run once by you with admin credentials before the first merge; confirm the region (ap-southeast-1, as ConvFinQA, because ap-southeast-2 is at the App Runner service cap).</li>
+        <li><b>Leaderboard identity:</b> organisation and agent name for the form (must match <code>^[a-zA-Z0-9 _.-]+$</code>).</li>
+        <li><b>Sonnet effort:</b> compare <code>medium</code> and <code>high</code> as a run parameter, not a prompt change.</li>
+      </ul>
+      <form class="q bare" data-lavish-question="open" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const t=fd.get('answers'); if(!t) return; window.lavish.queuePrompt('Answers to open questions: ' + t, {tag:'decision', text:'Open questions answered', element:event.currentTarget, data:{question:'open', answer:t}}); event.currentTarget.querySelector('.queued').textContent='queued for the agent';">
+        <textarea name="answers" placeholder="e.g. learn with Sonnet 5; org 'nmp-dsci', agent 'dabstep-loop v0'; effort high"></textarea>
+        <div class="row"><button type="submit" class="btn">Queue answers</button><span class="queued"></span></div>
+      </form></div>
+  </div>
+</div></section>
+
+<section class="blk" id="approve"><div class="wrap">
+  <div class="hd"><p class="label">12 · approve</p>
+  <h2>12 · Approve — this build is M0 to M7, everything but the 450</h2>
+  <p>Every decision is settled: labels, self-hosted tracking, subscription billing in dev, Haiku only with Sonnet 5 as the optimiser, the React frontend, the App Runner demo, and reflection demonstrated on the smoke set. Queue the scope and the build starts. It never scores the 450 test tasks. Two prerequisites are yours: the Terraform bootstrap for the OIDC deploy role runs once with your admin credentials before the first merge, and the CLI login must be active for subscription billing.</p></div>
+  <form class="q" data-lavish-question="approve" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const scope=fd.get('scope'); const cyc=fd.get('cycles')||'4'; if(!scope) return; window.lavish.queuePrompt('Approved: build ' + scope + ' of the DABstep-loop plan (s00), loop cycle budget ' + cyc + '. Use the settled decisions.', {tag:'approve', text:'Approve: '+scope+' · cycles '+cyc, element:event.currentTarget, data:{question:'approve', answer:scope, cycles:cyc}}); event.currentTarget.querySelector('.queued').textContent='queued for the agent';">
+    <h3>Scope to build now</h3>
+    <label><input type="radio" name="scope" value="M0-M7 (scaffold, data, scorer, Haiku smoke on dev-10, tracking, the error loop on dev-10, the React frontend, the App Runner demo deploy, and one reflection cycle on dev-10; never the 450)" checked><span>M0 to M7: the whole loop on the smoke set, the frontend and the demo deploy<span class="rec">this build</span></span></label>
+    <label><input type="radio" name="scope" value="M0-M4 (stop after the error loop on dev-10; frontend, deploy and reflection in a following build)"><span>M0 to M4: stop after the error loop; frontend, deploy and reflection next</span></label>
+    <label><input type="radio" name="scope" value="M0-M1 only (deterministic scaffold, data, scorer, dry-run harness; no LLM calls)"><span>M0 to M1 only, no LLM calls yet</span></label>
+    <label style="grid-template-columns:minmax(0,1fr)"><span>Loop cycle budget for M4 (default 4): <input type="text" name="cycles" value="4" style="width:4rem;font:inherit;font-size:var(--t-1);padding:2px 6px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2)"></span></label>
+    <div class="row"><button type="submit" class="btn">Queue approval</button><span class="queued"></span></div>
+  </form>
+  <p class="small" style="margin-top:var(--s5)">Verified this session: the adyen/DABstep dataset card, both task splits and the task_scores files; the space's <code>scorer.py</code>, <code>leaderboard.py</code>, <code>app.py</code> and baseline; arXiv 2506.23719; the NVIDIA blog and the <code>PicoNVIDIA/data-explorer-launchable</code> history; MLflow, Phoenix, Logfire, Langfuse, Opik, Braintrust, Weave, Inspect and promptfoo docs; your data-qa-agent, ConvFinQA-agent, ai-project-template, transcript-rag-agent, CUAD-agent and nmp-dsci.github.io repos.</p>
+</div></section>
+
+<footer><div class="wrap">s00 · DABstep-loop · design source: DESIGN.md, ported from nmp-dsci.github.io (Field Guide) · one em, in the h1</div></footer>
+</body>
+</html>

@@ -1,0 +1,286 @@
+"""The optimiser: one Agent SDK session that reads every failure and writes the next version.
+
+It sees the champion's two surfaces, every failed task's question, gold, answer
+and full tool trace, and the ledger's history of what was tried before. It may
+write only `agents/v(n+1)/system.md` and `helper.py` (a PreToolUse hook refuses
+any other path; a checksum of the tree is compared after the session as well),
+must verify a helper change against the dev gold in-session, and must finish by
+writing `diagnosis.json` — the structured record the ledger stores.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from claude_agent_sdk import (
+    AssistantMessage,
+    ClaudeAgentOptions,
+    ClaudeSDKClient,
+    HookMatcher,
+    ResultMessage,
+    TextBlock,
+    ToolUseBlock,
+)
+
+from dabstep_loop.agent.llm import require_live, resolve_model, subscription_env
+from dabstep_loop.agent.versions import SURFACES, AgentVersion, load_version, next_version_name
+from dabstep_loop.config import AGENTS_DIR, ROOT, RUNS_DIR, context_dir
+from dabstep_loop.eval.score import TaskResult
+from dabstep_loop.loop.ledger import render_history
+
+MAX_TURNS = 120
+TRACE_CHARS = 9000
+
+
+@dataclass
+class OptimiserOutput:
+    new_version: str
+    diagnosis: dict[str, Any]
+    n_turns: int = 0
+    duration_ms: int = 0
+    cost_usd: float | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    transcript: list[dict[str, Any]] = field(default_factory=list)
+    error: str | None = None
+
+
+def condense_trace(trace_path: Path, limit: int = TRACE_CHARS) -> str:
+    """The tool calls and their outputs, in order; the parts the diagnosis needs."""
+    if not trace_path.exists():
+        return "(no trace)"
+    d = json.loads(trace_path.read_text())
+    lines: list[str] = []
+    for m in d.get("trace", []):
+        if m["role"] == "assistant":
+            for b in m["content"]:
+                if b["type"] == "tool_use":
+                    lines.append("### execute_python\n" + str(b["input"].get("code", "")).strip())
+                elif b["type"] == "text" and b["text"].strip():
+                    lines.append("### assistant\n" + b["text"].strip())
+        elif m["role"] == "tool":
+            for b in m["content"]:
+                if b["type"] == "tool_result":
+                    lines.append("### output\n" + str(b.get("content", "")).strip()[:1500])
+    text = "\n".join(lines)
+    if len(text) > limit:
+        text = text[: limit // 2] + "\n…[middle of trace elided]…\n" + text[-limit // 2 :]
+    meta = {k: d.get(k) for k in ("n_turns", "duration_ms", "terminal_reason", "error")}
+    return f"{json.dumps(meta)}\n{text}"
+
+
+def build_prompt(
+    champion: AgentVersion, new_name: str, run_id: str, failures: list[TaskResult]
+) -> str:
+    run_dir = RUNS_DIR / run_id
+    blocks: list[str] = []
+    for r in failures:
+        blocks.append(
+            f"## Task {r.task_id} ({r.level})\n"
+            f"QUESTION: {r.question}\n"
+            f"GOLD: {r.gold}\n"
+            f"AGENT ANSWER: {r.agent_answer!r}\n"
+            f"ERROR: {r.error or 'none'} · turns {r.n_turns}\n"
+            f"TRACE:\n{condense_trace(run_dir / 'traces' / f'{r.task_id}.json')}\n"
+        )
+    gold_lines = "\n".join(f"- {r.task_id}: {r.gold}" for r in failures)
+    return f"""You are the optimiser in a benchmark improvement loop for an agent that answers DABstep questions
+(tabular QA over a payments dataset) with a Claude Haiku 4.5 model and one tool: a stateful Python executor.
+
+The champion is `agents/{champion.name}/`. It passed some of the dev tasks and failed the ones below.
+A copy of the champion is already at `agents/{new_name}/`. Your job is to turn that copy into a better
+version by editing **only two files**: `agents/{new_name}/system.md` (the agent's system prompt) and
+`agents/{new_name}/helper.py` (a module the agent imports as `helper` inside the executor).
+`agent.yaml` is frozen; do not touch it, and do not edit anything outside `agents/{new_name}/`
+— the harness refuses the cycle if you do.
+
+The data lives in `{context_dir()}/` (payments.csv, fees.json, merchant_data.json, manual.md, ...).
+`manual.md` defines the fee rules; read the relevant sections before deciding a root cause.
+
+# What was tried before
+{render_history([r.task_id for r in failures])}
+
+# The champion's surfaces
+## agents/{champion.name}/system.md
+{champion.system_prompt}
+
+## agents/{champion.name}/helper.py
+```python
+{champion.helper or "(no helper yet)"}
+```
+
+# The failures ({len(failures)} of the dev split)
+{chr(10).join(blocks)}
+
+# Method
+1. For each failed task, find the root cause from the trace: the wrong rule, the missing null-as-wildcard
+   semantics, an unread manual section, a format mistake, running out of turns, and so on. Classify each as a
+   prompt problem or a helper problem. A task that failed for a reason already tried and not fixed needs a
+   different fix, not the same one again.
+2. Make the change in the two surfaces. Prefer helper functions with clear signatures and docstrings for
+   anything computational (fee rule matching, monthly metrics, intracountry flags); prefer short, concrete
+   prompt rules for behaviour (which file to read, answer format, when to stop). Keep the output-format
+   contract: the agent must end with exactly `{{"agent_answer": ...}}`.
+3. Verify helper changes in-session: run `uv run python -c "..."` or a small script from the repo root with
+   `sys.path.insert(0, "agents/{new_name}")` and check your helper reproduces these gold answers:
+{gold_lines}
+   Do not claim a fix you did not run. If a gold cannot be reproduced, say so in the diagnosis.
+4. Do not regress: keep everything that made the champion pass its tasks. Do not hard-code any task's answer
+   or any task-specific branch; the 450 leaderboard tasks are permutations of these questions with other
+   merchants, months and fees.
+5. Finish by writing `agents/{new_name}/diagnosis.json` with exactly this shape:
+{{
+  "diagnoses": [
+    {{"task_id": "…", "symptom": "…", "root_cause": "…", "surface": "system.md|helper.py|both",
+      "change": "one sentence", "verified_in_session": true|false, "verification": "what you ran and saw"}}
+  ],
+  "prompt_diff_summary": "what changed in system.md, one line",
+  "helper_diff_summary": "what changed in helper.py, one line",
+  "expected_to_fix": ["task ids"],
+  "risks": ["what might regress and why you think it will not"]
+}}
+Then stop. The harness evaluates `{new_name}` on the whole dev split, applies the gate (no task that passed may
+fail; the pass count must rise), and records the outcome next to your diagnosis in the ledger.
+"""
+
+
+def _copy_champion(champion: AgentVersion, new_name: str) -> Path:
+    new_dir = AGENTS_DIR / new_name
+    if new_dir.exists():
+        shutil.rmtree(new_dir)
+    new_dir.mkdir(parents=True)
+    for name in ("system.md", "agent.yaml", "helper.py"):
+        src = champion.path / name
+        if src.exists():
+            shutil.copyfile(src, new_dir / name)
+    return new_dir
+
+
+def tree_checksum(exclude: Path) -> dict[str, int]:
+    """mtime+size of every tracked-ish file outside the new version folder."""
+    skip = {
+        ".venv",
+        "node_modules",
+        ".git",
+        "runs",
+        "workspace",
+        ".mlflow",
+        "__pycache__",
+        ".ruff_cache",
+        ".mypy_cache",
+        ".pytest_cache",
+        "data",
+    }
+    out: dict[str, int] = {}
+    for p in ROOT.rglob("*"):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(ROOT)
+        if rel.parts[0] in skip or exclude in p.parents or p == exclude:
+            continue
+        st = p.stat()
+        out[str(rel)] = int(st.st_mtime_ns) ^ st.st_size
+    return out
+
+
+async def run_optimiser(
+    champion: AgentVersion,
+    run_id: str,
+    failures: list[TaskResult],
+    model: str = "sonnet",
+    effort: str = "high",
+) -> OptimiserOutput:
+    require_live()
+    new_name = next_version_name()
+    new_dir = _copy_champion(champion, new_name)
+    allowed_prefix = str(new_dir.resolve())
+    before = tree_checksum(new_dir)
+
+    async def guard_writes(
+        input_data: Any, tool_use_id: str | None, context: Any
+    ) -> dict[str, Any]:
+        """Refuse a Write/Edit outside agents/v(n+1)/ and any touch of agent.yaml."""
+        path = str(input_data.get("tool_input", {}).get("file_path", ""))
+        resolved = str(Path(path).resolve()) if path else ""
+        ok = resolved.startswith(allowed_prefix) and not resolved.endswith("agent.yaml")
+        if ok:
+            return {}
+        return {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": f"Only agents/{new_name}/system.md, helper.py and diagnosis.json may be written.",
+            }
+        }
+
+    options = ClaudeAgentOptions(
+        model=resolve_model(model),
+        effort=effort,  # type: ignore[arg-type]
+        allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep"],
+        permission_mode="bypassPermissions",
+        max_turns=MAX_TURNS,
+        cwd=str(ROOT),
+        env=subscription_env(),
+        setting_sources=[],
+        hooks={"PreToolUse": [HookMatcher(matcher="Write|Edit|MultiEdit", hooks=[guard_writes])]},  # type: ignore[list-item]
+    )
+    prompt = build_prompt(champion, new_name, run_id, failures)
+    out = OptimiserOutput(new_version=new_name, diagnosis={})
+    out.transcript.append({"role": "user", "content": prompt})
+    started = time.time()
+    try:
+        async with ClaudeSDKClient(options=options) as client:
+            await client.query(prompt)
+            async for msg in client.receive_response():
+                if isinstance(msg, AssistantMessage):
+                    for b in msg.content:
+                        if isinstance(b, TextBlock) and b.text.strip():
+                            out.transcript.append({"role": "assistant", "content": b.text})
+                        elif isinstance(b, ToolUseBlock):
+                            out.transcript.append(
+                                {"role": "tool_use", "name": b.name, "input": b.input}
+                            )
+                elif isinstance(msg, ResultMessage):
+                    out.n_turns = msg.num_turns
+                    out.cost_usd = msg.total_cost_usd
+                    u = msg.usage or {}
+                    out.input_tokens = (
+                        int(u.get("input_tokens", 0))
+                        + int(u.get("cache_read_input_tokens", 0))
+                        + int(u.get("cache_creation_input_tokens", 0))
+                    )
+                    out.output_tokens = int(u.get("output_tokens", 0))
+                    if msg.is_error:
+                        out.error = f"{msg.subtype}: {(msg.errors or [''])[0]}"[:500]
+    except Exception as e:  # noqa: BLE001
+        out.error = f"{type(e).__name__}: {e}"[:500]
+    out.duration_ms = int((time.time() - started) * 1000)
+
+    after = tree_checksum(new_dir)
+    touched = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+    if touched:
+        out.error = (
+            out.error + "; " if out.error else ""
+        ) + f"optimiser changed files outside agents/{new_name}: {touched[:10]}"
+    if (new_dir / "agent.yaml").read_bytes() != (champion.path / "agent.yaml").read_bytes():
+        out.error = (out.error + "; " if out.error else "") + "agent.yaml was modified (frozen)"
+    diag_path = new_dir / "diagnosis.json"
+    if diag_path.exists():
+        try:
+            out.diagnosis = json.loads(diag_path.read_text())
+        except json.JSONDecodeError as e:
+            out.error = (out.error + "; " if out.error else "") + f"diagnosis.json unreadable: {e}"
+    else:
+        out.error = (out.error + "; " if out.error else "") + "no diagnosis.json written"
+    new_version = load_version(new_name)
+    if all(new_version.files().get(s) == champion.files().get(s) for s in SURFACES):
+        out.error = (out.error + "; " if out.error else "") + "no change to either surface"
+    (new_dir / "optimiser_transcript.json").write_text(
+        json.dumps(out.transcript, ensure_ascii=False, indent=1)
+    )
+    return out

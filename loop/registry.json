@@ -1,0 +1,26 @@
+{
+  "champion": {
+    "agent": "v0",
+    "fingerprint": "2bb61d74a7d1",
+    "run_id": "20260914T022440Z_v0_dev_haiku",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "passed": 4,
+    "n_scored": 10,
+    "at": "2026-09-14T02:27:52.129018+00:00"
+  },
+  "challenger": null,
+  "history": [
+    {
+      "event": "promote",
+      "agent": "v0",
+      "fingerprint": "2bb61d74a7d1",
+      "run_id": "20260914T022440Z_v0_dev_haiku",
+      "model": "claude-haiku-4-5",
+      "split": "dev",
+      "passed": 4,
+      "n_scored": 10,
+      "at": "2026-09-14T02:27:52.129018+00:00"
+    }
+  ]
+}

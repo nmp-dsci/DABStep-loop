@@ -1,0 +1,121 @@
+{
+  "acquirer_countries.csv": {
+    "file_type": "csv",
+    "sample_row": {
+      "": "0",
+      "acquirer": "gringotts",
+      "country_code": "GB"
+    }
+  },
+  "fees.json": {
+    "file_type": "json",
+    "structure_type": "array",
+    "n_records": 1000,
+    "keys": [
+      "ID",
+      "card_scheme",
+      "account_type",
+      "capture_delay",
+      "monthly_fraud_level",
+      "monthly_volume",
+      "merchant_category_code",
+      "is_credit",
+      "aci",
+      "fixed_amount",
+      "rate",
+      "intracountry"
+    ],
+    "sample_record": {
+      "ID": 1,
+      "card_scheme": "TransactPlus",
+      "account_type": [],
+      "capture_delay": null,
+      "monthly_fraud_level": null,
+      "monthly_volume": null,
+      "merchant_category_code": [
+        8000,
+        8011,
+        8021,
+        8031,
+        8041,
+        7299,
+        9399,
+        8742
+      ],
+      "is_credit": false,
+      "aci": [
+        "C",
+        "B"
+      ],
+      "fixed_amount": 0.1,
+      "rate": 19,
+      "intracountry": null
+    }
+  },
+  "manual.md": {
+    "file_type": "markdown",
+    "bytes": 22127
+  },
+  "merchant_category_codes.csv": {
+    "file_type": "csv",
+    "sample_row": {
+      "": "0",
+      "mcc": "1520",
+      "description": "General Contractors - Residential and Commercial"
+    }
+  },
+  "merchant_data.json": {
+    "file_type": "json",
+    "structure_type": "array",
+    "n_records": 30,
+    "keys": [
+      "merchant",
+      "capture_delay",
+      "acquirer",
+      "merchant_category_code",
+      "account_type"
+    ],
+    "sample_record": {
+      "merchant": "Crossfit_Hanna",
+      "capture_delay": "manual",
+      "acquirer": [
+        "gringotts",
+        "the_savings_and_loan_bank",
+        "bank_of_springfield",
+        "dagoberts_vault"
+      ],
+      "merchant_category_code": 7997,
+      "account_type": "F"
+    }
+  },
+  "payments-readme.md": {
+    "file_type": "markdown",
+    "bytes": 1719
+  },
+  "payments.csv": {
+    "file_type": "csv",
+    "sample_row": {
+      "psp_reference": "20034594130",
+      "merchant": "Crossfit_Hanna",
+      "card_scheme": "NexPay",
+      "year": "2023",
+      "hour_of_day": "16",
+      "minute_of_hour": "21",
+      "day_of_year": "12",
+      "is_credit": "False",
+      "eur_amount": "151.74",
+      "ip_country": "SE",
+      "issuing_country": "SE",
+      "device_type": "Windows",
+      "ip_address": "pKPYzJqqwB8TdpY0jiAeQw",
+      "email_address": "0AKXyaTjW7H4m1hOWmOKBQ",
+      "card_number": "uRofX46FuLUrSOTz8AW5UQ",
+      "shopper_interaction": "Ecommerce",
+      "card_bin": "4802",
+      "has_fraudulent_dispute": "False",
+      "is_refused_by_adyen": "False",
+      "aci": "F",
+      "acquirer_country": "NL"
+    }
+  }
+}

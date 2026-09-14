@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# The full DABstep context files (23 MB payments.csv etc.) are downloaded by
+# `make data`; the small committed sample under data/samples/ is what CI and
+# the demo image use.
+data/context/
+data/.hf/
+
+# Local MLflow store (sqlite + artifacts)
+.mlflow/
+
+# Scratch working directory for the python executor and the optimiser
+workspace/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# OS / editor
+.DS_Store
+
+# Terraform (bootstrap keeps local state on purpose; never commit it)
+infra/terraform/**/.terraform/
+infra/terraform/**/*.tfstate
+infra/terraform/**/*.tfstate.backup
+infra/terraform/**/.terraform.lock.hcl
