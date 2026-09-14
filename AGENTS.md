@@ -43,7 +43,9 @@ baseline, full runs and a leaderboard submission are the deferred M8.
 ## 3 · Layout
 
 ```
-agents/vN/            system.md · agent.yaml (frozen) · helper.py · diagnosis.json (written by the optimiser)
+agents/vN/            system.md · agent.yaml (frozen) · helper.py · diagnosis.json (written by the optimiser,
+                      carries a `changes[]` change log) · change_log.json (only on versions written before
+                      that contract; `dabstep annotate vN` backfills it, labelled source=post-hoc)
 data/tasks/           dev.jsonl (10, gold) · all.jsonl (450, no gold)     committed
 data/samples/         every context file; payments.csv first 500 rows       committed
 data/context/         the full download (`make data`)                        gitignored

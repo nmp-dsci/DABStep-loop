@@ -44,7 +44,7 @@ make loop CYCLES=1
 make dev  &  cd frontend && npm run dev     # viewer on :5173, API on :8080
 ```
 
-The viewer shows the data, the tasks, the architecture, every run and trace, the gate between any two runs, the ledger, and an **Ask** page that streams a live session in dev. Live demo: **https://xqcd7prnag.ap-southeast-1.awsapprunner.com**. Merging to `main` builds the same viewer into a read-only image (`DEMO_MODE=1` baked into the Dockerfile; no key, no login) and deploys it to App Runner via GitHub OIDC — the public URL replays the recorded pack and cannot bill.
+The viewer shows the data, the tasks, the architecture, every run and trace, the gate between any two runs, the ledger, an **Evolution** page that diffs any two agent versions alongside the optimiser's reasoning, and an **Ask** page that streams a live session in dev. Live demo: **https://xqcd7prnag.ap-southeast-1.awsapprunner.com**. Merging to `main` builds the same viewer into a read-only image (`DEMO_MODE=1` baked into the Dockerfile; no key, no login) and deploys it to App Runner via GitHub OIDC — the public URL replays the recorded pack and cannot bill.
 
 ## 5 · Where things are
 
