@@ -157,8 +157,8 @@ The data lives in `{context_dir()}/` (payments.csv, fees.json, merchant_data.jso
   "expected_to_fix": ["task ids"],
   "risks": ["what might regress and why you think it will not"]
 }}
-Then stop. The harness evaluates `{new_name}` on the whole dev split, applies the gate (no task that passed may
-fail; the pass count must rise), and records the outcome next to your diagnosis in the ledger.
+Then stop. The harness evaluates `{new_name}` on the whole dev split, applies the gate (a one-sided McNemar test
+on the paired tasks: fixes must outweigh breaks with p < 0.05 — one break costs three extra fixes), and records the outcome next to your diagnosis in the ledger.
 """
 
 

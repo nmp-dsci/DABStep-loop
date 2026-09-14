@@ -125,14 +125,14 @@ export function Overview() {
       <h2>2 · The learning loop — a failed trace becomes a diagnosis, a diff, and a verdict</h2>
       <figure>
         <div className="label fig-title">fig 2 · one cycle, and what feeds the next</div>
-        <svg className="dia" viewBox="0 0 1000 360" role="img" aria-label="The loop: the champion's scored run yields failed traces; one optimiser session reads them with the ledger history and writes the next version's system.md and helper.py plus a diagnosis; the challenger is scored; the gate promotes only if passes rise and no passing task flips; the outcome is written back to the ledger, which the next optimiser and the reflection pass both read.">
+        <svg className="dia" viewBox="0 0 1000 360" role="img" aria-label="The loop: the champion's scored run yields failed traces; one optimiser session reads them with the ledger history and writes the next version's system.md and helper.py plus a diagnosis; the challenger is scored; the gate promotes when a one-sided McNemar test on the paired tasks clears p < 0.05; the outcome is written back to the ledger, which the next optimiser and the reflection pass both read.">
           <Arrow />
           {[
             ['champion run', 'dev-10 · traces', 20, 'nd'],
             ['failures', 'wrong or errored', 215, 'nd warn'],
             ['optimiser', 'Sonnet · one session', 410, 'nd hi'],
             ['challenger v(N+1)', 'system.md · helper.py', 605, 'nd'],
-            ['gate', 'passes ↑ · no flip', 800, 'nd hi'],
+            ['gate', 'McNemar · p < 0.05', 800, 'nd hi'],
           ].map(([t, s, x, cls], i) => (
             <g key={t} id={`loop-${i}`}>
               <title>{t}</title>

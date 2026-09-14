@@ -16,7 +16,8 @@ The 450 have no published answers; a `dev` split of 10 does. This project:
    MLflow;
 3. runs an **error loop**: one optimiser session (Sonnet) reads every failed
    trace and the ledger of earlier attempts, writes `agents/v(N+1)/{system.md,
-   helper.py}`, and a gate promotes it only if it passes more and flips nothing;
+   helper.py}`, and a gate promotes it when a one-sided McNemar test on the paired
+   tasks clears p < 0.05;
 4. serves a read-only viewer (React + FastAPI) of the data, the architecture,
    the runs, the gate and the ledger, deployed to App Runner on merge to main.
 
@@ -97,7 +98,8 @@ The `eval` command refuses `SPLIT=all` without an interactive confirmation.
    `tests/`, `data/tasks/`, …) is compared before and after; `agent.yaml`
    must be byte-identical; `diagnosis.json` must exist.
 4. The ledger entry is appended **before** the challenger runs (verdict
-   `pending`), then `update_entry` fills `outcome` after `compare()`.
+   `pending`), then `update_entry` fills `outcome` after `compare()` — a
+   one-sided exact McNemar test on the discordant tasks, promote at p < 0.05.
 5. Promote → registry champion; hold → registry challenger. Either way the
    version folder and its run stay in the repo.
 

@@ -73,14 +73,14 @@ def runs() -> None:
 
 
 @app.command()
-def compare(champion: str, challenger: str) -> None:
+def compare(champion: str, challenger: str, alpha: float = 0.05) -> None:
     """Apply the promotion gate between two runs."""
     from dabstep_loop.eval.compare import compare as _compare
     from dabstep_loop.eval.runner import load_run
 
     _, a = load_run(champion)
     _, b = load_run(challenger)
-    console.print(_compare(a, b))
+    console.print(_compare(a, b, alpha=alpha))
 
 
 @app.command()

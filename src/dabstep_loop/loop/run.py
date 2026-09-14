@@ -101,6 +101,7 @@ async def run_cycle(agent: str, optimiser_model: str, split: str, workers: int) 
     outcome = {
         "verdict": "promote" if verdict.promote else "hold",
         "reason": verdict.reason,
+        "p_value": verdict.p_value,
         "passes": f"{verdict.champion_passed} → {verdict.challenger_passed}",
         "fixed": verdict.fixed,
         "broken": verdict.broken,

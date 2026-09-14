@@ -11,9 +11,9 @@ A Claude Agent SDK agent for the [DABstep](https://huggingface.co/spaces/adyen/D
 | hard (7) | 3 | 5 |
 | fixed | — | 49, 70, 1273, 1681, 1753 |
 | broken | — | 1871 |
-| verdict | champion | **held** — a promoted version may not flip a task that passed |
+| verdict | champion | **held** — one-sided McNemar on the 6 discordant tasks: p = 0.109, not < 0.05 |
 
-v0 is NVIDIA's inference prompt on Haiku 4.5 with a thin helper. v1 is what one optimiser session (Sonnet 5, 40 turns, 3.85M input tokens) wrote after reading v0's six failed traces: uniform null-as-wildcard fee matching, volume-based monthly fraud rates, natural-month bucketing, four prompt rules. It passed eight, but computed task 1871's delta with a specificity tie-break the gold does not use, so the gate held it. The offline reflection pass then found and verified the root cause against the data and recorded it in the ledger for the next cycle. Source: `runs/`, `loop/ledger.jsonl`.
+v0 is NVIDIA's inference prompt on Haiku 4.5 with a thin helper. v1 is what one optimiser session (Sonnet 5, 40 turns, 3.85M input tokens) wrote after reading v0's six failed traces: uniform null-as-wildcard fee matching, volume-based monthly fraud rates, natural-month bucketing, four prompt rules. It passed eight, but computed task 1871's delta with a specificity tie-break the gold does not use; five fixes against one break is p = 0.109 on a one-sided exact McNemar test, so the gate held it (five fixes and no break, p = 0.031, would have cleared it). The offline reflection pass then found and verified the root cause against the data and recorded it in the ledger for the next cycle. Source: `runs/`, `loop/ledger.jsonl`.
 
 The 450 leaderboard tasks are **not scored** in this build (deferred M8), and no answer key is derived from other teams' submissions. For scale: NVIDIA's Data Explorer reports 87.50% easy / 89.95% hard on the leaderboard with the same model; the plain Sonnet 4 ReAct baseline is 81.94 / 19.84.
 
@@ -27,7 +27,7 @@ make reflect      read-only review of a run's traces → ledger notes for the ne
 
 - The optimiser is one `ClaudeSDKClient` session with Read/Write/Edit/Bash. A `PreToolUse` hook refuses writes outside `agents/v(N+1)/`; `agent.yaml` is frozen; a checksum of the guarded paths is compared after the session. It must verify helper changes against the dev gold in-session and finish with `diagnosis.json`.
 - `loop/ledger.jsonl` is committed. Every diagnosis, every change, every verdict; per-task prior attempts are rendered into the next optimiser's prompt so a failed fix is not retried unchanged, and a held challenger is offered as a starting point.
-- The gate (`eval/compare.py`): more passes **and** no pass→fail flip. CI re-scores the champion's committed results with the vendored scorer and fails if the registry, the run and the agent folder disagree.
+- The gate (`eval/compare.py`): a one-sided exact McNemar test on the paired tasks, promote at p < 0.05; the verdict carries b (fixed), c (broken) and p. CI re-scores the champion's committed results with the vendored scorer and fails if the registry, the run and the agent folder disagree.
 
 ## 3 · The agent — Haiku 4.5, one tool, two editable files
 

@@ -35,22 +35,24 @@ def test_summarise_counts_by_level() -> None:
     assert s.failed_ids == ["2"]
 
 
-def test_gate_rejects_a_flip_even_with_more_passes() -> None:
-    champ = [_r("1", True), _r("2", False), _r("3", False)]
-    chall = [_r("1", False), _r("2", True), _r("3", True)]
-    v = compare(champ, chall)
-    assert not v.promote and v.broken == ["1"] and v.fixed == ["2", "3"]
+def test_gate_is_a_one_sided_mcnemar_test() -> None:
+    from dabstep_loop.eval.compare import mcnemar_one_sided
 
-
-def test_gate_promotes_strict_improvement() -> None:
-    champ = [_r("1", True), _r("2", False)]
-    chall = [_r("1", True), _r("2", True)]
-    assert compare(champ, chall).promote
+    assert mcnemar_one_sided(0, 0) == 1.0
+    assert abs(mcnemar_one_sided(5, 0) - 1 / 32) < 1e-12
+    assert abs(mcnemar_one_sided(5, 1) - 7 / 64) < 1e-12
+    champ = [_r(str(i), i < 4) for i in range(10)]
+    five_fixed = [_r(str(i), i < 9) for i in range(10)]
+    assert compare(champ, five_fixed).promote  # b=5, c=0 → p=0.031
+    flip = [_r("0", False)] + [_r(str(i), i < 9) for i in range(1, 10)]
+    v = compare(champ, flip)  # b=5, c=1 → p=0.109
+    assert not v.promote and v.broken == ["0"] and abs(v.p_value - 7 / 64) < 1e-12
 
 
 def test_gate_holds_on_equal() -> None:
     champ = [_r("1", True), _r("2", False)]
-    assert not compare(champ, champ).promote
+    v = compare(champ, champ)
+    assert not v.promote and v.p_value == 1.0
 
 
 def test_submission_validator(tmp_path: Path) -> None:

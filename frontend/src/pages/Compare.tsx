@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { type Registry, type RunMeta, type TaskResult, shortRun, useGet } from '../lib/api';
 
-type Verdict = { promote: boolean; champion_passed: number; challenger_passed: number; n: number; fixed: string[]; broken: string[]; reason: string };
+type Verdict = { promote: boolean; champion_passed: number; challenger_passed: number; n: number; fixed: string[]; broken: string[]; p_value: number; alpha: number; reason: string };
 type ComparePayload = { verdict: Verdict; rows: { task_id: string; level: string; a: TaskResult | null; b: TaskResult | null }[] };
 
 export function Compare() {
@@ -25,11 +25,12 @@ export function Compare() {
     <>
       <p className="label">Promotion gate</p>
       <h1>
-        A challenger is promoted only if it flips <em>nothing</em> that passed
+        A challenger is promoted when a one-sided McNemar test says it <em>beats</em> the champion
       </h1>
       <p className="lead">
-        Two conditions, both required: more passes than the champion, and no task that the champion passed now fails. A
-        version that fixes three and breaks one has learnt something wrong.
+        The two runs are paired by task; only the discordant tasks count: b fixed, c broken. Under "no real difference"
+        each is a coin flip, so p = P(breaks ≤ c | b + c, ½), and the gate promotes at p &lt; 0.05. With ten tasks that
+        is blunt by construction: five fixes and no breaks is the smallest result that clears it (p = 0.031).
       </p>
       <div className="row">
         <label style={{ flex: '1 1 320px' }}>
@@ -61,6 +62,11 @@ export function Compare() {
             <div className="label">verdict</div>
             <div className={`n ${v.promote ? 'ok' : 'warn'}`}>{v.promote ? 'promote' : 'hold'}</div>
             <div className="b">{v.reason}</div>
+          </div>
+          <div className="kpi">
+            <div className="label">p-value</div>
+            <div className={`n ${v.p_value < v.alpha ? 'ok' : 'warn'}`}>{v.p_value.toFixed(3)}</div>
+            <div className="b">one-sided exact McNemar · α = {v.alpha}</div>
           </div>
           <div className="kpi">
             <div className="label">passes</div>

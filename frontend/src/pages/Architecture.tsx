@@ -66,7 +66,7 @@ export function Architecture() {
             <text className="tx k" x="276" y="274">loop · one optimiser session</text>
             <text className="tx" x="276" y="300">reads: failed traces + ledger history</text>
             <text className="tx" x="276" y="322">writes: agents/v(N+1)/system.md, helper.py, diagnosis.json</text>
-            <text className="tx s" x="276" y="344">gate: pass count up, no pass→fail flip</text>
+            <text className="tx s" x="276" y="344">gate: one-sided McNemar, p &lt; 0.05</text>
             <text className="tx s" x="276" y="366">ledger: loop/ledger.jsonl (committed)</text>
           </g>
           <g id="viewer">
