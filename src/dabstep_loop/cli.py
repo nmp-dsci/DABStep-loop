@@ -208,6 +208,17 @@ def reflect(run_id: str | None = None, model: str = "sonnet") -> None:
 
 
 @app.command()
+def ureflect(run_id: str, model: str = "sonnet") -> None:
+    """Unsupervised reflection over a probe run: writes one card per family to loop/families/."""
+    from dabstep_loop.loop.ureflect import run_ureflection
+
+    entry = asyncio.run(run_ureflection(run_id, model=model))
+    console.print(
+        json.dumps({k: entry[k] for k in ("statuses", "priorities", "tokens", "outcome")}, indent=1)
+    )
+
+
+@app.command()
 def annotate(version: str, model: str = "sonnet") -> None:
     """Write agents/<version>/change_log.json from the optimiser's own record (post-hoc)."""
     from dabstep_loop.loop.annotate import annotate as _annotate
