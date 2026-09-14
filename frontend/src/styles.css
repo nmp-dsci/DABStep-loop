@@ -123,8 +123,8 @@ figcaption .path{display:block;font-family:var(--mono);font-size:var(--t-2);colo
 .dia .cap{font:400 13px var(--mono);fill:var(--faint)}
 .empty{margin-top:var(--s4);padding:var(--s4) var(--s5);border:1px dashed var(--line-3);border-radius:var(--r);color:var(--muted);max-width:var(--measure)}
 .steps{counter-reset:s;list-style:none;padding:0;margin:var(--s4) 0 0;display:grid;gap:var(--s3)}
-.steps li{counter-increment:s;display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:var(--s3);align-items:start}
-.steps li::before{content:counter(s,decimal-leading-zero);font:500 var(--t-1)/1.6 var(--mono);color:var(--accent)}
+.steps li{counter-increment:s;position:relative;padding-left:2.9rem}
+.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:0;font:500 var(--t-1)/1.6 var(--mono);color:var(--accent)}
 details{margin-top:var(--s3)}
 summary{cursor:pointer;color:var(--accent);font-weight:500;min-height:24px}
 .diff-sum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s2) var(--s4);margin-top:var(--s3);font-size:var(--t-1)}

@@ -121,8 +121,8 @@ blockquote.warn{border-left-color:var(--amber)}
 .dia .bar{fill:var(--line-2)} .dia .bar.hi{fill:var(--accent)} .dia .bar.warn{fill:var(--amber)}
 .dia .ax{stroke:var(--line-2);stroke-width:1}
 .steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:var(--s3)}
-.steps li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:var(--s3);align-items:start;font-size:var(--t-1)}
-.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--mono);color:var(--accent);font-weight:500;padding-top:2px}
+.steps li{position:relative;padding-left:2.75rem;font-size:var(--t-1)}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;font-family:var(--mono);color:var(--accent);font-weight:500}
 form.q{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5);display:grid;gap:var(--s3);margin-top:var(--s4)}
 form.q h3{margin:0} form.q .why{font-size:var(--t-1);color:var(--muted);margin:0}
 form.q label{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;min-height:24px}

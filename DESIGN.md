@@ -137,9 +137,14 @@ bigger unverified one.
 10. **No second decorated keyword.**
 11. **No standalone control under 24×24px**; inline links in prose are exempt.
 12. **No link distinguished by colour alone inside prose.** Underline it.
-13. **No side-scrolling page body.** Only tables, code and diagrams may be
+13. **No `display:grid` or `display:flex` on an element whose children are
+    mixed inline nodes** (a `<b>` followed by bare text, a label with text
+    beside an input). Every inline run becomes its own grid item and the text
+    wraps under the marker. Numbered markers use `position:absolute` on a
+    padded block; controls wrap their text in a `<span>`.
+14. **No side-scrolling page body.** Only tables, code and diagrams may be
     wider, each inside its own `overflow-x: auto` wrapper.
-14. **No hand-maintained duplicate of a list that exists in data.** The viewer
+15. **No hand-maintained duplicate of a list that exists in data.** The viewer
     reads `runs/` and `agents/`; it never hard-codes a run name.
 
 ---
