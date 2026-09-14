@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { type LedgerEntry, type Registry, type RunMeta, fmtK, shortRun, useGet } from '../lib/api';
+import { type LedgerEntry, type Registry, type RunMeta, type TaskResult, fmtK, shortRun, useGet } from '../lib/api';
 
 function Arrow() {
   return (
@@ -22,6 +22,16 @@ export function Overview() {
   const promoted = cycles.filter((e) => e.outcome?.verdict === 'promote').length;
   const best = runs?.filter((r) => r.split === 'dev' && r.summary?.n_scored).sort((a, b) => (b.summary?.passed ?? 0) - (a.summary?.passed ?? 0))[0];
   const optTokens = cycles.reduce((n, e) => n + (e.tokens?.optimiser_in ?? 0) + (e.tokens?.optimiser_out ?? 0), 0);
+  const { data: champDetail } = useGet<{ results: TaskResult[] }>(champ ? `/api/runs/${champ.run_id}` : null);
+  const champRun = champDetail
+    ? {
+        n: champDetail.results.length,
+        in: champDetail.results.reduce((n, r) => n + r.input_tokens, 0),
+        out: champDetail.results.reduce((n, r) => n + r.output_tokens, 0),
+        turns: champDetail.results.reduce((n, r) => n + r.n_turns, 0),
+        results_tokens: champDetail.results.reduce((n, r) => n + r.input_tokens + r.output_tokens, 0),
+      }
+    : null;
 
   return (
     <>
@@ -52,9 +62,11 @@ export function Overview() {
           <div className="b">{promoted} promoted · {cycles.length - promoted} held · {reflections.length} reflection{reflections.length === 1 ? '' : 's'} · {fmtK(optTokens)} optimiser tokens</div>
         </div>
         <div className="kpi">
-          <div className="label">cost to the author</div>
-          <div className="n ok">$0</div>
-          <div className="b">dev runs bill the Claude subscription; this demo cannot call a model</div>
+          <div className="label">tokens per question</div>
+          <div className="n">{champRun ? fmtK(Math.round(champRun.results_tokens / champRun.n)) : '—'}</div>
+          <div className="b">
+            {champRun ? `${champ?.agent} on dev-10 · ${fmtK(champRun.in)} in / ${fmtK(champRun.out)} out over ${champRun.n} tasks · ${champRun.turns} turns` : '—'}
+          </div>
         </div>
       </div>
 
