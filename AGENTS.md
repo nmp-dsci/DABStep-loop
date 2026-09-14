@@ -132,7 +132,14 @@ The `eval` command refuses `SPLIT=all` without an interactive confirmation.
 4. The challenger runs dev-10 (scored) and the same probe sample (unscored);
    `compare.gate_a` decides; the ledger entry (kind `ucycle`) carries
    `signals_before`, `signals_after` and `signals_by_family`.
-5. Lenses 2 and 3 (`lenses.py`) are computed once by `dabstep lenses` and
+5. The task **guidelines** outrank the question. They are the answer
+   contract (rounding, list shape, sort order, empty string vs "Not
+   Applicable") and the scorer reads the shape first. They reach the agent's
+   task prompt, signal S5, the reflector's trace blocks, every family card
+   (`guidelines`: the family's distinct guidelines verbatim, with counts), and
+   the optimiser's failure, contradiction and family blocks, which must quote
+   them in the routing table's answer-format column.
+6. Lenses 2 and 3 (`lenses.py`) are computed once by `dabstep lenses` and
    only say how far to trust lens 1 per task; the family id on a card is
    always the regex family.
 

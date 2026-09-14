@@ -9,6 +9,13 @@
  "dev_anchor": [
   "1871"
  ],
+ "guidelines": [
+  {
+   "guideline": "Answer must be just a number rounded to 14 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+   "n": 40,
+   "format": "number"
+  }
+ ],
  "status": "verified",
  "canonical_method": {
   "helper": "fee_total_for_rule(rule, transactions, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume, rate=<override>)",

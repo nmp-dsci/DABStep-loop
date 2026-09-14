@@ -9,6 +9,13 @@
  "dev_anchor": [
   "1464"
  ],
+ "guidelines": [
+  {
+   "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+   "n": 20,
+   "format": "list"
+  }
+ ],
  "status": "verified",
  "canonical_method": {
   "helper": "fee_rule_matches(rule, account_type=X, aci=Y)",

@@ -5,6 +5,7 @@ type Method = { helper?: string; exists?: boolean; steps?: string[]; manual?: st
 type FewShot = { task_id?: string; question?: string; code?: string } | null;
 type Card = {
   status: string;
+  guidelines?: { guideline: string; n: number; format: string }[];
   canonical_method?: Method;
   conflict_ruling?: string;
   pitfalls?: string[];
@@ -308,6 +309,22 @@ function Family({ fid }: { fid: string }) {
         </div>
       </div>
 
+      {c?.guidelines?.length ? (
+        <>
+          <h2>0 · The answer contract — the guidelines these {f.tasks} tasks carry, verbatim</h2>
+          <ul>
+            {c.guidelines.map((g) => (
+              <li key={g.guideline} className="small">
+                <span className="num">{g.n}×</span> <code>{g.format}</code> {g.guideline}
+              </li>
+            ))}
+          </ul>
+          <p className="insight">
+            The guideline outranks the question's wording: it fixes the rounding, the list shape, the sort order and when an
+            empty string or "Not Applicable" is right. The routing row's answer format quotes it.
+          </p>
+        </>
+      ) : null}
       {c && (
         <>
           <h2>1 · The card — what the next optimiser is told</h2>

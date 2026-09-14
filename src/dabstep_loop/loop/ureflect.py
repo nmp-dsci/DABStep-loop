@@ -36,7 +36,7 @@ from dabstep_loop.agent.versions import load_version
 from dabstep_loop.config import ROOT, RUNS_DIR
 from dabstep_loop.data.tasks import load_tasks
 from dabstep_loop.eval.runner import load_run
-from dabstep_loop.loop.families import FAMILIES, FAMILIES_DIR, coverage
+from dabstep_loop.loop.families import FAMILIES, FAMILIES_DIR, coverage, guidelines_by_family
 from dabstep_loop.loop.ledger import append_entry, next_cycle_number, read_ledger
 from dabstep_loop.loop.lenses import read_lenses
 from dabstep_loop.loop.optimiser import condense_trace
@@ -95,6 +95,7 @@ def build_prompt(run_id: str) -> str:
     tasks = {t.task_id: t for t in load_tasks("all")}
     run_dir = RUNS_DIR / run_id
     cov = {r["id"]: r for r in coverage()}
+    fmts = guidelines_by_family("all")
 
     blocks: list[str] = []
     for f in FAMILIES:
@@ -135,6 +136,9 @@ def build_prompt(run_id: str) -> str:
             f"""## {f.id} · {f.name} · {c["tasks"]} of the 450 · {c["templates"]} templates
 OPERATION: {f.operation}
 INVARIANT: {f.invariant}
+ANSWER GUIDELINES in this family (verbatim from the 450; the contract for the answer's shape, which the
+scorer reads before anything else):
+{chr(10).join(f"- ({g['n']}×, format {g['format']}) {g['guideline']}" for g in fmts.get(f.id, []))}
 DEV-10 ANCHORS:
 {devblock}
 SIGNALS on this probe ({b["n"]} tasks): S1 modal share {b["s1_modal_share"]} · S2 self-agreement {b["s2_agreement"]} · S3 {b["s3_passed"]} passed / {b["s3_failed"]} failed / {b["s3_skipped"]} skipped · S5 format {b["s5_compliance"]} (bad: {b["s5_bad"]}) · turns {b["turns_mean"]} · errors {b["errors"]}
@@ -187,7 +191,10 @@ edit any file; the harness writes the cards from your reply.
    burnt on hand loops, a format slip).
 4. One few-shot: the task id of a probe whose trace used the canonical method and passed every check, and the
    one-line helper call that answered it. If none qualifies, null.
-5. The prompt rule: one routing line for system.md — "if the question asks X → call Y; answer format Z".
+5. The prompt rule: one routing line for system.md — "if the question asks X → call Y; answer format Z", where Z
+   quotes the family's guideline (above) rather than paraphrasing it. The guideline outranks the question's
+   wording: it says the shape, the rounding, the sort order, when an empty string is right and when
+   "Not Applicable" is. A right number in the wrong shape scores zero.
 
 Finish with exactly one fenced ```json block, nothing after it:
 {{
@@ -232,6 +239,7 @@ def _write_cards(reply: dict[str, Any], run_id: str, cycle: int, model: str) -> 
             "members": cov[f.id]["tasks"],
             "templates": cov[f.id]["templates"],
             "dev_anchor": cov[f.id]["dev_anchor"],
+            "guidelines": guidelines_by_family("all").get(f.id, []),
             "status": status,
             "canonical_method": got.get("canonical_method") or {},
             "conflict_ruling": got.get("conflict_ruling") or "",

@@ -623,6 +623,262 @@
    }
   ]
  },
+ "guidelines": {
+  "F01": [
+   {
+    "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 45,
+    "format": "list"
+   }
+  ],
+  "F02": [
+   {
+    "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 20,
+    "format": "list"
+   }
+  ],
+  "F03": [
+   {
+    "guideline": "Answer must be just a number rounded to 2 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 45,
+    "format": "number"
+   }
+  ],
+  "F04": [
+   {
+    "guideline": "Answer must be just a number rounded to 14 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 40,
+    "format": "number"
+   }
+  ],
+  "F05": [
+   {
+    "guideline": "Answer must be just a number rounded to 6 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 20,
+    "format": "number"
+   }
+  ],
+  "F06": [
+   {
+    "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 27,
+    "format": "list"
+   }
+  ],
+  "F07": [
+   {
+    "guideline": "Answer must be just a number expressed in EUR rounded to 6 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 40,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just a number rounded to 6 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 20,
+    "format": "number"
+   }
+  ],
+  "F08": [
+   {
+    "guideline": "Answer must be just one letter. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 20,
+    "format": "letter"
+   },
+   {
+    "guideline": "Answer must be just the name of the card scheme. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 16,
+    "format": "scheme"
+   },
+   {
+    "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 10,
+    "format": "list"
+   }
+  ],
+  "F09": [
+   {
+    "guideline": "Answer must be just the selected card scheme and the associated cost rounded to 2 decimals in this format: {card_scheme}:{fee}. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 30,
+    "format": "scheme:cost"
+   }
+  ],
+  "F10": [
+   {
+    "guideline": "Answer must be just the selected ACI to incentive and the associated cost rounded to 2 decimals in this format: {card_scheme}:{fee}. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 25,
+    "format": "aci:cost"
+   }
+  ],
+  "F11": [
+   {
+    "guideline": "Present your results broken down by grouping and sorted in ascending order. The final answer should be a list of this format: [grouping_i: amount_i, ]. When grouping by country use the country_code. The elements of the list are sorted in ascending order by the amount. All amounts should be rounded to 2 decimal places.. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+    "n": 20,
+    "format": "grouped"
+   }
+  ],
+  "F12": [
+   {
+    "guideline": "Answer must be just a number. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 11,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just a number rounded to 6 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 7,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just the name of the merchant. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 6,
+    "format": "merchant"
+   },
+   {
+    "guideline": "Answer must be just either yes or no. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 5,
+    "format": "yes/no"
+   },
+   {
+    "guideline": "Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 4,
+    "format": "list"
+   },
+   {
+    "guideline": "Answer must be just a number rounded to 3 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 3,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just a number expressed as a percentage rounded to 6 decimal places. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 3,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just the name of the card scheme. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 3,
+    "format": "scheme"
+   },
+   {
+    "guideline": "Answer must either yes or no. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "yes/no"
+   },
+   {
+    "guideline": "Answer must be just the name of the device category. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be just a number representing the hour of the day. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "hour"
+   },
+   {
+    "guideline": "Answer must be just the country code. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "country"
+   },
+   {
+    "guideline": "Answer must be just a number rounded to 3 decimal places. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be a list of values in comma delimited list, eg: A, B, C. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 2,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be either yes or no. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "yes/no"
+   },
+   {
+    "guideline": "Answer must be a comma separated list of country codes. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "list"
+   },
+   {
+    "guideline": "Answer must be just a number of unique merchants. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be a comma separated list with this format: '[merchant], [issuer_country], [card_scheme], [shopper_interaction]'. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "list"
+   },
+   {
+    "guideline": "Answer must be just the string representing the volume as described in the context provided. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be just a number rounded to 6 decimal places. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just the name of the shopper interaction. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be a number rounded to 3 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be a comma separated list of the merchant names. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "list"
+   },
+   {
+    "guideline": "Answer must be in the form 'X. Y' where X is the option's letter chosen and Y is the option's description. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "option"
+   },
+   {
+    "guideline": "Answer must the number of cost in dollars per retry or 'Not Applicable'. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be the exact number. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just a number expressed as a percentage rounded to 6 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just a country code. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "country"
+   },
+   {
+    "guideline": "Answer must be just the name of the column. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be just a number of the day of the year. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "number"
+   },
+   {
+    "guideline": "Answer must be just the column's name. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "text"
+   },
+   {
+    "guideline": "Answer must be in the form 'X. Y' where X is the option's letter chosen and Y is the option's country code. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.",
+    "n": 1,
+    "format": "option"
+   }
+  ]
+ },
  "tasks": {
   "1712": {
    "family": "F03",

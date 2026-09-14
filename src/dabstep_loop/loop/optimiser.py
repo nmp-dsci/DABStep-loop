@@ -43,7 +43,11 @@ FAMILY_RULES = """4b. The family cards are the point of this cycle. For every fa
    helper.… → answer format …`, and at most one example line per family (the card's few-shot, if any). Keep the
    prompt short: one row and at most one example per family, no prose. Write the example with blanks
    (`<merchant>`, `<month> <year>`, `<fee id>`), never a leaderboard question verbatim and never an answer;
-   the CI gate rejects a version that quotes one.
+   the CI gate rejects a version that quotes one. The answer-format column quotes the family's ANSWER
+   GUIDELINES (rounding, list shape, sort order, empty string vs "Not Applicable"), because the guideline
+   is the contract the scorer reads first: it outranks the question's wording, and a right value in the
+   wrong shape scores zero. Make the agent read the task's GUIDELINES line before it computes, and end
+   with exactly the `{"agent_answer": ...}` line and nothing after it.
 4c. Verify a new entry point in-session against an invariant, not against gold: e.g. run it for a merchant's
    day, its month and its year and check ids(day) ⊆ ids(month) ⊆ ids(year) or fees(day) ≤ fees(month) ≤
    fees(year); run a min and a max steer-traffic for the same merchant and check the schemes differ. Record
@@ -96,11 +100,12 @@ def render_families_block(probe_run_id: str, trace_chars: int = 3000) -> str:
     prompt rule and the few-shot the reflector chose. Then every invariant the
     probe failed, with both tasks' questions, answers and condensed traces, so the
     contradiction can be read without gold."""
-    from dabstep_loop.loop.families import FAMILIES
+    from dabstep_loop.loop.families import FAMILIES, guidelines_by_family
     from dabstep_loop.loop.signals import read_signals
     from dabstep_loop.loop.ureflect import read_cards
 
     cards = read_cards()
+    fmts = guidelines_by_family("all")
     if not cards:
         return "No family cards yet (run `dabstep ureflect` on a probe first)."
     order = {"open": 0, "provisional": 1, "verified": 2}
@@ -116,7 +121,9 @@ def render_families_block(probe_run_id: str, trace_chars: int = 3000) -> str:
         lines.append(
             f"## {f.id} · {f.name} · {c.get('members')} of the 450 · status {c.get('status')}\n"
             f"OPERATION: {f.operation}\nINVARIANT: {f.invariant}\n"
-            f"CANONICAL METHOD: {m.get('helper')} (exists in helper.py: {m.get('exists')})\n"
+            "ANSWER GUIDELINES (verbatim, with how many of the family's tasks carry each):\n"
+            + "".join(f"  - ({g['n']}×) {g['guideline']}\n" for g in fmts.get(f.id, []))
+            + f"CANONICAL METHOD: {m.get('helper')} (exists in helper.py: {m.get('exists')})\n"
             + "".join(f"  - {st}\n" for st in m.get("steps", []))
             + f"  manual: {m.get('manual')}\n"
             f"PROMPT RULE: {c.get('prompt_rule')}\n"
@@ -146,13 +153,15 @@ def render_families_block(probe_run_id: str, trace_chars: int = 3000) -> str:
                 t = tasks.get(tid)
                 p = run_dir / "traces" / (f"{tid}.json" if passes == 1 else f"{tid}_p1.json")
                 parts.append(
-                    f"task {tid}: {t.question if t else '?'}\nANSWER: {b.get('answers', {}).get(tid)!r}\nTRACE:\n"
+                    f"task {tid}: {t.question if t else '?'}\nGUIDELINES: {t.guidelines if t else '?'}\n"
+                    f"ANSWER: {b.get('answers', {}).get(tid)!r}\nTRACE:\n"
                     + (condense_trace(p, limit=trace_chars) if p.exists() else "(no trace)")
                 )
             failed.append("\n".join(parts))
         for tid in b.get("s2_disagree", []):
             failed.append(
                 f"### {fid} · two passes DISAGREED on task {tid}: {tasks[tid].question if tid in tasks else tid}"
+                + (f"\nGUIDELINES: {tasks[tid].guidelines}" if tid in tasks else "")
             )
     return (
         "# Family cards (from the unsupervised reflector; worst status first)\n"
@@ -169,12 +178,16 @@ def build_prompt(
     failures: list[TaskResult],
     families_block: str = "",
 ) -> str:
+    from dabstep_loop.data.tasks import load_tasks
+
+    guidelines = {t.task_id: t.guidelines for t in load_tasks("dev")}
     run_dir = RUNS_DIR / run_id
     blocks: list[str] = []
     for r in failures:
         blocks.append(
             f"## Task {r.task_id} ({r.level})\n"
             f"QUESTION: {r.question}\n"
+            f"GUIDELINES (the answer contract; outranks the question's wording): {guidelines.get(r.task_id, 'N/A')}\n"
             f"GOLD: {r.gold}\n"
             f"AGENT ANSWER: {r.agent_answer!r}\n"
             f"ERROR: {r.error or 'none'} · turns {r.n_turns}\n"

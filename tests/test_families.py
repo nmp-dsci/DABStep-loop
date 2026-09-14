@@ -64,3 +64,20 @@ def test_agreement_maths() -> None:
     assert flags["1"] == []
     assert any("split" in r for r in flags["2"])
     assert any("lens 2" in r for r in flags["3"]) and any("lens 3" in r for r in flags["3"])
+
+
+def test_guidelines_per_family_cover_the_450() -> None:
+    from dabstep_loop.loop.families import guidelines_by_family
+
+    g = guidelines_by_family("all")
+    assert sum(x["n"] for v in g.values() for x in v) == 450
+    assert g["F09"][0]["format"] == "scheme:cost" and g["F10"][0]["format"] == "aci:cost"
+    assert all(x["guideline"] for v in g.values() for x in v)
+
+
+def test_optimiser_prompt_carries_guidelines() -> None:
+    from dabstep_loop.loop.optimiser import render_families_block
+
+    block = render_families_block("20260914T061927Z_v2_probe_haiku")
+    assert block.count("ANSWER GUIDELINES") == 12
+    assert "Not Applicable" in block

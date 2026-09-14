@@ -7,6 +7,13 @@
  "members": 30,
  "templates": 4,
  "dev_anchor": [],
+ "guidelines": [
+  {
+   "guideline": "Answer must be just the selected card scheme and the associated cost rounded to 2 decimals in this format: {card_scheme}:{fee}. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+   "n": 30,
+   "format": "scheme:cost"
+  }
+ ],
  "status": "open",
  "canonical_method": {
   "helper": "total_fees_paid(fees, scheme-filtered transactions, ...) per month, summed per scheme — needs resolution before shipping",
