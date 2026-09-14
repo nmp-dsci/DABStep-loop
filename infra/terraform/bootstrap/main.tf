@@ -44,6 +44,19 @@ variable "github_repo" {
   default = "nmp-dsci/DABStep-loop"
 }
 
+variable "github_repo_immutable" {
+  description = <<-EOT
+    The repo's immutable OIDC subject prefix. Repositories created after
+    GitHub's 2026 change default to `use_immutable_subject`, so the token's
+    `sub` reads `repo:<owner>@<owner_id>/<repo>@<repo_id>:...` rather than
+    `repo:<owner>/<repo>:...` — the sibling projects predate this and their
+    trust policies match the old form. Read it from
+    `gh api repos/<owner>/<repo>/actions/oidc/customization/sub`.
+  EOT
+  type        = string
+  default     = "nmp-dsci@18507240/DABStep-loop@1369179875"
+}
+
 variable "tfstate_bucket" {
   description = "Existing state bucket shared with the sibling demos."
   type        = string
@@ -71,7 +84,7 @@ data "aws_iam_policy_document" "github_trust" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values   = ["repo:${var.github_repo}:*", "repo:${var.github_repo_immutable}:*"]
     }
   }
 }
