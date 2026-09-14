@@ -113,7 +113,10 @@ def test_sampler_is_seeded_and_never_draws_dev() -> None:
     assert a.task_ids == b.task_ids and len(a.task_ids) > 30
     dev = {t.task_id for t in load_tasks("dev")}
     assert not (set(a.task_ids) & dev)
-    assert all(len(v) >= 3 for v in a.drawn.values())
+    from dabstep_loop.loop.sampler import card_status
+
+    # a verified card drops its family to one draw; every other family gets k
+    assert all(len(v) == (1 if card_status(fid) == "verified" else 3) for fid, v in a.drawn.items())
     assert draw(3, 8).task_ids != a.task_ids
 
 
