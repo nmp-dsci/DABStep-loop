@@ -131,7 +131,8 @@ bigger unverified one.
 6. **No headline metric strip without stakes.** A number appears with the
    thing it measures and the baseline it beats, or not at all.
 7. **No purple, no Inter, no wide letter-spacing on display type.**
-8. **No paragraph over 80 words; no heading that names a topic.**
+8. **No paragraph over 80 words; no heading that names a topic.** Two or more
+    distinct points are a bold-led list, not a paragraph: structure, not blobs of text.
 9. **No published figure with no committed source.**
 10. **No second decorated keyword.**
 11. **No standalone control under 24×24px**; inline links in prose are exempt.

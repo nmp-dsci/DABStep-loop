@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>s01 · DABstep-loop — unsupervised reflection: learn the 450 by family, without answers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Design source (2): the project's own system — DESIGN.md, a port of
+   nmp-dsci.github.io/assets/css/tokens.css ("Field Guide"). Tokens verbatim. */
+:root{
+  --bg:#F7F6F2; --panel:#FFFFFF; --band:#EFEEE8;
+  --ink:#1A1D1B; --ink-2:#3B403D; --muted:#4A514D; --faint:#5C635E;
+  --line:#DCDAD2; --line-2:#C7C5BC; --line-3:#8A8880;
+  --accent:#0A6552; --accent-ink:#FFFFFF; --accent-soft:#DFEFE8;
+  --amber:#8A5006; --amber-soft:#F6E6CF;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --t-2:0.8rem; --t-1:0.875rem; --t0:1rem; --t1:1.125rem; --t2:1.406rem; --t3:1.758rem; --t4:2.197rem;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --r:10px; --r-sm:6px;
+  --shadow:0 1px 2px rgb(20 25 22 / .05), 0 12px 28px -18px rgb(20 25 22 / .22);
+  --dur:300ms; --ease:cubic-bezier(.2,.7,.2,1); --focus:var(--accent);
+  --w:1140px; --measure:68ch; --track-label:.08em;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --panel:#191E1B; --band:#161A18;
+    --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+    --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+    --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+    --amber:#D99A4E; --amber-soft:#3A2A14;
+    --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#191E1B; --band:#161A18;
+  --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+  --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+  --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+  --amber:#D99A4E; --amber-soft:#3A2A14;
+  --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+}
+@media (prefers-reduced-motion: reduce){ :root{ --dur:0.01ms; } }
+*,*::before,*::after{box-sizing:border-box}
+:where(.grid,.flex,.kpi,.slide,.cards)>*{min-width:0}
+:where(p,h1,h2,h3,h4,li,dd,figcaption,td,th,.chip,.label){overflow-wrap:anywhere}
+:where(img,svg,video,iframe){max-width:100%;height:auto}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:var(--t0);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.15;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:var(--t4);font-family:var(--serif);font-weight:400} h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+h2{font-size:var(--t3)} h3{font-size:var(--t1)} h4{font-size:var(--t0)}
+p{margin:0 0 var(--s4);text-wrap:pretty}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:.2em} a:hover{text-decoration-thickness:2px}
+strong,b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:max(var(--t-2),.86em);background:var(--band);padding:.08em .32em;border-radius:var(--r-sm);color:var(--ink-2)}
+.wrap{max-width:var(--w);margin-inline:auto;padding-inline:var(--s5)}
+.label{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0}
+.lead{font-family:var(--serif);font-size:var(--t1);line-height:1.5;color:var(--ink-2);max-width:72ch}
+.small{font-size:var(--t-1);color:var(--muted)}
+.top{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--w);margin-inline:auto;padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.top b{font-family:var(--mono);font-size:var(--t-1);color:var(--ink);white-space:nowrap}
+.top nav{display:flex;gap:var(--s4);margin-left:auto;flex-wrap:wrap;font-size:var(--t-1);font-weight:500}
+.top nav a{color:var(--ink-2);text-decoration:none;padding:var(--s1) 0} .top nav a:hover{color:var(--accent)}
+header.hero{padding:var(--s7) 0 var(--s5)}
+.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) 0 0}
+.chip{font-family:var(--mono);font-size:var(--t-2);padding:.3em .6em;border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--ink-2);background:var(--panel)}
+.chip.ok{border-color:var(--accent);color:var(--accent)} .chip.warn{border-color:var(--amber);color:var(--amber)}
+section.blk{padding-top:var(--s8)} section.blk:last-of-type{padding-bottom:var(--s9)}
+section.band-sec{background:var(--band);margin-top:var(--s8);padding:var(--s7) 0}
+section.band-sec + section.blk{padding-top:var(--s7)}
+.hd{margin-bottom:var(--s5);max-width:80ch} .hd ul.tight{margin-top:var(--s2)} ul.tight li{margin-bottom:var(--s2)} .hd .label{margin-bottom:var(--s2)} .hd h2{margin-bottom:var(--s3)}
+.panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5)}
+.grid{display:grid;gap:var(--s4)} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.loopg{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+@media (max-width:900px){.g3,.g2,.loopg{grid-template-columns:minmax(0,1fr)}}
+.card h3{margin-bottom:var(--s2)} .card p{margin-bottom:var(--s2);font-size:var(--t-1)} .card p:last-child{margin:0}
+.card.pro{box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
+.card.dsg{box-shadow:none;border:1px dashed var(--line-3)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);box-shadow:var(--shadow);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--t-1)}
+caption{text-align:left;padding:var(--s4) var(--s5) var(--s2);color:var(--muted);font-size:var(--t-1);caption-side:top}
+th,td{text-align:left;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+thead th{font-family:var(--mono);font-size:var(--t-2);font-weight:500;color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.sub{font-weight:600;color:var(--ink);white-space:nowrap}
+td.num{font-family:var(--mono);font-size:var(--t-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+td .path{display:block;font-family:var(--mono);font-size:var(--t-2);color:var(--faint);font-weight:400;margin-top:2px}
+tr.pro td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.v-ok{color:var(--accent);font-weight:600} .v-no{color:var(--muted)} .v-warn{color:var(--amber);font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4)}
+@media(max-width:900px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi .k{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s4)}
+.kpi .k b{display:block;font-family:var(--mono);font-size:var(--t3);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k span{display:block;font-size:var(--t-2);color:var(--muted);margin-top:var(--s2);line-height:1.4}
+blockquote{margin:0;padding:var(--s3) var(--s4);border-left:2px solid var(--accent);background:var(--band);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:var(--t-1)}
+blockquote.warn{border-left-color:var(--amber)}
+.fig{margin:var(--s5) 0 0}
+.fig-title{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0 0 var(--s3);text-wrap:balance}
+.dia-frame{background:var(--panel);border-radius:var(--r);padding:var(--s4);box-shadow:var(--shadow)}
+.fig figcaption{font-family:var(--sans);font-size:var(--t-1);color:var(--muted);line-height:1.5;margin-top:var(--s3)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+.dia{display:block;width:100%;height:auto;color:var(--ink-2);overflow:visible}
+.dia .nd{fill:var(--bg);stroke:currentColor;stroke-width:1;vector-effect:non-scaling-stroke}
+.dia .nd.hi{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.dia .nd.ext{fill:none;stroke:var(--line-3);stroke-dasharray:4 3}
+.dia .nd.warn{fill:var(--amber-soft);stroke:var(--amber)}
+.dia .rg{fill:none;stroke:var(--line-2);stroke-dasharray:5 4}
+.dia .tx{font-family:var(--mono);font-size:11.5px;fill:currentColor}
+.dia .tx.k{fill:var(--ink);font-weight:500;font-family:var(--sans);font-size:12.5px}
+.dia .tx.s{font-size:10.5px;fill:var(--faint)}
+.dia .cap{font-family:var(--mono);font-size:10.5px;fill:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase}
+.dia .ed{stroke:currentColor;stroke-width:1.25;vector-effect:non-scaling-stroke;fill:none;marker-end:url(#arr)}
+.dia .ed.hi{stroke:var(--accent);stroke-width:1.6}
+.dia .ed.dash{stroke-dasharray:4 3}
+.dia .bar{fill:var(--line-2)} .dia .bar.hi{fill:var(--accent)} .dia .bar.warn{fill:var(--amber)}
+.dia .ax{stroke:var(--line-2);stroke-width:1}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:var(--s3)}
+.steps li{display:grid;grid-template-columns:2rem minmax(0,1fr);gap:var(--s3);align-items:start;font-size:var(--t-1)}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--mono);color:var(--accent);font-weight:500;padding-top:2px}
+form.q{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5);display:grid;gap:var(--s3);margin-top:var(--s4)}
+form.q h3{margin:0} form.q .why{font-size:var(--t-1);color:var(--muted);margin:0}
+form.q label{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;min-height:24px}
+form.q label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+form.q input[type=radio]{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px}
+form.q textarea{width:100%;font:inherit;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2);min-height:3.2rem;resize:vertical}
+form.q .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap}
+form.q.bare{box-shadow:none;padding:0;background:transparent;margin-top:var(--s3)}
+.btn{font:500 var(--t-1) var(--sans);background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;min-height:24px;transition:filter var(--dur) var(--ease)}
+.btn:hover{filter:brightness(1.08)} .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.queued{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);min-height:1.2em}
+.rec{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);margin-left:.4em}
+ul.tight{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.tight li{margin-bottom:var(--s1)}
+ul.qa{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.qa li{margin-bottom:var(--s2)}
+.tree,pre.md{font-family:var(--mono);font-size:var(--t-2);line-height:1.65;white-space:pre;overflow-x:auto;margin:0;background:var(--band);border-radius:var(--r);padding:var(--s4)}
+.insight{font-size:var(--t-1);color:var(--muted);margin:var(--s3) 0 0;max-width:var(--measure)}
+footer{border-top:1px solid var(--line);padding:var(--s5) 0;font-size:var(--t-2);color:var(--faint);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in"><b>s01 · DABstep-loop · unsupervised reflection</b>
+<nav><a href="#goal">Goal</a><a href="#nvidia">NVIDIA</a><a href="#families">Families</a><a href="#signals">Signals</a><a href="#loop">Loop</a><a href="#surfaces">Surfaces</a><a href="#gate">Gate</a><a href="#budget">Budget</a><a href="#build">Build</a><a href="#risks">Risks</a><a href="#approve">Approve</a></nav></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="label">plan s01 · after build 1 (s00) · 14 Sep 2026 · champion v2, 9 of 10 on dev</p>
+  <h1>Give the agent what the 450 need in <em>system.md and helper.py</em>: dev-10 covers 5 of the 12 question families, so the other 7 must be learned from the 450 without answers</h1>
+  <p class="lead">The deliverable is a version v3 whose prompt routes every one of the 12 families to a helper entry point that exists, with one verified example each. Today v2 has an entry point for 5 families and improvises the other 7 every time. Everything else on this page (clustering, probes, signals, cards) is the means to write those two files without gold answers.</p>
+  <ul class="tight">
+    <li><b>Cluster</b> the 450 by operation, deterministically, before any run.</li>
+    <li><b>Probe</b> each family: run the champion on a seeded sample, unscored.</li>
+    <li><b>Signal</b> without gold: method consistency, self-agreement, invariants, an audit, format.</li>
+    <li><b>Card</b> per family: canonical method, helper entry point, one example, status.</li>
+    <li><b>Optimise</b>: cards become a routing table in <code>system.md</code> and family functions in <code>helper.py</code>.</li>
+    <li><b>Guard</b>: dev-10 keeps its veto; nothing here scores the 450.</li>
+  </ul>
+  <div class="chips"><span class="chip ok">no gold used on the 450</span><span class="chip ok">dev-10 stays the regression guard</span><span class="chip ok">optimiser still edits two files</span><span class="chip warn">runs the champion on ≈ 42 of the 450 per cycle, unscored</span><span class="chip">design source: DESIGN.md (Field Guide)</span></div>
+</div></header>
+
+<section class="blk" id="goal"><div class="wrap">
+  <div class="hd"><p class="label">1 · goal</p>
+  <h2>1 · Goal — coverage of the 450 by family, not passes on ten</h2>
+  <ul class="tight">
+    <li><b>Build 1 proved the supervised loop:</b> v0 at 4 of 10 → v2 at 9 of 10 in two cycles plus a reflection.</li>
+    <li><b>That loop is saturated.</b> One dev failure left (2697): one fix with zero breaks gives McNemar p = 0.5 against the 0.05 bar, so nothing can be promoted.</li>
+    <li><b>And it is blind.</b> A pass on dev-10 says nothing about the six hard families dev-10 never touches.</li>
+    <li><b>This build:</b> a loop whose unit of learning is a question family, whose output is a rule and an entry point per family in the two files, and whose gate moves without new gold.</li>
+  </ul></div>
+  <div class="kpi">
+    <div class="k"><b>106</b><span>templates over the 450 (question with merchants, months, ids blanked) · <code>loop/groups.py</code>, run this session</span></div>
+    <div class="k"><b>12</b><span>operation families the 106 templates collapse to · rule classifier, §3, to be committed as <code>loop/families.py</code></span></div>
+    <div class="k"><b>188 / 378</b><span>hard tasks in a family with no dev-10 anchor · F03, F05, F06, F08, F09, F11</span></div>
+    <div class="k"><b>5 → 12</b><span>families with a helper entry point and a prompt rule · v2 today → v3 target, every family routed (§6 table)</span></div>
+  </div>
+  <p class="insight">The number that matters is 188: hard tasks whose operation the agent has never been checked on. Every mechanism below exists to lower it.</p>
+</div></section>
+
+<section class="blk" id="nvidia"><div class="wrap">
+  <div class="hd"><p class="label">2 · the recipe being imitated</p>
+  <h2>2 · NVIDIA — three phases; reflection writes the prompt, consistency picks the method</h2>
+  <ul class="tight">
+    <li><b>Result:</b> Haiku 4.5 at inference, 89.95% hard against 66.93% for Claude Code with Opus 4.5; 20 s per task against 10 min.</li>
+    <li><b>Learning phase</b> (heavy model, full tools): builds <code>helper.py</code>, a markdown manual of domain rules, and a few-shot set from the dev split.</li>
+    <li><b>Inference phase</b> (Haiku): sees function signatures only and a streamlined system prompt.</li>
+    <li><b>Reflection, technique 1 · audit:</b> "Did the agent effectively utilize the helper.py library? Did it follow the prompt faithfully?"</li>
+    <li><b>Reflection, technique 2 · group-consistency:</b> "analyzing multiple candidate solutions across groups of similar test questions"; where "the agent solves the exact same type of question using conflicting methods, the offline model flags the discrepancy and reasons through which approach is actually correct".</li>
+    <li><b>Where learnings go:</b> "injected directly into the system prompt for future Inference phases".</li>
+  </ul></div>
+  <div class="tw"><table>
+    <caption>What build 1 already has of the recipe, and what this plan adds · source: AGENTS.md §5, src/dabstep_loop/loop/</caption>
+    <thead><tr><th>NVIDIA phase</th><th>DABstep-loop today</th><th>This plan</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">Learning</td><td>Sonnet optimiser edits <code>system.md</code> + <code>helper.py</code> from dev-10 failures and the ledger</td><td>Same optimiser, one more input: the family cards (§6)</td></tr>
+      <tr><td class="sub">Inference</td><td>Haiku 4.5, one Python tool, signatures only in the task prompt (<code>agent/prompt.py</code>)</td><td>Unchanged; a per-family few-shot line lands in <code>system.md</code>, so the budget is watched (§8)</td></tr>
+      <tr><td class="sub">Reflection · audit</td><td><code>make reflect</code>: one read-only Sonnet session over the ten dev traces → ledger note</td><td>Same audit, over a family-stratified sample of the 450 traces</td></tr>
+      <tr class="pro"><td class="sub">Reflection · group-consistency</td><td>Only a count of siblings per dev task (<code>groups_for_dev</code>); no run on the 450</td><td><b>New:</b> probe runs on the 450 by family, method extraction, invariants, one card per family, a gold-free gate</td></tr>
+      <tr><td class="sub">Few-shot from dev</td><td>none</td><td>One verified example per family, chosen by the reflector from a consistent probe, placed in <code>system.md</code></td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>Judge per question, or clusters over all questions? Both, in that order, and neither is embeddings</h3>
+      <ul class="tight">
+        <li><b>Clustering first, not a model:</b> blank the variable parts → 106 templates → 12 operations by an ordered regex table, before any run.</li>
+        <li><b>Same family = same computation,</b> not similar wording.</li>
+        <li><b>Then one judge per family:</b> the offline session reads the family's probe traces side by side and rules on the method with the manual open.</li>
+        <li><b>Why not per question:</b> a per-question judge cannot see that two siblings were solved two ways, and with no gold has nothing to judge against.</li>
+      </ul>
+      </div>
+    <div class="panel card"><h3>Why regex over semantic embeddings for these 450</h3>
+      <ul class="tight">
+        <li><b>Permutations, not paraphrases:</b> the paper says 95 core questions; a blanking rule states exactly what an embedding would only approximate.</li>
+        <li><b>Auditable:</b> a card can cite the regex that put a task in F03; it cannot cite a centroid.</li>
+        <li><b>Wording misleads:</b> "total fees paid in March" and "delta if fee 384's rate changed" share words and no computation.</li>
+        <li><b>Embeddings as a check:</b> embed the 450 locally, k-means at k = 12, report the confusion against the regex families. A split family or a merged pair gets a second look (F07/F08, §10). It never decides.</li>
+      </ul>
+      </div>
+  </div>
+  <form class="q" data-lavish-question="clustering" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const c=fd.get('clustering'); if(!c) return; window.lavish.queuePrompt('Clustering method for the families: ' + c, {tag:'decision', text:'Clustering: '+c, element:event.currentTarget, data:{question:'clustering', answer:c}}); event.currentTarget.querySelector('.queued').textContent='queued: '+c;">
+    <h3>How should the 450 be clustered?</h3>
+    <label><input type="radio" name="clustering" value="three lenses (regex families + local embedding clusters + one Sonnet membership pass over the 450 with multi-membership and confidence, cluster summaries written by an agent, agreement matrix, boundary tasks sampled first); regex remains the family id on the card" checked><span>Three lenses: regex, embeddings, Sonnet membership; agreement matrix; boundary tasks sampled first<span class="rec">recommended · §3b</span></span></label>
+    <label><input type="radio" name="clustering" value="regex families with an embedding k-means confusion report as a check only (no Sonnet pass)"><span>Regex families, embeddings as a check only</span></label>
+    <label><input type="radio" name="clustering" value="regex families only, no embedding check, no Sonnet pass"><span>Regex families only</span></label>
+    <label><input type="radio" name="clustering" value="embeddings + the Sonnet membership pass decide the family id; regex only names clusters"><span>Embeddings + Sonnet decide the family id; regex only names them</span></label>
+    <div class="row"><button type="submit" class="btn">Queue this answer</button><span class="queued"></span></div>
+  </form>
+  <p class="insight">The post does not say how questions were grouped or what happened after a flag. §3 to §7 are this project's answers to those two gaps.</p>
+</div></section>
+
+<section class="band-sec" id="families"><div class="wrap">
+  <div class="hd"><p class="label">3 · clustering</p>
+  <h2>3 · Families — two levels: 106 templates, then 12 operations</h2>
+  <ul class="tight">
+    <li><b>Level one exists:</b> <code>loop/groups.py</code> blanks merchants, months, years, numbers, schemes, letters → 106 templates over the 450.</li>
+    <li><b>Level two is new:</b> an ordered regex table maps each template to one of 12 operation families (the classifier below sums to 450).</li>
+    <li><b>A family is the unit</b> that gets one method, one helper entry point, one set of invariants, one few-shot example.</li>
+    <li><b>Regex, not embeddings, not a model:</b> the 450 are literal permutations and a rule is auditable in the ledger; the judge comes later, per family (§4, S4).</li>
+    <li><b>Easy tasks:</b> 72 templates in one family, descriptive statistics over <code>payments.csv</code>; they need format discipline, not fee logic.</li>
+  </ul></div>
+  <figure class="fig">
+    <p class="fig-title">fig 1 · the 450 by family · bars are task counts · filled = family has a dev-10 gold anchor</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 900 372" role="img" aria-label="Twelve horizontal bars, one per question family, sized by how many of the 450 tasks fall in it; six hard families totalling 188 tasks have no dev anchor and are drawn hollow.">
+      <defs><marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+      <g id="f1-axis"><title>axis: 0 to 72 tasks</title><line class="ax" x1="300" y1="14" x2="300" y2="352"/></g>
+      <g id="f1-rows" font-family="var(--mono)">
+        <g id="f1-F07"><title>F07 average-fee-for-scheme · 60 tasks · anchored by 1273, 1305</title><text class="tx" x="0" y="34">F07 average fee for a scheme</text><rect class="bar hi" x="300" y="22" width="480" height="16"/><text class="tx s" x="788" y="34">60 · dev 1273, 1305</text></g>
+        <g id="f1-F01"><title>F01 fee-ids-for-merchant-period · 45 tasks · anchored by 1681, 1753</title><text class="tx" x="0" y="62">F01 fee ids, merchant + period</text><rect class="bar hi" x="300" y="50" width="360" height="16"/><text class="tx s" x="668" y="62">45 · dev 1681, 1753</text></g>
+        <g id="f1-F03"><title>F03 total-fees-paid · 45 tasks · no anchor</title><text class="tx" x="0" y="90">F03 total fees paid</text><rect class="bar" x="300" y="78" width="360" height="16"/><text class="tx s" x="668" y="90">45 · no gold</text></g>
+        <g id="f1-F04"><title>F04 delta-fee-rate-change · 40 tasks · anchored by 1871</title><text class="tx" x="0" y="118">F04 delta if a fee rate changed</text><rect class="bar hi" x="300" y="106" width="320" height="16"/><text class="tx s" x="628" y="118">40 · dev 1871</text></g>
+        <g id="f1-F08"><title>F08 cheapest-or-priciest-choice · 46 tasks · no anchor</title><text class="tx" x="0" y="146">F08 cheapest / priciest ACI, scheme, MCC</text><rect class="bar" x="300" y="134" width="368" height="16"/><text class="tx s" x="676" y="146">46 · no gold</text></g>
+        <g id="f1-F09"><title>F09 steer-traffic-scheme · 30 tasks · no anchor</title><text class="tx" x="0" y="174">F09 steer traffic to a scheme</text><rect class="bar" x="300" y="162" width="240" height="16"/><text class="tx s" x="548" y="174">30 · no gold</text></g>
+        <g id="f1-F06"><title>F06 merchants-affected-by-fee · 27 tasks · no anchor</title><text class="tx" x="0" y="202">F06 merchants affected by a fee</text><rect class="bar" x="300" y="190" width="216" height="16"/><text class="tx s" x="524" y="202">27 · no gold</text></g>
+        <g id="f1-F10"><title>F10 move-fraud-to-aci · 25 tasks · anchored by 2697 (still failing)</title><text class="tx" x="0" y="230">F10 move fraud to another ACI</text><rect class="bar warn" x="300" y="218" width="200" height="16"/><text class="tx s" x="508" y="230">25 · dev 2697 fails</text></g>
+        <g id="f1-F02"><title>F02 fee-ids-by-attributes · 20 tasks · anchored by 1464</title><text class="tx" x="0" y="258">F02 fee ids by account type + ACI</text><rect class="bar hi" x="300" y="246" width="160" height="16"/><text class="tx s" x="468" y="258">20 · dev 1464</text></g>
+        <g id="f1-F05"><title>F05 delta-mcc-change · 20 tasks · no anchor</title><text class="tx" x="0" y="286">F05 delta if the MCC changed</text><rect class="bar" x="300" y="274" width="160" height="16"/><text class="tx s" x="468" y="286">20 · no gold</text></g>
+        <g id="f1-F11"><title>F11 avg-value-grouped-by · 20 tasks · no anchor</title><text class="tx" x="0" y="314">F11 average value grouped by X</text><rect class="bar" x="300" y="302" width="160" height="16"/><text class="tx s" x="468" y="314">20 · no gold</text></g>
+        <g id="f1-F12"><title>F12 easy-descriptive · 72 tasks, 72 templates · 3 anchored (5, 49, 70)</title><text class="tx" x="0" y="342">F12 easy descriptive stats (72 templates)</text><rect class="bar" x="300" y="330" width="576" height="16"/><rect class="bar hi" x="300" y="330" width="24" height="16"/><text class="tx s" x="300" y="362">72 · 3 with gold (5, 49, 70)</text></g>
+      </g>
+    </svg></div>
+    <figcaption><b>Six hard families, 188 of 378 hard tasks, have never been checked against anything.</b> Counts from <code>data/tasks/all.jsonl</code> via <code>loop/groups.template()</code> and the §3 classifier; F10's anchor is the one dev task that still fails. Solid = accent means a gold anchor exists; amber = anchor fails.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <caption>The family table the classifier will commit · a family's "helper today" is what v2's helper.py already offers it; blank means the agent improvises each time</caption>
+    <thead><tr><th>Family</th><th>Tasks</th><th>Templates</th><th>Dev anchor</th><th>Helper today (v2)</th><th>Gold-free invariant (§4)</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">F01 fee ids, merchant + period<span class="path">day · month · year of a merchant</span></td><td class="num">45</td><td class="num">3</td><td class="v-ok">1681, 1753 pass</td><td><code>applicable_fee_ids</code></td><td>ids(day) ⊆ ids(month) ⊆ ids(year) for one merchant</td></tr>
+      <tr><td class="sub">F02 fee ids by attributes<span class="path">account_type = X and aci = Y</span></td><td class="num">20</td><td class="num">1</td><td class="v-ok">1464 pass</td><td><code>fee_rule_matches</code></td><td>wildcard rules appear in every (X, Y) answer</td></tr>
+      <tr><td class="sub">F03 total fees paid<span class="path">day · month · year</span></td><td class="num">45</td><td class="num">3</td><td class="v-no">none</td><td><code>total_fees_paid</code> (written for F04)</td><td>Σ 12 months = year; Σ days of a month = month</td></tr>
+      <tr><td class="sub">F04 delta if a fee rate changed<span class="path">month · year</span></td><td class="num">40</td><td class="num">2</td><td class="v-ok">1871 pass</td><td><code>fee_total_for_rule</code></td><td>delta is linear in (new − old) rate; unchanged rate → 0</td></tr>
+      <tr><td class="sub">F05 delta if the MCC changed</td><td class="num">20</td><td class="num">1</td><td class="v-no">none</td><td>—</td><td>same MCC → 0; delta = fees(new MCC) − fees(old), both via F03</td></tr>
+      <tr><td class="sub">F06 merchants affected by a fee<span class="path">fee restricted to an account type · fee id in a year</span></td><td class="num">27</td><td class="num">2</td><td class="v-no">none</td><td><code>transactions_matching_rule</code></td><td>affected ⊆ merchants matching the rule today</td></tr>
+      <tr><td class="sub">F07 average fee for a scheme<span class="path">credit · account type · account type + MCC description</span></td><td class="num">60</td><td class="num">6</td><td class="v-ok">1273, 1305 pass</td><td><code>average_fee_across_rules</code></td><td>avg(v) is affine in v; narrower filter uses a subset of rules</td></tr>
+      <tr><td class="sub">F08 cheapest / priciest choice<span class="path">ACI for a value · scheme in the average scenario · MCC</span></td><td class="num">46</td><td class="num">4</td><td class="v-no">none</td><td>—</td><td>argmax over the same per-option table F07 averages; max ≥ mean</td></tr>
+      <tr><td class="sub">F09 steer traffic to a scheme<span class="path">min · max fees, month · year</span></td><td class="num">30</td><td class="num">4</td><td class="v-no">none</td><td>—</td><td>min-scheme ≠ max-scheme; per-scheme costs sum to F03's total</td></tr>
+      <tr><td class="sub">F10 move fraud to another ACI</td><td class="num">25</td><td class="num">2</td><td class="v-warn">2697 fails</td><td>—</td><td>chosen ACI has the lowest cost in the same table; cost ≤ every alternative</td></tr>
+      <tr><td class="sub">F11 average value grouped by X<span class="path">issuing_country · aci · device_type · acquirer_country · shopper_interaction · ip_country</span></td><td class="num">20</td><td class="num">6</td><td class="v-no">none</td><td>—</td><td>count-weighted mean of groups = ungrouped mean</td></tr>
+      <tr><td class="sub">F12 easy descriptive stats</td><td class="num">72</td><td class="num">72</td><td class="v-ok">5, 49, 70 pass</td><td><code>fraud_rate_by</code></td><td>two runs agree; the answer matches the guideline format</td></tr>
+    </tbody></table></div>
+  <p class="insight">Helpers written to fix one dev task already cover four unanchored families by accident. The cards make that reuse explicit instead of lucky.</p>
+  <div class="hd" style="margin-top:var(--s7)"><p class="label">3b · three lenses on the 450</p>
+  <h3 style="font-size:var(--t2)">3b · Three lenses — regex, embeddings and a Sonnet membership pass must agree, or the task is a boundary case</h3>
+  <ul class="tight">
+    <li><b>Lens 1 · regex families</b> (§3): deterministic, auditable, the id every card carries.</li>
+    <li><b>Lens 2 · embedding clusters:</b> a local sentence model embeds the 450 questions once; k-means with k chosen by silhouette over 8–16 (expected near 12); no API call.</li>
+    <li><b>Lens 3 · Sonnet membership, one pass over the 450:</b> an agent first writes a one-paragraph summary of each embedding cluster from its questions; Sonnet then reads every question with the summaries and returns <code>[{cluster, confidence}]</code>, several entries allowed, so a question may belong to two clusters.</li>
+    <li><b>Agreement:</b> adjusted Rand index and a confusion matrix, lens against lens; a question whose three lenses disagree, or whose lens-3 membership is split, is a <b>boundary task</b>.</li>
+    <li><b>What boundary tasks are for:</b> the sampler (§5, step 1) draws them first. They are where the method is likeliest to flip, so they are the cheapest place to find an inconsistency.</li>
+  </ul>
+  <figure class="fig">
+    <p class="fig-title">fig 1b · the three lenses feed one agreement matrix; boundary tasks go to the sampler; traces give the fourth, behavioural lens</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 960 250" role="img" aria-label="Three lenses over the 450 questions (regex families, embedding clusters, Sonnet membership) feed an agreement matrix that yields boundary tasks for the sampler; a fourth lens, method clusters from probe traces, is compared against the question clusters to measure consistency.">
+      <defs><marker id="arr3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+      <g id="q450"><title>the 450 questions, text only</title><rect class="nd ext" x="20" y="88" width="120" height="54" rx="8"/><text class="tx k" x="80" y="110" text-anchor="middle">450 questions</text><text class="tx s" x="80" y="128" text-anchor="middle">text only · no runs</text></g>
+      <g id="lens1"><title>lens 1: regex families, deterministic</title><rect class="nd hi" x="200" y="20" width="170" height="46" rx="8"/><text class="tx k" x="285" y="39" text-anchor="middle">L1 · regex families</text><text class="tx s" x="285" y="56" text-anchor="middle">12 · deterministic · the card id</text></g>
+      <g id="lens2"><title>lens 2: local embedding clusters, k by silhouette</title><rect class="nd hi" x="200" y="92" width="170" height="46" rx="8"/><text class="tx k" x="285" y="111" text-anchor="middle">L2 · embedding clusters</text><text class="tx s" x="285" y="128" text-anchor="middle">local model · k-means · no API</text></g>
+      <g id="lens3"><title>lens 3: Sonnet membership pass with multi-membership and confidence</title><rect class="nd hi" x="200" y="164" width="170" height="46" rx="8"/><text class="tx k" x="285" y="183" text-anchor="middle">L3 · Sonnet membership</text><text class="tx s" x="285" y="200" text-anchor="middle">1 pass · multi · confidence</text></g>
+      <path class="ed" d="M140,115 L200,43"/><path class="ed" d="M140,115 H200"/><path class="ed" d="M140,115 L200,187"/>
+      <g id="agree"><title>agreement: ARI and confusion matrix between lenses</title><rect class="nd" x="430" y="92" width="160" height="46" rx="8"/><text class="tx k" x="510" y="111" text-anchor="middle">agreement matrix</text><text class="tx s" x="510" y="128" text-anchor="middle">ARI · confusion · split members</text></g>
+      <path class="ed" d="M370,43 L430,108"/><path class="ed" d="M370,115 H430"/><path class="ed" d="M370,187 L430,122"/>
+      <g id="boundary"><title>boundary tasks: lenses disagree or membership split; sampled first</title><rect class="nd warn" x="650" y="92" width="130" height="46" rx="8"/><text class="tx k" x="715" y="111" text-anchor="middle">boundary tasks</text><text class="tx s" x="715" y="128" text-anchor="middle">→ sampler, drawn first</text></g>
+      <path class="ed" d="M590,115 H650"/>
+      <g id="lens4"><title>lens 4: method clusters from probe traces (helper calls, operations); compared to L1 within each family = S1</title><rect class="nd" x="650" y="180" width="290" height="46" rx="8"/><text class="tx k" x="795" y="199" text-anchor="middle">L4 · method clusters from traces</text><text class="tx s" x="795" y="216" text-anchor="middle">after the probe run · per family = S1 consistency</text></g>
+      <path class="ed dash" d="M715,138 V180"/>
+      <text class="cap" x="650" y="60">question lenses: what is asked</text>
+      <text class="cap" x="650" y="166">trace lens: how it was answered</text>
+    </svg></div>
+    <figcaption><b>Lenses 1 to 3 need no run and define the sampling frame; lens 4 needs the probe run and measures the agent.</b> Only lens 1 is the id on a card; lenses 2 and 3 say how much to trust that id per task. Source: this plan; the confusion matrix and memberships are committed under <code>loop/families/lenses.json</code>.</figcaption>
+  </figure>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>Questions or traces? Both, in this order</h3>
+      <ul class="tight">
+        <li><b>Cluster the questions first</b> (lenses 1–3): no run needed, defines the families and the sampling frame, and is the same for every champion.</li>
+        <li><b>Then cluster the traces</b> (lens 4): the champion's probe traces grouped by method signature (helper calls, pandas operations, turns). This is per champion and is what changes cycle to cycle.</li>
+        <li><b>The comparison is the measurement:</b> one question cluster answered by two method clusters is exactly NVIDIA's "conflicting methods" flag. Per family, the share on the modal method is S1.</li>
+        <li><b>Confidence per question</b> = lens-3 membership confidence × the family's signals (S1, S2, S3, S5). Low confidence, high count is where the system prompt gets its next rule.</li>
+        <li><b>What clustering questions alone cannot do:</b> say how well the agent answered them. Only the trace lens can, so the prompt is improved from lens 4 with lenses 1–3 as the frame.</li>
+      </ul></div>
+    <div class="panel card"><h3>Cost and what gets committed</h3>
+      <ul class="tight">
+        <li><b>Embeddings:</b> one local run over 450 short strings; an optional dependency (<code>sentence-transformers</code>), no key.</li>
+        <li><b>Cluster summaries:</b> one Sonnet call per cluster (≈ 12), a paragraph each.</li>
+        <li><b>Membership pass:</b> the 450 in batches of 30 with the summaries in context, ≈ 15 calls, ≈ 0.1M tokens in, 30k out.</li>
+        <li><b>Committed:</b> <code>loop/families/lenses.json</code> (per task: L1 id, L2 cluster, L3 memberships with confidence, boundary flag) and <code>summaries.json</code>; shown on the Families page as a confusion matrix and a boundary list.</li>
+        <li><b>Rule kept:</b> none of this reads gold or <code>task_scores</code>; a summary describes questions, never answers.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="blk" id="signals"><div class="wrap">
+  <div class="hd"><p class="label">4 · signals without gold</p>
+  <h2>4 · Signals — five things a run tells you with no answer key</h2>
+  <ul class="tight">
+    <li><b>No signal reads a gold answer</b> or the leaderboard's <code>task_scores</code>.</li>
+    <li><b>Computed per probe task</b> from its trace and its siblings' answers, then aggregated per family.</li>
+    <li><b>Two questions answered:</b> is the method stable across the family (S1, S2); is the method right (S3, S4).</li>
+    <li><b>Consistency alone is not enough:</b> the invariants and the audit stop a family converging on a confident wrong method.</li>
+  </ul></div>
+  <div class="tw"><table>
+    <caption>Gold-free signals, how each is computed, and what a bad value triggers · all deterministic except S4</caption>
+    <thead><tr><th>#</th><th>Signal</th><th>Computed from</th><th>Per family</th><th>Triggers</th></tr></thead>
+    <tbody>
+      <tr><td class="num">S1</td><td class="sub">Method consistency</td><td>Lens 4 (§3b): the set of <code>helper.*</code> calls and pandas operations in each trace, normalised to a method signature (e.g. <code>{load_payments, monthly_merchant_stats, total_fees_paid}</code>)</td><td>share of probes using the modal method; the dissenting methods listed</td><td>&lt; 1.0 → the reflector must rule which method is right, citing the manual</td></tr>
+      <tr><td class="num">S2</td><td class="sub">Self-agreement</td><td>Each probe run twice (<code>PASSES=2</code>, the runner's existing option); answers compared with the vendored scorer's own normalisation, gold-free</td><td>share of probes whose two answers agree</td><td>&lt; 1.0 → brittle: candidate for a helper function, not a prompt rule</td></tr>
+      <tr><td class="num">S3</td><td class="sub">Metamorphic invariants</td><td>Relations between sibling answers that must hold whatever the true answer is (§3 table, last column); the probe sample is drawn so each family's invariant has the members it needs</td><td>invariants checked / passed</td><td>a failed invariant is a proven bug with no gold needed → optimiser input with the two conflicting answers</td></tr>
+      <tr><td class="num">S4</td><td class="sub">Heavy-model audit</td><td>The reflector session (Sonnet 5 or Opus 5, read-only) reads the family's probe traces with the manual open: helper used? prompt followed? which method is right and why?</td><td>a verdict per family: <code>verified</code>, <code>provisional</code>, <code>open</code></td><td>writes the family card (§6)</td></tr>
+      <tr><td class="num">S5</td><td class="sub">Format compliance</td><td>Each task's <code>guidelines</code> string maps to one of 20 formats over the 450 (106 lists, 47 six-decimal numbers, 40 fourteen-decimal, 30 <code>scheme:fee</code>, 25 <code>aci:fee</code>, …); a regex per format</td><td>share of probes whose answer parses</td><td>&lt; 1.0 → a prompt rule or an <code>answer.py</code> fix, never a helper change</td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>Why invariants, concretely</h3>
+      <ul class="tight">
+        <li><b>F04:</b> 1871 asks January's delta if fee 384's rate became 1; a sibling asks 2023's. Year = Σ months; a third sibling with the rate unchanged = 0. Three answers, no gold, and a contradiction is a bug with a trace attached.</li>
+        <li><b>F09 ↔ F03:</b> the per-scheme totals that pick the "steer to" scheme must sum to the month's total fees. If not, one family is wrong and the reflector says which.</li>
+      </ul>
+      </div>
+    <div class="panel card"><h3>What consistency cannot tell you</h3>
+      <ul class="tight">
+        <li><b>All 25 F10 probes can agree and all be wrong:</b> 2697 has failed three cycles with a stable method; S1 and S2 would score it 1.0.</li>
+        <li><b>So <code>verified</code> needs S3 passed</b> and an S4 audit that cites the manual section the method follows.</li>
+        <li><b>Anchored families re-check their dev task</b> every cycle.</li>
+        <li><b>The audit is the expensive step:</b> once per cycle, offline, over the sampled traces, as NVIDIA describes.</li>
+      </ul>
+      </div>
+  </div>
+</div></section>
+
+<section class="band-sec" id="loop"><div class="wrap">
+  <div class="hd"><p class="label">5 · the loop</p>
+  <h2>5 · Loop — sample, probe, signal, card, optimise, guard; one ledger line</h2>
+  <ul class="tight">
+    <li><b><code>make uloop</code> wraps the existing cycle.</b></li>
+    <li><b>Steps 1 to 4 are new</b> and run before the optimiser: sample, probe, signals, cards.</li>
+    <li><b>Step 5 is the current optimiser</b> with one extra prompt block.</li>
+    <li><b>Step 6 pairs the evaluation:</b> dev-10 scored as now, plus the same probe sample re-run so every gold-free signal is a before/after pair, like the McNemar pairs.</li>
+  </ul></div>
+  <figure class="fig">
+    <p class="fig-title">fig 2 · one unsupervised cycle · new stages in accent, existing stages plain</p>
+    <div class="dia-frame">
+    <svg class="dia" viewBox="0 0 960 300" role="img" aria-label="Flow of one unsupervised cycle: sample by family, probe run, signals, family cards, optimiser, paired evaluation, gate, ledger; a loop edge returns from the ledger to the sampler.">
+      <defs><marker id="arr2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>
+      <g id="l-450" class="ext"><title>the 450, no answers</title><rect class="nd ext" x="20" y="40" width="130" height="54" rx="8"/><text class="tx k" x="85" y="62" text-anchor="middle">the 450</text><text class="tx s" x="85" y="80" text-anchor="middle">no answers · 12 families</text></g>
+      <g id="l-sample"><title>1 · sample k per family, seeded, dev-10 excluded, invariant-aware</title><rect class="nd hi" x="190" y="40" width="140" height="54" rx="8"/><text class="tx k" x="260" y="62" text-anchor="middle">1 · sample</text><text class="tx s" x="260" y="80" text-anchor="middle">k per family · seeded</text></g>
+      <g id="l-probe"><title>2 · probe run: champion, Haiku, PASSES=2, correct=null</title><rect class="nd hi" x="370" y="40" width="140" height="54" rx="8"/><text class="tx k" x="440" y="62" text-anchor="middle">2 · probe run</text><text class="tx s" x="440" y="80" text-anchor="middle">champion · 2 passes · unscored</text></g>
+      <g id="l-signals"><title>3 · signals S1 S2 S3 S5, deterministic</title><rect class="nd hi" x="550" y="40" width="140" height="54" rx="8"/><text class="tx k" x="620" y="62" text-anchor="middle">3 · signals</text><text class="tx s" x="620" y="80" text-anchor="middle">S1 S2 S3 S5 · code, no model</text></g>
+      <g id="l-cards"><title>4 · reflector session writes loop/families/Fnn.json</title><rect class="nd hi" x="730" y="40" width="200" height="54" rx="8"/><text class="tx k" x="830" y="62" text-anchor="middle">4 · reflector → family cards</text><text class="tx s" x="830" y="80" text-anchor="middle">S4 audit · read-only · Sonnet 5</text></g>
+      <path class="ed" d="M150,67 H190"/><path class="ed" d="M330,67 H370"/><path class="ed" d="M510,67 H550"/><path class="ed" d="M690,67 H730"/>
+      <g id="l-opt"><title>5 · optimiser: existing session, cards as a new prompt block; edits system.md and helper.py of v(N+1)</title><rect class="nd" x="730" y="150" width="200" height="54" rx="8"/><text class="tx k" x="830" y="172" text-anchor="middle">5 · optimiser (existing)</text><text class="tx s" x="830" y="190" text-anchor="middle">+ cards → system.md, helper.py</text></g>
+      <path class="ed" d="M830,94 V150"/>
+      <g id="l-eval"><title>6 · paired evaluation: dev-10 (gold) and the same probe sample (gold-free) on the challenger</title><rect class="nd" x="550" y="150" width="140" height="54" rx="8"/><text class="tx k" x="620" y="172" text-anchor="middle">6 · paired eval</text><text class="tx s" x="620" y="190" text-anchor="middle">dev-10 + same sample</text></g>
+      <path class="ed" d="M730,177 H690"/>
+      <g id="l-gate"><title>7 · gate: dev-10 no break, and the gold-free composite improves (option A, §7)</title><rect class="nd" x="370" y="150" width="140" height="54" rx="8"/><text class="tx k" x="440" y="172" text-anchor="middle">7 · gate</text><text class="tx s" x="440" y="190" text-anchor="middle">no dev break ∧ signals ↑</text></g>
+      <path class="ed" d="M550,177 H510"/>
+      <g id="l-ledger"><title>8 · ledger entry kind ucycle: sample ids, signals before/after, cards touched, verdict</title><rect class="nd" x="190" y="150" width="140" height="54" rx="8"/><text class="tx k" x="260" y="172" text-anchor="middle">8 · ledger</text><text class="tx s" x="260" y="190" text-anchor="middle">kind: ucycle · paired signals</text></g>
+      <path class="ed" d="M370,177 H330"/>
+      <g id="l-back"><title>the next cycle reads the ledger and the cards before sampling</title><path class="ed dash" d="M260,204 V250 H260 H85 V94"/><text class="tx s" x="172" y="266" text-anchor="middle">next cycle: cards + ledger are read first</text></g>
+      <g id="l-guard"><title>guard: the same PreToolUse hook and GUARDED checksum; cards are written by the reflector only, in loop/families/</title><rect class="rg" x="360" y="120" width="580" height="100" rx="10"/><text class="cap" x="370" y="234">write guard · agents/v(N+1)/ only · agent.yaml frozen · cards written by step 4 only</text></g>
+    </svg></div>
+    <figcaption><b>Steps 1 to 4 never see a gold answer and step 5 is the optimiser that already exists.</b> Sampling is seeded so the challenger is re-probed on the same tasks, which makes every signal a paired difference. Source: this plan; the existing stages are <code>loop/run.py</code> and <code>loop/optimiser.py</code>.</figcaption>
+  </figure>
+  <ol class="steps" style="margin-top:var(--s5)">
+    <li><b>Sample.</b> <code>loop/sampler.py</code> draws <i>k</i> tasks per family from the 450 with a fixed seed, boundary tasks (§3b) first, never a dev-10 id, and adds the siblings each invariant needs (a day, its month, its year for F01 and F03). Cards with status <code>verified</code> get <i>k</i> = 1 to spot regressions; <code>open</code> and <code>provisional</code> get the full <i>k</i>.</li>
+    <li><b>Probe.</b> <code>dabstep probe --agent v2 --k 3 --passes 2</code> runs the sample through the unchanged runner into <code>runs/&lt;ts&gt;_v2_probe_haiku/</code> with <code>correct: null</code> on every row. No submission file is written; the <code>eval --split all</code> confirmation stays as it is.</li>
+    <li><b>Signals.</b> <code>loop/signals.py</code> computes S1, S2, S3, S5 from the run folder alone and writes <code>signals.json</code> next to it, one block per family.</li>
+    <li><b>Cards.</b> <code>dabstep ureflect --run &lt;probe&gt;</code> is the current reflection session with a new prompt: per family, the traces, the signals, the current card, and the instruction to choose the canonical method with a manual citation, name the helper entry point, pick one few-shot example from a probe that passed every check, and set the status. It writes <code>loop/families/Fnn.json</code> and one ledger line of kind <code>ureflect</code>.</li>
+    <li><b>Optimise.</b> The existing optimiser prompt gains a block "Question families" that renders every card, ordered <code>open</code> first, plus the S3 contradictions with their traces. Its instructions add one rule: <code>system.md</code> gets a routing table (family → helper entry point → format) and at most one few-shot per family; <code>helper.py</code> gets one entry point per family that lacks one.</li>
+    <li><b>Paired evaluation.</b> The challenger runs dev-10 (scored, as now) and the same probe sample (unscored, same seed). Signals are recomputed so each family has a before and after.</li>
+    <li><b>Gate.</b> §7; the verdict and both signal blocks go into the ledger entry (kind <code>ucycle</code>), and the registry promotes or holds as today.</li>
+  </ol>
+</div></section>
+
+<section class="blk" id="surfaces"><div class="wrap">
+  <div class="hd"><p class="label">6 · what changes on disk</p>
+  <h2>6 · Surfaces — a card per family, a routing table in the prompt</h2>
+  <ul class="tight">
+    <li><b>The optimiser still edits two files.</b></li>
+    <li><b>Cards belong to the reflector,</b> live under <code>loop/families/</code>, versioned in git like the ledger.</li>
+    <li><b>Cards are the memory</b> that makes cycle n+1 different from cycle n.</li>
+    <li><b>A card is small:</b> what a family is, how to solve it, what must hold, one example, the evidence trail.</li>
+  </ul></div>
+  <div class="tw" style="margin-bottom:var(--s5)"><table>
+    <caption>The action per family: what v3's two files get that v2 lacks · "exists" = already in agents/v2/helper.py · the reflector's card fixes the method, the optimiser writes the code and the rule</caption>
+    <thead><tr><th>Family</th><th>helper.py entry point</th><th>system.md rule / routing row</th><th>Status in v2</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">F01 fee ids, merchant + period</td><td><code>applicable_fee_ids(merchant, year, month=None, day=None)</code></td><td>"fee IDs for a merchant in a period → applicable_fee_ids; sorted list"</td><td class="v-ok">exists · rule missing</td></tr>
+      <tr><td class="sub">F02 fee ids by attributes</td><td><code>fee_ids_matching(**attrs)</code> over <code>fee_rule_matches</code></td><td>"fee IDs for attributes with no merchant → wildcard rules included; sorted list"</td><td class="v-warn">primitive exists · entry point missing</td></tr>
+      <tr><td class="sub">F03 total fees paid</td><td><code>total_fees_paid(merchant, year, month=None, day=None)</code></td><td>"total fees a merchant paid → total_fees_paid; 2 dp"</td><td class="v-ok">exists (built for F04) · rule missing</td></tr>
+      <tr><td class="sub">F04 delta if a fee rate changed</td><td><code>fee_rate_delta(merchant, fee_id, new_rate, year, month=None)</code> wrapping <code>fee_total_for_rule</code> twice</td><td>"delta if a fee's rate changed → fee_rate_delta; 14 dp; sign = new − old"</td><td class="v-warn">primitive exists · entry point missing</td></tr>
+      <tr><td class="sub">F05 delta if the MCC changed</td><td><code>mcc_change_delta(merchant, new_mcc, year)</code> = fees with the merchant's MCC swapped, via F03</td><td>"delta if the MCC changed → mcc_change_delta; 6 dp"</td><td class="v-no">missing</td></tr>
+      <tr><td class="sub">F06 merchants affected by a fee</td><td><code>merchants_affected(fee_id, year, account_type=None)</code></td><td>"which merchants a fee change affects → merchants_affected; sorted names"</td><td class="v-no">missing</td></tr>
+      <tr><td class="sub">F07 average fee for a scheme</td><td><code>average_fee_across_rules(scheme, value, **filters)</code></td><td>"average fee a scheme would charge → average_fee_across_rules; 6 dp"</td><td class="v-ok">exists · rule exists</td></tr>
+      <tr><td class="sub">F08 cheapest / priciest choice</td><td><code>option_costs(by="aci"|"card_scheme"|"mcc", value, **filters)</code> → argmin/argmax</td><td>"most/least expensive option → option_costs then pick; ties listed; format per guideline"</td><td class="v-no">missing</td></tr>
+      <tr><td class="sub">F09 steer traffic to a scheme</td><td><code>scheme_costs(merchant, year, month=None)</code> → argmin/argmax</td><td>"steer traffic → scheme_costs; answer Scheme:cost, 2 dp"</td><td class="v-no">missing</td></tr>
+      <tr><td class="sub">F10 move fraud to another ACI</td><td><code>aci_move_costs(merchant, year, month)</code> over the fraudulent subset</td><td>"move fraud to an ACI → aci_move_costs, lowest; answer ACI:cost, 2 dp"</td><td class="v-no">missing · 2697 open</td></tr>
+      <tr><td class="sub">F11 average value grouped by X</td><td><code>avg_value_grouped(merchant, scheme, months, by)</code></td><td>"average value grouped by → avg_value_grouped; ascending, group:value, 2 dp"</td><td class="v-no">missing</td></tr>
+      <tr><td class="sub">F12 easy descriptive stats</td><td><code>fraud_rate_by</code>, plus <code>describe_missing()</code>, <code>outliers(z)</code>, <code>repeat_shoppers()</code></td><td>"descriptive questions → plain pandas or these; obey the format line exactly; Not Applicable when the manual has no concept"</td><td class="v-warn">partial</td></tr>
+    </tbody></table></div>
+  <p class="insight" style="margin-bottom:var(--s5)">Seven families have no entry point and seven have no routing rule. The signatures above are the reflector's first draft; the optimiser writes and verifies them, and the probe re-run says whether the family now answers consistently.</p>
+  <div class="grid g2">
+    <div>
+      <p class="fig-title">loop/families/F03.json · after a first cycle, illustrative values</p>
+      <pre class="md">{
+  "id": "F03", "name": "total-fees-paid",
+  "pattern": "total fees \\(in euros\\) that &lt;merchant&gt;",
+  "members": 45, "templates": 3, "dev_anchor": [],
+  "status": "provisional",
+  "canonical_method": {
+    "helper": "total_fees_paid(payments, fees, merchant, year, month=None, day=None)",
+    "steps": ["filter the merchant's transactions to the period",
+              "for each transaction sum fee(rule) over EVERY matching rule",
+              "round to 2 decimals per the guideline"],
+    "manual": ["§5 fee formula", "§5 monthly bucketing", "wildcard = null or []"]
+  },
+  "invariants": ["sum(months) == year", "sum(days) == month"],
+  "pitfalls": ["a transaction is charged under every matching rule (cycle 2, task 1871)"],
+  "few_shot": {"task_id": "…", "question": "…", "code": "helper.total_fees_paid(...)"},
+  "signals": {"S1": 0.67, "S2": 1.0, "S3": "1/2", "S5": 1.0, "turns_mean": 9.3},
+  "evidence": ["runs/20260915T…_v2_probe_haiku/traces/….json"],
+  "history": [{"cycle": 4, "kind": "ureflect", "change": "created"}]
+}</pre>
+    </div>
+    <div>
+      <p class="fig-title">agents/v3/system.md · the block the optimiser is asked to add</p>
+      <pre class="md">## Question families (route first, then compute)
+| if the question…                          | call                          | answer format          |
+|-------------------------------------------|-------------------------------|------------------------|
+| asks the fee IDs for a merchant + period  | helper.applicable_fee_ids     | sorted list            |
+| asks total fees a merchant paid           | helper.total_fees_paid        | number, 2 dp           |
+| asks the delta if a fee's rate changed    | helper.fee_total_for_rule ×2  | number, 14 dp          |
+| asks which scheme to steer traffic to     | helper.scheme_costs → argmin  | Scheme:cost, 2 dp      |
+| …one row per family…                      |                               |                        |
+
+Example (F03): "What are the total fees that Crossfit_Hanna paid in
+March 2023?" → helper.total_fees_paid(p, f, "Crossfit_Hanna", 2023, 3)
+→ {"agent_answer": "1234.56"}</pre>
+      <p class="small" style="margin-top:var(--s3)">One line of example per family keeps the system prompt near its current 40 lines; the tokens-per-question KPI on the Result page is the check (v2: 265.9k tokens per question on dev-10, 75 turns over 10 tasks).</p>
+    </div>
+  </div>
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>Files added or changed · everything the optimiser may touch is still agents/vN/{system.md, helper.py}</caption>
+    <thead><tr><th>Path</th><th>New / changed</th><th>Owner</th><th>What</th></tr></thead>
+    <tbody>
+      <tr><td class="sub"><code>loop/families.py</code></td><td>new</td><td>code</td><td>the ordered regex table (§3), <code>family_of(template)</code>, <code>coverage()</code>; tested to sum to 450 and to place every dev task</td></tr>
+      <tr><td class="sub"><code>loop/sampler.py</code></td><td>new</td><td>code</td><td>seeded stratified sample, invariant-aware siblings, dev-10 excluded, card status sets <i>k</i></td></tr>
+      <tr><td class="sub"><code>loop/signals.py</code> + <code>loop/invariants.py</code></td><td>new</td><td>code</td><td>S1, S2, S3, S5 from a run folder; one invariant function per family, pure, unit-tested on synthetic answers</td></tr>
+      <tr><td class="sub"><code>eval/runner.py</code></td><td>changed</td><td>code</td><td><code>run_eval(..., score=False)</code> writes <code>correct: null</code>, skips the submission file, marks the run <code>kind: probe</code></td></tr>
+      <tr><td class="sub"><code>loop/ureflect.py</code></td><td>new</td><td>code</td><td>the family-card session (the current <code>reflect.py</code> generalised: prompt per family, write allowed only under <code>loop/families/</code>)</td></tr>
+      <tr><td class="sub"><code>loop/optimiser.py</code></td><td>changed</td><td>code</td><td>cards block + S3 contradictions in the prompt; the routing-table and one-example-per-family rule; <code>loop/families/</code> joins <code>GUARDED</code></td></tr>
+      <tr><td class="sub"><code>loop/run.py</code>, <code>eval/compare.py</code></td><td>changed</td><td>code</td><td><code>run_ucycle</code>; the gate option chosen in §7; ledger kinds <code>ureflect</code>, <code>ucycle</code></td></tr>
+      <tr><td class="sub"><code>loop/families/Fnn.json</code></td><td>new</td><td>reflector</td><td>the cards; committed, diffed by the Evolution page</td></tr>
+      <tr><td class="sub"><code>serving/app.py</code>, <code>frontend/</code></td><td>changed</td><td>code</td><td><code>/api/families</code>; a Families page (coverage bars, card per family, signals by cycle); the Result page gains the coverage KPI; the CI gate checks cards have a run behind their evidence</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section class="band-sec" id="gate"><div class="wrap">
+  <div class="hd"><p class="label">7 · promotion without gold</p>
+  <h2>7 · Gate — dev-10 must not break; the gold-free signals must move</h2>
+  <ul class="tight">
+    <li><b>McNemar stays</b> for what it is good at: refusing a challenger that breaks a gold task.</li>
+    <li><b>It cannot be the whole gate:</b> dev-10 has one failure left, so p ≥ 0.5 for any challenger.</li>
+    <li><b>Three options below;</b> A is recommended and is what fig 2 draws.</li>
+  </ul></div>
+  <div class="grid g3">
+    <div class="panel card pro"><h3>A · No dev break, and the paired signals improve<span class="rec">recommended</span></h3>
+      <p><b>Promote when</b> broken = 0 on dev-10 <i>and</i> the composite over the probe sample rises: S3 invariants passed strictly up, or S1 method consistency up with S3 not down, with S5 format at 1.0. Fixed dev tasks still count; the McNemar p is recorded, not required.</p>
+      <p><b>Cost:</b> a challenger can be promoted on evidence with no gold in it. That is the point, and the risk in §10 is the counterweight: a card only reaches <code>verified</code> through S3 and the audit.</p></div>
+    <div class="panel card"><h3>B · Keep the McNemar gate alone</h3>
+      <p><b>Promote when</b> p &lt; 0.05 on dev-10, as today. Cards and signals are recorded for the reader but never decide.</p>
+      <p><b>Cost:</b> with one dev failure left, no challenger can ever be promoted again (best case p = 0.5), so every unsupervised cycle ends in <code>hold</code> and the champion never learns a family. Honest, and useless.</p></div>
+    <div class="panel card"><h3>C · A, plus a human reads the cards before promotion</h3>
+      <p><b>Promote when</b> A holds and you approve the changed cards in the Families page (a queued decision, like this artifact's forms).</p>
+      <p><b>Cost:</b> the loop is no longer unattended; each cycle waits for a review. Reasonable for the first two cycles, then switch to A.</p></div>
+  </div>
+  <form class="q" data-lavish-question="gate" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const g=fd.get('gate'); if(!g) return; window.lavish.queuePrompt('Gate for unsupervised cycles: option ' + g, {tag:'decision', text:'Gate: option '+g, element:event.currentTarget, data:{question:'gate', answer:g}}); event.currentTarget.querySelector('.queued').textContent='queued: option '+g;">
+    <h3>Which gate?</h3>
+    <label><input type="radio" name="gate" value="A (no dev-10 break and the paired gold-free composite improves; McNemar p recorded)" checked><span>A · no dev break ∧ signals improve<span class="rec">recommended</span></span></label>
+    <label><input type="radio" name="gate" value="B (McNemar on dev-10 only, as today)"><span>B · McNemar alone (cannot promote while one dev task fails)</span></label>
+    <label><input type="radio" name="gate" value="C (option A plus a human approval of changed family cards before promotion, for the first cycles)"><span>C · A plus my approval of the cards, first cycles only</span></label>
+    <div class="row"><button type="submit" class="btn">Queue this answer</button><span class="queued"></span></div>
+  </form>
+</div></section>
+
+<section class="blk" id="budget"><div class="wrap">
+  <div class="hd"><p class="label">8 · spend</p>
+  <h2>8 · Budget — a cycle probes 42 tasks four times; about 58M tokens</h2>
+  <ul class="tight">
+    <li><b>Only new spend:</b> the champion on a sample of the 450, twice (S2), then the challenger on the same sample.</li>
+    <li><b>Rate:</b> v2's dev-10 run averages 265.9k tokens per question; the spread is wide (task 5: 60.8k in 2 turns; task 2697: 737.7k in 19).</li>
+    <li><b>Estimate uses the hard-task mean</b> of that run, 343k over 7 hard tasks, rounded up, because the sample is mostly hard.</li>
+  </ul></div>
+  <div class="tw"><table>
+    <caption>Per cycle, subscription billing, at three sample sizes · 12 families · the challenger is re-probed on the same tasks · reflector and optimiser sessions ≈ 1M each</caption>
+    <thead><tr><th>k per family</th><th>Probe tasks</th><th>Runs (2 passes, champion + challenger)</th><th>Haiku tokens</th><th>Sonnet sessions</th><th>≈ Total</th><th>What it buys</th></tr></thead>
+    <tbody>
+      <tr><td class="num">2</td><td class="num">24 + siblings ≈ 30</td><td class="num">120</td><td class="num">≈ 41M</td><td class="num">≈ 2M</td><td class="num">≈ 43M</td><td>S1 can only say "agree" or "disagree"; invariants get their minimum members</td></tr>
+      <tr class="pro"><td class="num">3</td><td class="num">36 + siblings ≈ 42</td><td class="num">168</td><td class="num">≈ 58M</td><td class="num">≈ 2M</td><td class="num">≈ 60M</td><td>a modal method with a dissenter is visible; every invariant has a spare</td></tr>
+      <tr><td class="num">5</td><td class="num">60 + siblings ≈ 66</td><td class="num">264</td><td class="num">≈ 91M</td><td class="num">≈ 3M</td><td class="num">≈ 94M</td><td>close to a fifth of the 450 each cycle; only worth it once the cards are mostly verified</td></tr>
+    </tbody></table></div>
+  <p class="insight">A cycle at k = 3 costs roughly twenty dev-10 evaluations (2.66M tokens each on v2). Halving it is easy: PASSES=1 drops S2 and the spend by half; verified families at k = 1 shrink the sample as cards mature.</p>
+  <form class="q" data-lavish-question="k" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const k=fd.get('k'); if(!k) return; window.lavish.queuePrompt('Probe sample size: ' + k, {tag:'decision', text:'k = '+k, element:event.currentTarget, data:{question:'k', answer:k}}); event.currentTarget.querySelector('.queued').textContent='queued: '+k;">
+    <h3>Sample size per family for the first cycle</h3>
+    <label><input type="radio" name="k" value="k=3 with PASSES=2 (≈ 60M tokens per cycle)" checked><span>k = 3, two passes<span class="rec">recommended</span></span></label>
+    <label><input type="radio" name="k" value="k=3 with PASSES=1 (S2 self-agreement skipped; ≈ 30M tokens per cycle)"><span>k = 3, one pass (no self-agreement signal; about half the spend)</span></label>
+    <label><input type="radio" name="k" value="k=2 with PASSES=2 (≈ 43M tokens per cycle)"><span>k = 2, two passes</span></label>
+    <label><input type="radio" name="k" value="k=5 with PASSES=2 (≈ 94M tokens per cycle)"><span>k = 5, two passes</span></label>
+    <div class="row"><button type="submit" class="btn">Queue this answer</button><span class="queued"></span></div>
+  </form>
+</div></section>
+
+<section class="band-sec" id="build"><div class="wrap">
+  <div class="hd"><p class="label">9 · milestones</p>
+  <h2>9 · Build — U0 to U5 are deterministic until the first probe; U6 is one cycle</h2>
+  <ul class="tight">
+    <li><b>One branch</b> (<code>unsupervised</code>), one PR per milestone, through <code>no-mistakes</code> as before.</li>
+    <li><b>No model call until U3:</b> U0 to U2 are code with tests on synthetic answers, so the invariants are proven before they see a trace.</li>
+  </ul></div>
+  <div class="tw"><table>
+    <caption>Milestones · accepted-when is the test that closes each one · spend is Haiku tokens on the subscription, rounded up</caption>
+    <thead><tr><th>#</th><th>Milestone</th><th>Delivers</th><th>Accepted when</th><th>Spend</th></tr></thead>
+    <tbody>
+      <tr><td class="num">U0</td><td class="sub">Families</td><td><code>loop/families.py</code>, the 12-row table committed as data, <code>dabstep families</code> CLI, <code>/api/families</code>; <code>dabstep lenses</code>: local embeddings + k-means (lens 2), cluster summaries and the Sonnet membership pass (lens 3), ARI and confusion matrix, boundary flags → <code>loop/families/lenses.json</code></td><td>tests: the 450 sum, every dev task placed, no template unassigned; the coverage numbers in this plan reproduce from the repo; the lenses file has all 450 with an L1, an L2 and ≥ 1 L3 membership; the Families page shows the confusion matrix</td><td class="num">≈ 0.2M (Sonnet)</td></tr>
+      <tr><td class="num">U1</td><td class="sub">Probe runner + sampler</td><td><code>run_eval(score=False)</code>, run kind <code>probe</code>, <code>correct: null</code>, no submission; seeded stratified sampler</td><td>a stub-agent probe writes a run folder the viewer lists as unscored; the sampler is deterministic for a seed and never draws a dev id</td><td class="num">none</td></tr>
+      <tr><td class="num">U2</td><td class="sub">Signals + invariants</td><td>S1 method extraction from traces, S2 agreement via the vendored normaliser, S3 one function per family, S5 the 20 guideline formats</td><td>unit tests on synthetic answers for every invariant, both directions; S5 parses every dev-10 gold answer</td><td class="num">none</td></tr>
+      <tr><td class="num">U3</td><td class="sub">Unsupervised reflector</td><td><code>loop/ureflect.py</code>, family-card schema, write guard limited to <code>loop/families/</code>, ledger kind <code>ureflect</code></td><td>a first probe of v2 at the chosen k; twelve cards on disk, each with a status and an evidence path that exists</td><td class="num">≈ 29M</td></tr>
+      <tr><td class="num">U4</td><td class="sub">Optimiser + gate</td><td>cards block in the optimiser prompt, routing-table rule, gate option from §7, <code>run_ucycle</code>, ledger kind <code>ucycle</code>, CI gate checks card evidence</td><td>a dry run with a stub optimiser produces a v3 folder that passes the guard; <code>compare</code> returns the new verdict shape with both signal blocks</td><td class="num">none</td></tr>
+      <tr><td class="num">U5</td><td class="sub">Frontend</td><td>Families page (fig 1 live from the API, card per family, signals by cycle), Result page coverage KPI, Evolution page diffs cards, README section</td><td>design lint passes; every number on the page has a denominator and a run behind it</td><td class="num">none</td></tr>
+      <tr class="pro"><td class="num">U6</td><td class="sub">One unsupervised cycle</td><td><code>make uloop CYCLES=1</code> from v2: probe, cards, optimiser → v3, paired evaluation, gate, ledger; demo pack and deploy</td><td>the ledger shows the cycle with before/after signals per family; the demo shows the Families page; dev-10 did not break; the verdict is whatever the gate says</td><td class="num">≈ 32M</td></tr>
+    </tbody></table></div>
+  <p class="insight">U6 is the only milestone whose outcome is unknown. A hold is a valid result if the cards and signals explain it; the ledger is the deliverable either way.</p>
+</div></section>
+
+<section class="blk" id="risks"><div class="wrap">
+  <div class="hd"><p class="label">10 · risks &amp; open questions</p>
+  <h2>10 · Risks — consistency is not correctness, and the plan knows it</h2></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>Failure modes and the mechanism for each</h3>
+      <ul class="qa">
+        <li><b>A family converges on a stable wrong method.</b> S1 and S2 would read 1.0. Only S3 and the audit can set <code>verified</code>; anchored families re-check their dev task every cycle; F10 stays <code>open</code> until 2697 passes.</li>
+        <li><b>The routing table becomes a hidden answer key.</b> The optimiser rule forbids task-specific branches, the guard already rejects hard-coded ids, and the CI gate greps cards and prompts for any of the 450 task ids or literal answers.</li>
+        <li><b>Leakage from the leaderboard.</b> Unchanged: no code path reads <code>task_scores</code>; the probe runner has no scorer; the rule in CLAUDE.md stands.</li>
+        <li><b>"Runs on the 450" reads like "scores the 450".</b> A probe run has <code>correct: null</code> on every row and writes no submission; the viewer labels it <code>unscored</code>; M8 remains the first scoring.</li>
+        <li><b>Few-shot lines bloat the prompt and the tokens KPI.</b> One line per family, measured on dev-10 every cycle; the tokens-per-question KPI is in the ledger entry.</li>
+        <li><b>An invariant is wrong, not the agent.</b> Every invariant is a pure function with a unit test in both directions, and a failed invariant is shown to the reflector as a claim to check, not a verdict.</li>
+        <li><b>Sampling misses the template that breaks.</b> Seeds rotate per cycle while status is <code>provisional</code>; a card records which templates it has seen.</li>
+      </ul></div>
+    <div class="panel card"><h3>Open questions</h3>
+      <ul class="tight">
+        <li><b>Reflector model:</b> Sonnet 5 at effort high, as the current reflection, or Opus 5 for the audit only (NVIDIA used Opus 4.5/4.6 in learning)? Default Sonnet 5; the card records the model.</li>
+        <li><b>Family granularity:</b> 12 families is the classifier's answer; F07 and F08 could merge (same per-option table) or F12 could split into fraud, missing-data and volume. The §3b agreement matrix decides: a lens-2/3 cluster that straddles two regex families is the evidence to merge or split.</li>
+        <li><b>Where the few-shot lives:</b> in <code>system.md</code> (the optimiser's surface, NVIDIA's choice) or in the task prompt beside the signatures (harness-owned, stable)? Default <code>system.md</code> so the loop can change it.</li>
+        <li><b>Branch name:</b> <code>unsupervised</code>, one PR per milestone.</li>
+      </ul>
+      <form class="q bare" data-lavish-question="open" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const t=fd.get('answers'); if(!t) return; window.lavish.queuePrompt('Answers to open questions (s01): ' + t, {tag:'decision', text:'Open questions answered', element:event.currentTarget, data:{question:'open', answer:t}}); event.currentTarget.querySelector('.queued').textContent='queued';">
+        <textarea name="answers" placeholder="e.g. reflector Sonnet 5 high; keep 12 families; few-shot in system.md; branch unsupervised"></textarea>
+        <div class="row"><button type="submit" class="btn">Queue answers</button><span class="queued"></span></div>
+      </form></div>
+  </div>
+</div></section>
+
+<section class="blk" id="approve"><div class="wrap">
+  <div class="hd"><p class="label">11 · approve</p>
+  <h2>11 · Approve — U0 to U6, one unsupervised cycle, never a score on the 450</h2>
+  <ul class="tight">
+    <li><b>Queue the scope</b> and the build starts on a branch.</li>
+    <li><b>The 450 are read, sampled and run, never scored;</b> the dev-10 gate keeps its veto; the optimiser keeps its two files.</li>
+    <li><b>Defaults</b> where no decision is queued: gate A, k = 3 with two passes, Sonnet 5 reflector, three lenses with regex as the card id.</li>
+  </ul></div>
+  <form class="q" data-lavish-question="approve" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const scope=fd.get('scope'); const cyc=fd.get('cycles')||'1'; if(!scope) return; window.lavish.queuePrompt('Approved: build ' + scope + ' of the unsupervised reflection plan (s01), cycle budget ' + cyc + '. Use the queued decisions, or the defaults (gate A, k=3 two passes, Sonnet 5 reflector) where none was queued.', {tag:'approve', text:'Approve: '+scope+' · cycles '+cyc, element:event.currentTarget, data:{question:'approve', scope:scope, cycles:cyc}}); event.currentTarget.querySelector('.queued').textContent='queued: '+scope+' · cycles '+cyc;">
+    <h3>Scope to build now</h3>
+    <label><input type="radio" name="scope" value="U0-U6 (families, probe runner, signals and invariants, unsupervised reflector, optimiser and gate changes, Families page, then one unsupervised cycle from v2 and a deploy)" checked><span>U0 to U6: the whole unsupervised loop, one cycle, deployed<span class="rec">this build</span></span></label>
+    <label><input type="radio" name="scope" value="U0-U3 (families, probe runner, signals, and the first reflector pass producing twelve cards; no optimiser cycle yet)"><span>U0 to U3: probe v2 and write the twelve cards, stop before optimising</span></label>
+    <label><input type="radio" name="scope" value="U0-U2 only (deterministic: families, probe runner, signals and invariants with tests; no LLM calls)"><span>U0 to U2 only, no model calls yet</span></label>
+    <label style="grid-template-columns:minmax(0,1fr)"><span>Unsupervised cycle budget for U6 (default 1): <input type="text" name="cycles" value="1" style="width:4rem;font:inherit;font-size:var(--t-1);padding:2px 6px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2)"></span></label>
+    <div class="row"><button type="submit" class="btn">Queue approval</button><span class="queued"></span></div>
+  </form>
+  <p class="small" style="margin-top:var(--s5)">Verified this session: the NVIDIA post (nemo-agent-toolkit-data-explorer-dabstep-1st-place: three phases, group-consistency and audit quoted above; it does not describe its grouping or what follows a flag); the 106 templates and the 12-family classifier over <code>data/tasks/all.jsonl</code> (sums to 450, places all ten dev tasks); the 20 guideline formats over the 450; v2's per-task tokens and turns from <code>runs/20260914T034447Z_v2_dev_haiku</code>; the McNemar bound p = 0.5 for one fix and no breaks from <code>eval/compare.py</code>.</p>
+</div></section>
+
+<footer><div class="wrap">s01 · DABstep-loop · design source: DESIGN.md, ported from nmp-dsci.github.io (Field Guide) · one em, in the h1</div></footer>
+</body>
+</html>
