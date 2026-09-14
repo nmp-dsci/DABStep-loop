@@ -6,6 +6,10 @@ SPLIT ?= dev
 WORKERS ?= 2
 PASSES ?= 1
 CYCLES ?= 1
+K ?= 3
+SEED ?= 0
+PROBE_PASSES ?= 2
+PROBE_WORKERS ?= 3
 MLFLOW_PORT ?= 5600
 MODEL_FLAG := $(if $(MODEL),--model $(MODEL),)
 
@@ -47,6 +51,21 @@ submit: ## validate RUN=<run id> submission for the leaderboard form
 
 loop: ## the error loop: CYCLES=1 cycles of eval → diagnose → new version → gate
 	uv run dabstep loop --cycles $(CYCLES) --workers $(WORKERS)
+
+families: ## lens 1: the 450 by operation family → loop/families/families.json
+	uv run dabstep families
+
+lenses: ## lenses 2+3: local embeddings + one Sonnet membership pass → loop/families/lenses.json
+	uv run dabstep lenses
+
+probe: ## unscored probe of the 450 by family (AGENT=v2 K=3 SEED=0 PROBE_PASSES=2 PROBE_WORKERS=3)
+	uv run dabstep probe $(if $(filter-out v0,$(AGENT)),--agent $(AGENT),) --k $(K) --seed $(SEED) --passes $(PROBE_PASSES) --workers $(PROBE_WORKERS)
+
+ureflect: ## unsupervised reflection over a probe RUN=<run id> → loop/families/Fnn.json
+	uv run dabstep ureflect $(RUN)
+
+uloop: ## the unsupervised loop: CYCLES=1 of probe → cards → optimiser → paired eval → gate A
+	uv run dabstep uloop --cycles $(CYCLES) --k $(K) --seed $(SEED) --passes $(PROBE_PASSES) --workers $(PROBE_WORKERS)
 
 reflect: ## one offline reflection pass over the champion's traces
 	uv run dabstep reflect

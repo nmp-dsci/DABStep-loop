@@ -67,3 +67,27 @@ def test_submission_validator(tmp_path: Path) -> None:
     p.write_text("\n".join(json.dumps(r) for r in rows[:-1]))
     problems = validate(p)
     assert any("not str" in x for x in problems) and any("missing" in x for x in problems)
+
+
+def test_gate_a_rules() -> None:
+    from dabstep_loop.eval.compare import Verdict, gate_a
+
+    clean = Verdict(False, 9, 9, 10, [], [], 0.5)
+    before = {
+        "s3_passed": 4,
+        "s3_failed": 2,
+        "s1_mean": 0.6,
+        "s2_mean": 0.9,
+        "s5_mean": 0.95,
+        "errors": 1,
+    }
+    better = {**before, "s3_passed": 6, "s3_failed": 1, "errors": 0}
+    assert gate_a(clean, before, better).promote
+    assert not gate_a(clean, before, dict(before)).promote  # nothing moved
+    assert not gate_a(clean, before, {**better, "s5_mean": 0.9}).promote  # format slipped
+    assert not gate_a(
+        Verdict(False, 9, 9, 10, ["2697"], ["1871"], 0.5), before, better
+    ).promote  # broke dev
+    s1_only = {**before, "s1_mean": 0.8}
+    assert gate_a(clean, before, s1_only).promote
+    assert not gate_a(clean, before, {**s1_only, "s3_failed": 3}).promote

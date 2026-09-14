@@ -200,6 +200,22 @@ def loop(
 
 
 @app.command()
+def uloop(
+    cycles: int = 1,
+    agent: str | None = None,
+    optimiser_model: str = "sonnet",
+    k: int = 3,
+    seed: int = 0,
+    passes: int = 2,
+    workers: int = 3,
+) -> None:
+    """The unsupervised loop: probe the 450 by family → cards → optimiser → paired eval → gate A → ledger."""
+    from dabstep_loop.loop.run import run_uloop
+
+    asyncio.run(run_uloop(cycles, agent, optimiser_model, k, seed, passes, workers))
+
+
+@app.command()
 def reflect(run_id: str | None = None, model: str = "sonnet") -> None:
     """One offline reflection pass over the champion's traces (NVIDIA phase 3, on the smoke set)."""
     from dabstep_loop.loop.reflect import run_reflection
