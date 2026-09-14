@@ -155,8 +155,15 @@ The data lives in `{context_dir()}/` (payments.csv, fees.json, merchant_data.jso
   "prompt_diff_summary": "what changed in system.md, one line",
   "helper_diff_summary": "what changed in helper.py, one line",
   "expected_to_fix": ["task ids"],
-  "risks": ["what might regress and why you think it will not"]
+  "risks": ["what might regress and why you think it will not"],
+  "changes": [
+    {{"file": "system.md|helper.py", "anchor": "the function name, or the first five words of the edited block",
+      "what": "what the edit does, one sentence", "why": "the evidence that made you do it — a trace, a manual section, a number",
+      "task_ids": ["tasks this edit is for"]}}
+  ]
 }}
+`changes` is the change log: one entry per distinct edit (an added function, a removed one, a rewritten rule), so
+that a reader looking at the diff can find the reason next to the hunk. Every hunk in the diff should be covered.
 Then stop. The harness evaluates `{new_name}` on the whole dev split, applies the gate (a one-sided McNemar test
 on the paired tasks: fixes must outweigh breaks with p < 0.05 — one break costs three extra fixes), and records the outcome next to your diagnosis in the ledger.
 """

@@ -1,0 +1,194 @@
+{
+ "source": "post-hoc",
+ "parent": "v0",
+ "model": "sonnet",
+ "tokens": {
+  "in": 30964,
+  "out": 4538
+ },
+ "changes": [
+  {
+   "file": "system.md",
+   "anchor": "manual.md is the sole source of truth for fee/rule mechanics",
+   "what": "New rule: if a question references a mechanism (e.g. a 'fine') that manual.md never defines, answer Not Applicable rather than inferring it from an adjacent concept.",
+   "why": "Task 70: agent treated the monthly_fraud_level fee bracket as evidence of a 'high-fraud rate fine'; diagnosis states manual.md never defines any fine/penalty tied to fraud rate, confirmed by grepping manual.md for fine|penalt (only an unrelated PCI-DSS penalty in section 7.4 exists), and gold answer is Not Applicable.",
+   "task_ids": [
+    "70"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "\"Fraud\" is a RATE: manual.md defines it as fraudulent volume",
+   "what": "New rule: 'fraud' means the volume-ratio rate defined in manual.md, not a raw count, and ranking 'by fraud' should use helper.fraud_rate_by.",
+   "why": "Task 49: agent ranked ip_country by raw fraud count (NL=2955) and answered NL, but by rate BE is highest (12.27% vs NL 12.18%); diagnosis root_cause cites manual.md section 7's rate definition, verified via fraud_rate_by giving BE 0.1227, matching gold 'B. BE'.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "Fee-rule fields (fees.json) use null/[] as \"matches everything\"",
+   "what": "New rule: null/[] wildcard semantics in fees.json apply to every field including scalar fields like is_credit and card_scheme, not just list-typed ones; also clarifies intracountry uses issuing_country vs acquirer_country, never ip_country.",
+   "why": "Task 1273: agent excluded 21 GlobalCard rules with is_credit: null, computing 0.117667 instead of gold 0.120132; diagnosis root_cause states null-as-wildcard applies to is_credit too, verified via average_fee_across_rules giving exact 0.120132 with 144 matching rules. The intracountry/ip_country clarification matches the helper.py is_intracountry docstring's warning not to substitute ip_country (manual.md section 5), though no specific task diagnosis cites an ip_country mix-up directly — not stated in the transcript beyond the helper docstring's own explanation.",
+   "task_ids": [
+    "1273"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "Never hand-loop over 1000 fee rules x N transactions",
+   "what": "New rule: don't hand-loop over fee rules/transactions across many tool calls; use the helper module's fee-matching functions and prefer one vectorised/helper-backed execute_python call.",
+   "why": "Task 1681: agent ran out of context/turns building an ad hoc matcher by hand across many tool calls, ending with a hardcoded acquirer_country and missing 2 of 10 gold fee IDs; diagnosis root_cause states no reusable fee-matching helper existed so the agent reinvented matching from scratch, burning turns.",
+   "task_ids": [
+    "1681"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "v0 was deliberately thin: loaders and the one formula the manual states",
+   "what": "Rewrote the module docstring to explain v1 adds computational primitives (fee-rule matching wildcard semantics, monthly bucketing, capture_delay mapping, intracountry flag) that the dev-split failures showed the agent reinventing incorrectly, and that all functions are parameterized to generalize across permutations.",
+   "why": "Directly summarizes the diagnosis.json's helper_diff_summary and prompt_diff_summary, and the optimiser's stated intent that these functions generalize across merchants/months/fee ids per the summary note under diagnosis for task 1681/1753.",
+   "task_ids": [
+    "49",
+    "70",
+    "1273",
+    "1681",
+    "1753",
+    "2697"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "import datetime",
+   "what": "Added the datetime import needed for day_of_year_to_month.",
+   "why": "Supports the new monthly bucketing helpers required for tasks 1681/1753 (natural-month conversion from payments.csv's day_of_year/year columns). Not separately justified in the transcript beyond being a dependency — not stated in the transcript.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_rate(df: pd.DataFrame) -> float:",
+   "what": "Added fraud_rate(df): fraction of eur_amount volume that is fraudulent, per manual.md section 7's rate definition.",
+   "why": "Task 49: needed to compute fraud as fraudulent volume / total volume instead of a count; diagnosis 'change' field explicitly adds this to fix ranking by count vs rate, verified BE=0.1227 matches gold.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_rate_by(df: pd.DataFrame, group_col: str) -> pd.Series:",
+   "what": "Added fraud_rate_by(df, group_col): fraud rate per group value, sorted descending, to replace value_counts()-based 'top fraud' ranking.",
+   "why": "Task 49: diagnosis 'change' field states 'Added helper.fraud_rate_by(df, group_col)'; verification command computed helper.fraud_rate_by(load_payments(), 'ip_country') giving BE as top, matching gold 'B. BE'.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def day_of_year_to_month(day_of_year: int, year: int) -> int:",
+   "what": "Added day_of_year_to_month: converts payments.csv's (year, day_of_year) into a calendar month.",
+   "why": "Needed by monthly_merchant_stats to compute natural-month aggregates for tasks 1681/1753; not individually verified by a standalone command in the transcript but is a direct dependency of monthly_merchant_stats, which was verified — the specific conversion logic itself is not separately stated in the transcript.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def capture_delay_bucket(merchant_capture_delay: str) -> str:",
+   "what": "Added capture_delay_bucket: maps merchant_data.json's capture_delay values ('immediate', 'manual', day counts) onto fees.json's bucket strings ('<3','3-5','>5').",
+   "why": "Task 1681 diagnosis root_cause cites 'incomplete/inconsistent implementation (missing merchant-level monthly_fraud_level/monthly_volume bucketing...)' as the cause of the ad hoc matcher's failure; this bucketing function is part of applicable_fee_ids's merchant-level filter pipeline, verified end-to-end via the exact 10/10 fee-ID match for task 1681.",
+   "task_ids": [
+    "1681"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_level_bucket(fraud_rate_pct: float) -> str:",
+   "what": "Added fraud_level_bucket: maps a fraud-rate percentage onto fees.json's monthly_fraud_level bucket strings.",
+   "why": "Task 1753: agent computed fraud rate as a count ratio (8.38%) instead of manual's volume ratio, landing in the wrong bucket; this function (used inside monthly_merchant_stats) implements the correct bucket boundaries, verified via applicable_fee_ids producing the exact 34-id gold match.",
+   "task_ids": [
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def volume_bucket(monthly_volume_eur: float) -> str:",
+   "what": "Added volume_bucket: maps a monthly EUR volume onto fees.json's monthly_volume bucket strings.",
+   "why": "Part of the same monthly_merchant_stats pipeline verified for tasks 1681 and 1753 (merchant-level monthly_volume filter for applicable_fee_ids); not separately called out on its own in the transcript beyond being a dependency.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def monthly_merchant_stats(payments: pd.DataFrame, merchant: str, year: int, month: int)",
+   "what": "Added monthly_merchant_stats: computes a merchant's natural-month transactions, total volume, fraud rate, and the corresponding fees.json bucket strings in one call.",
+   "why": "Task 1753 diagnosis 'change': 'monthly_merchant_stats computes fraud_rate_pct via helper.fraud_rate (volume ratio) exclusively'; verified via applicable_fee_ids for Belles_cookbook_store March 2023 giving fraud rate 10.25% (bucket '>8.3%') and exact match to the gold 34-fee-ID list. Also underlies task 1681's exact 10/10 ID match.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def is_intracountry(issuing_country: str, acquirer_country: str) -> bool:",
+   "what": "Added is_intracountry: compares issuing_country to acquirer_country per manual.md section 5, explicitly warning not to substitute ip_country.",
+   "why": "Corresponds to the system.md ground rule about intracountry using issuing/acquirer country rather than ip_country; used inside applicable_fee_ids, which was verified for task 1681 (exact 10/10 match) — no diagnosis entry cites a specific ip_country mix-up task, so the precise triggering failure is not stated in the transcript.",
+   "task_ids": [
+    "1681"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def _field_matches(rule_value: Any, actual_value: Any) -> bool:",
+   "what": "Added _field_matches: uniform matching logic where None/actual-None/empty-list all mean 'matches everything', otherwise exact or list-membership match.",
+   "why": "Task 1273 root_cause: 'manual.md's null-as-wildcard rule applies to is_credit too... not just the list-typed fields'; this function implements that uniform semantics, verified by average_fee_across_rules producing 0.120132 (144 matching rules) exactly matching gold.",
+   "task_ids": [
+    "1273"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fee_rule_matches(",
+   "what": "Added fee_rule_matches: checks whether a fees.json rule applies given a set of optional merchant/transaction characteristics, using _field_matches for each of the nine fee-rule fields.",
+   "why": "Task 1273 diagnosis 'change': 'Added helper.fee_rule_matches/_field_matches with uniform null/[]-wildcard semantics across every field'; also the core building block verified for tasks 1681 and 1753's exact fee-ID matches.",
+   "task_ids": [
+    "1273",
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def applicable_fee_ids(",
+   "what": "Added applicable_fee_ids: returns the fee IDs applying to a merchant over a period by combining merchant/period-level filters with each transaction row's card_scheme/is_credit/aci/intracountry.",
+   "why": "Task 1681 diagnosis 'change': 'Added ... applicable_fee_ids (per-row card_scheme/is_credit/aci/intracountry combined with merchant-level filters) so this is one helper call instead of ad hoc looping'; verified exact match to gold's 10 fee IDs for Belles_cookbook_store day_of_year=10, 2023, and separately verified exact 34-id match for task 1753.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def best_matching_fee(fees: list[dict[str, Any]], **filters: Any)",
+   "what": "Added best_matching_fee: selects the single most-specific matching fee rule for one fully-specified transaction, tie-broken by lowest fee then lowest ID.",
+   "why": "Task 2697: with corrected matching semantics the helper agreed with gold on the ACI letter (E, 16.63 EUR) among A-F candidates for Belles_cookbook_store's January fraud transactions, though the exact EUR total (13.57) did not reproduce after multiple rule-selection variants; diagnosis explicitly states this was added as a general building block 'not tuned to this task's exact number' and the numeric gap is an acknowledged open issue, not fixed.",
+   "task_ids": [
+    "2697"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def average_fee_across_rules(fees: list[dict[str, Any]], transaction_value: float, **filters: Any)",
+   "what": "Added average_fee_across_rules: averages the fee at a given transaction value across every fee rule matching the given filters, including wildcard (null) rules.",
+   "why": "Task 1273 diagnosis 'change': 'Added ... helper.average_fee_across_rules built on it'; verification command shows average_fee_across_rules(fees, 10, card_scheme='GlobalCard', is_credit=True) == 0.120132, exact match to gold.",
+   "task_ids": [
+    "1273"
+   ]
+  }
+ ]
+}

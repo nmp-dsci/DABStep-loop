@@ -132,6 +132,69 @@ def create_app() -> FastAPI:
             )
         return {"versions": out, "registry": reg}
 
+    @app.get("/api/agents/diff")
+    def agents_diff(a: str, b: str) -> dict[str, Any]:
+        """Unified diff of the two surfaces between versions, with the reasoning that produced `b`."""
+        import difflib
+
+        try:
+            va, vb = load_version(a), load_version(b)
+        except FileNotFoundError as e:
+            raise HTTPException(404, "no such agent") from e
+        fa, fb = va.files(), vb.files()
+        files = []
+        for name in ("system.md", "helper.py", "agent.yaml"):
+            ta, tb = fa.get(name, ""), fb.get(name, "")
+            lines = list(
+                difflib.unified_diff(
+                    ta.splitlines(),
+                    tb.splitlines(),
+                    fromfile=f"{a}/{name}",
+                    tofile=f"{b}/{name}",
+                    lineterm="",
+                    n=3,
+                )
+            )
+            files.append(
+                {
+                    "name": name,
+                    "changed": ta != tb,
+                    "added": sum(1 for ln in lines[2:] if ln.startswith("+")),
+                    "removed": sum(1 for ln in lines[2:] if ln.startswith("-")),
+                    "diff": lines,
+                    "before": ta,
+                    "after": tb,
+                }
+            )
+        diag = vb.path / "diagnosis.json"
+        diagnosis = json.loads(diag.read_text()) if diag.exists() else None
+        change_log: dict[str, Any] | None = None
+        if diagnosis and diagnosis.get("changes"):
+            change_log = {"source": "in-session", "changes": diagnosis["changes"]}
+        elif (vb.path / "change_log.json").exists():
+            change_log = json.loads((vb.path / "change_log.json").read_text())
+        transcript_path = vb.path / "optimiser_transcript.json"
+        closing = None
+        if transcript_path.exists():
+            prose = [
+                m["content"]
+                for m in json.loads(transcript_path.read_text())
+                if m.get("role") == "assistant"
+            ]
+            closing = prose[-1] if prose else None
+        cycles = [e for e in read_ledger() if e.get("challenger") == b]
+        runs_a = [m.__dict__ for m in list_runs() if m.agent == a and m.summary]
+        runs_b = [m.__dict__ for m in list_runs() if m.agent == b and m.summary]
+        return {
+            "a": {"name": a, "fingerprint": va.fingerprint, "runs": runs_a},
+            "b": {"name": b, "fingerprint": vb.fingerprint, "runs": runs_b},
+            "files": files,
+            "diagnosis": diagnosis,
+            "change_log": change_log,
+            "closing_account": closing,
+            "cycles": cycles,
+        }
+
     @app.get("/api/agents/{name}")
     def agent(name: str) -> dict[str, Any]:
         try:

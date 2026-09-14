@@ -10,6 +10,7 @@ const NAV: [string, string][] = [
   ['/runs', 'Runs'],
   ['/compare', 'Gate'],
   ['/loop', 'Loop'],
+  ['/evolution', 'Evolution'],
   ['/ask', 'Ask'],
 ];
 
@@ -20,7 +21,10 @@ export function Shell() {
       <header className="top">
         <div className="in">
           <NavLink to="/" className="brand">
-            DABstep<b>-loop</b>
+            <img src="/favicon.svg" alt="" width="22" height="22" />
+            <span>
+              DABstep<b>-loop</b>
+            </span>
           </NavLink>
           <nav aria-label="Pages">
             {NAV.map(([to, label]) => (

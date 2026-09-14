@@ -1,0 +1,222 @@
+{
+ "source": "post-hoc",
+ "parent": "v0",
+ "model": "sonnet",
+ "tokens": {
+  "in": 32824,
+  "out": 4623
+ },
+ "changes": [
+  {
+   "file": "system.md",
+   "anchor": "manual.md is the sole source of truth",
+   "what": "New ground rule: if a question references a mechanism (e.g. a 'fine'/'penalty') that manual.md never defines, answer 'Not Applicable' instead of inferring it from a related concept.",
+   "why": "diagnosis.json task 70: agent inferred a 'high-fraud-rate fine' from the unrelated fee-bracket mechanism and answered 'yes' instead of gold 'Not Applicable'; rule ported from v1, unverified this cycle ('not independently re-run this cycle').",
+   "task_ids": [
+    "70"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "\"Fraud\" is a RATE",
+   "what": "New ground rule stating fraud is fraudulent volume / total volume (a ratio), not a raw count, and that ranking 'by fraud' means ranking by that ratio via helper.fraud_rate_by.",
+   "why": "diagnosis.json task 49: agent ranked ip_country by raw fraud count (NL=2955) and answered A. NL instead of gold B. BE; verified in session that fraud_rate_by ranks BE (0.1227) above NL (0.1218), matching gold.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "Fee-rule fields (fees.json) use null/[]",
+   "what": "New ground rule stating the null/[] wildcard convention applies to every fee-rule field including scalars like is_credit and card_scheme, and that intracountry compares issuing_country to acquirer_country, never ip_country.",
+   "why": "diagnosis.json task 1273: agent excluded is_credit=null wildcard rules from an average, producing 0.117667 instead of gold 0.120132; verified in session that average_fee_across_rules with proper wildcard handling gives 0.120132 exactly. The ip_country/intracountry warning mirrors helper.py's is_intracountry docstring guidance, not stated as tied to a specific failing task_id.",
+   "task_ids": [
+    "1273"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "A transaction can satisfy more than one fee rule",
+   "what": "New ground rule: fees are additive across every matching rule (no single 'most specific rule wins'); use total_fees_paid/fee_total_for_rule for 'what does the merchant pay' or 'what if fee ID=X changed' questions, and reserve average_fee_across_rules for literal 'average fee' wording.",
+   "why": "diagnosis.json task 1871: v1's best_matching_fee (specificity-based single winner) only assigned 8 of 12 Belles Jan-2023 transactions matching rule 384, giving wrong delta -0.80054 vs gold -0.94810300000017; verified in session that fee_total_for_rule over all 12 matching transactions reproduces gold exactly.",
+   "task_ids": [
+    "1871"
+   ]
+  },
+  {
+   "file": "system.md",
+   "anchor": "Never hand-loop over 1000 fee rules",
+   "what": "New ground rule directing agents to use the helper module's fee-matching functions instead of hand-looping over rules x transactions across many tool calls, and to prefer one vectorised/helper-backed execute_python call.",
+   "why": "diagnosis.json task 1681: agent ran out of turns (21/20) hand-looping over 1000 fees x transactions with ad hoc code; task 1753: ad hoc fee-matching produced false positives/negatives in the fee-ID list. Both fixed via monthly_merchant_stats + applicable_fee_ids, verified in session to reproduce the exact gold sets for both tasks.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "v0 was deliberately thin: loaders and the one formula",
+   "what": "Rewrote the module docstring to explain v2 keeps v1's additions except best_matching_fee, which is removed and replaced, and to note every function is parameterised (merchant/period/rule) so it generalizes across dev-split question permutations.",
+   "why": "diagnosis.json task 1871 root cause (best_matching_fee's single-winner premise was wrong) and prose: 'None of this is specific to one merchant/month/fee id... so it generalizes' — this generalization framing is the optimiser's own stated rationale in the docstring/prose, not tied to a separate diagnosed task beyond 1871.",
+   "task_ids": [
+    "1871"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "import datetime",
+   "what": "Added the datetime import required by the new day_of_year_to_month function.",
+   "why": "not stated in the transcript as a separate rationale; it is a mechanical dependency of day_of_year_to_month, itself added for tasks 1681/1753's monthly bucketing needs.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_rate(df: pd.DataFrame) -> float",
+   "what": "Added fraud_rate: fraction of eur_amount volume in a dataframe that is fraudulent, per manual.md section 7.",
+   "why": "diagnosis.json task 49: needed to compute the fraud ratio (fraudulent volume / total volume) rather than a raw count; verified via fraud_rate_by output matching gold BE ranking.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_rate_by(df: pd.DataFrame, group_col: str) -> pd.Series",
+   "what": "Added fraud_rate_by: fraud rate per group value, sorted descending, to replace raw value_counts()-based ranking.",
+   "why": "diagnosis.json task 49: verified in session that fraud_rate_by(load_payments(), 'ip_country') ranks BE (0.1227) above NL (0.1218), matching gold B. BE.",
+   "task_ids": [
+    "49"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def day_of_year_to_month(day_of_year: int, year: int) -> int",
+   "what": "Added day_of_year_to_month: converts payments.csv's (year, day_of_year) into a calendar month.",
+   "why": "Required by monthly_merchant_stats to compute natural-month stats for tasks 1681/1753 (manual.md section 5 natural-month bucketing); not independently diagnosed as its own failure.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def capture_delay_bucket(merchant_capture_delay: str) -> str",
+   "what": "Added capture_delay_bucket: maps merchant_data.json's capture_delay values onto fees.json's capture_delay bucket strings.",
+   "why": "diagnosis.json tasks 1681/1753: required as a merchant-level filter input for applicable_fee_ids to correctly match fee rules; helper_diff_summary lists it among v1's kept/verified primitives used to fix these tasks.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fraud_level_bucket(fraud_rate_pct: float) -> str",
+   "what": "Added fraud_level_bucket: maps a percent fraud rate onto fees.json's monthly_fraud_level bucket strings.",
+   "why": "diagnosis.json tasks 1681/1753: required by monthly_merchant_stats to supply the monthly_fraud_level filter used in applicable_fee_ids, verified to reproduce exact gold fee-ID sets.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def volume_bucket(monthly_volume_eur: float) -> str",
+   "what": "Added volume_bucket: maps a monthly EUR volume onto fees.json's monthly_volume bucket strings.",
+   "why": "diagnosis.json tasks 1681/1753: required by monthly_merchant_stats to supply the monthly_volume filter used in applicable_fee_ids, verified to reproduce exact gold fee-ID sets.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def monthly_merchant_stats(payments: pd.DataFrame, merchant: str, year: int, month: int)",
+   "what": "Added monthly_merchant_stats: computes a merchant's natural-month transactions, total volume, fraud rate, and fees.json bucket strings in one call.",
+   "why": "diagnosis.json task 1681 root cause: 'No vectorised/helper-backed way to combine merchant-level fee filters... in one call; the agent re-derived this logic from scratch across many turns'; verified via applicable_fee_ids using its output matching gold exactly for 1681 and 1753.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def is_intracountry(issuing_country: str, acquirer_country: str) -> bool",
+   "what": "Added is_intracountry: domestic means issuer country == acquirer country, explicitly warning not to substitute ip_country.",
+   "why": "system.md's paired ground rule states this same warning; not tied to a specific numbered diagnosis entry beyond the general fee-matching correctness work (1681/1753/1871) — the ip_country distinction itself is not separately verified against a task in diagnosis.json (not stated in the transcript beyond the docstring warning).",
+   "task_ids": [
+    "1681",
+    "1753",
+    "1871"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def _field_matches(rule_value: Any, actual_value: Any) -> bool",
+   "what": "Added _field_matches: implements uniform null/[]-wildcard matching across scalar and list-typed fields.",
+   "why": "diagnosis.json task 1273 root cause: hand-filtering on exact match (e.g. is_credit == True) silently dropped wildcard (null) rules; verified via average_fee_across_rules reproducing gold 0.120132 exactly.",
+   "task_ids": [
+    "1273"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fee_rule_matches(",
+   "what": "Added fee_rule_matches: checks whether a fees.json rule applies given optional merchant/transaction characteristics, using _field_matches for each of the nine fields.",
+   "why": "diagnosis.json task 1273 (wildcard semantics) and tasks 1681/1753 (need for a correctly-specified shared matching primitive instead of ad hoc per-task code); verified against golds for 1273, 1681, and 1753.",
+   "task_ids": [
+    "1273",
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def applicable_fee_ids(",
+   "what": "Added applicable_fee_ids: returns the set of fee IDs applicable to a merchant/period by combining merchant-level filters with each transaction's own card_scheme/is_credit/aci/intracountry.",
+   "why": "diagnosis.json task 1681: verified in session to return exactly {286,381,454,473,477,536,572,709,741,813}, the gold set; task 1753: verified to return a 34-ID set exactly matching gold.",
+   "task_ids": [
+    "1681",
+    "1753"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def transactions_matching_rule(",
+   "what": "Added transactions_matching_rule: returns the rows a single named fee rule applies to, without competing it against other rules.",
+   "why": "diagnosis.json task 1871: replaces best_matching_fee's single-winner selection; explicitly built to isolate a named rule's own matches per the additive-fees finding.",
+   "task_ids": [
+    "1871"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def fee_total_for_rule(",
+   "what": "Added fee_total_for_rule: sums the EUR fee one named rule contributes across matching transactions, optionally overriding fixed_amount/rate to compute hypothetical deltas.",
+   "why": "diagnosis.json task 1871: verified in session that fee_total_for_rule(rule384, jan_txns, ..., rate=1) - fee_total_for_rule(rule384, jan_txns, ...) = -0.948103, matching gold -0.94810300000017 (vs the old best_matching_fee-based -0.80054).",
+   "task_ids": [
+    "1871"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def total_fees_paid(",
+   "what": "Added total_fees_paid: returns {fee_id: total_eur} for every applicable rule across a merchant's transactions, summing additively rather than picking one rule per transaction.",
+   "why": "diagnosis.json task 1871 finding that fees are additive line items; per prompt_diff_summary this is offered for 'what does the merchant pay' questions alongside fee_total_for_rule. Not independently verified against a numeric gold for a 'total fees paid' style task in diagnosis.json (2697 attempted this direction but explicitly did not reproduce gold) — not stated in the transcript as separately confirmed beyond the 1871 delta logic it shares.",
+   "task_ids": [
+    "1871",
+    "2697"
+   ]
+  },
+  {
+   "file": "helper.py",
+   "anchor": "def average_fee_across_rules(fees: list[dict[str, Any]], transaction_value: float, **filters: Any) -> float",
+   "what": "Added average_fee_across_rules: averages the fee across every matching rule at a given transaction value, including wildcard is_credit rules, reserved strictly for literal 'average fee' questions.",
+   "why": "diagnosis.json task 1273: verified in session that average_fee_across_rules(load_fees(), 10, card_scheme='GlobalCard', is_credit=True) = 0.120132, matching gold exactly.",
+   "task_ids": [
+    "1273"
+   ]
+  }
+ ]
+}

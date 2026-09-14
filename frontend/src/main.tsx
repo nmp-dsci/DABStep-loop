@@ -13,6 +13,7 @@ import { Trace } from './pages/Trace';
 import { Compare } from './pages/Compare';
 import { Loop } from './pages/Loop';
 import { Ask } from './pages/Ask';
+import { Evolution } from './pages/Evolution';
 import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/runs/:runId/traces/:taskId" element={<Trace />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/loop" element={<Loop />} />
+          <Route path="/evolution" element={<Evolution />} />
           <Route path="/ask" element={<Ask />} />
         </Route>
       </Routes>
