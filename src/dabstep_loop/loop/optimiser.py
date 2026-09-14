@@ -161,30 +161,38 @@ def _copy_champion(champion: AgentVersion, new_name: str) -> Path:
     return new_dir
 
 
+GUARDED = (
+    "agents",
+    "src/dabstep_loop/agent",
+    "src/dabstep_loop/eval",
+    "src/dabstep_loop/loop",
+    "src/dabstep_loop/data",
+    "tests",
+    "data/tasks",
+    "data/file_structures.json",
+    "Makefile",
+    "pyproject.toml",
+)
+
+
 def tree_checksum(exclude: Path) -> dict[str, int]:
-    """mtime+size of every tracked-ish file outside the new version folder."""
-    skip = {
-        ".venv",
-        "node_modules",
-        ".git",
-        "runs",
-        "workspace",
-        ".mlflow",
-        "__pycache__",
-        ".ruff_cache",
-        ".mypy_cache",
-        ".pytest_cache",
-        "data",
-    }
+    """mtime+size of every file the optimiser could cheat with, outside its own version folder.
+
+    The guarded set is explicit: the agent code, the scorer, the loop, the
+    tasks and every other version. A change to any of these during the session
+    rejects the cycle. Files outside the set (the viewer, the frontend, docs)
+    are not the optimiser's to edit either, but a change there cannot alter a
+    score, so concurrent human work on them does not void a cycle.
+    """
     out: dict[str, int] = {}
-    for p in ROOT.rglob("*"):
-        if not p.is_file():
-            continue
-        rel = p.relative_to(ROOT)
-        if rel.parts[0] in skip or exclude in p.parents or p == exclude:
-            continue
-        st = p.stat()
-        out[str(rel)] = int(st.st_mtime_ns) ^ st.st_size
+    for rel in GUARDED:
+        base = ROOT / rel
+        files = [base] if base.is_file() else [p for p in base.rglob("*") if p.is_file()]
+        for p in files:
+            if exclude in p.parents or p == exclude or "__pycache__" in p.parts:
+                continue
+            st = p.stat()
+            out[str(p.relative_to(ROOT))] = int(st.st_mtime_ns) ^ st.st_size
     return out
 
 
