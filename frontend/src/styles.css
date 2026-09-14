@@ -23,7 +23,8 @@ p{margin:var(--s3) 0 0;max-width:var(--measure);text-wrap:pretty;color:var(--ink
 /* shell */
 .top{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
 .top .in{max-width:var(--w);margin:0 auto;padding:var(--s3) var(--s4);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;min-width:0}
-.brand{font:500 var(--t0)/1 var(--serif);color:var(--ink);text-decoration:none;white-space:nowrap}
+.brand{font:500 var(--t0)/1 var(--serif);color:var(--ink);text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:var(--s2)}
+.brand img{border-radius:var(--r-sm);display:block}
 .brand b{color:var(--accent);font-weight:500}
 nav{display:flex;gap:var(--s1);flex-wrap:wrap;min-width:0}
 nav a{font:500 var(--t-1)/1 var(--sans);color:var(--muted);text-decoration:none;padding:var(--s2) var(--s3);border-radius:var(--r-sm);min-height:24px}

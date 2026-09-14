@@ -21,6 +21,7 @@ export function Shell() {
       <header className="top">
         <div className="in">
           <NavLink to="/" className="brand">
+            <img src="/favicon.svg" alt="" width="22" height="22" />
             DABstep<b>-loop</b>
           </NavLink>
           <nav aria-label="Pages">
