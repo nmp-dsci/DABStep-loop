@@ -101,9 +101,9 @@ def render_history(task_ids: list[str]) -> str:
             lines.append(f"    prompt: {e.get('prompt_diff_summary', '')}")
             lines.append(f"    helper: {e.get('helper_diff_summary', '')}")
         else:
-            lines.append(f"- {kind} {e.get('cycle')}: {e.get('summary', '')[:300]}")
+            lines.append(f"- {kind} {e.get('cycle')}: {e.get("summary", "")[:800]}")
             for n in e.get("notes", [])[:8]:
-                lines.append(f"    · {str(n)[:300]}")
+                lines.append(f"    · {str(n)[:1500]}")
     for tid in task_ids:
         attempts = prior_attempts(tid)
         if attempts:

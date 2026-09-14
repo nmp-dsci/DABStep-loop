@@ -1,0 +1,75 @@
+{
+  "diagnoses": [
+    {
+      "task_id": "49",
+      "symptom": "Agent ranked ip_country by raw fraud count (NL=2955) instead of fraud rate, answering A. NL instead of B. BE.",
+      "root_cause": "manual.md section 7 defines fraud as fraudulent volume / total volume, a rate; the agent had no way to compute that ratio and defaulted to value_counts() of has_fraudulent_dispute, a count.",
+      "surface": "both",
+      "change": "Ported v1's helper.fraud_rate_by (volume-ratio fraud rate per group) and the system.md ground rule that 'fraud' ranking questions mean the rate, not the count.",
+      "verified_in_session": true,
+      "verification": "helper.fraud_rate_by(load_payments(), 'ip_country') ranks BE (0.1227) above NL (0.1218); matches gold B. BE."
+    },
+    {
+      "task_id": "70",
+      "symptom": "Agent inferred a 'high-fraud rate fine' from the fee-bracket mechanism and answered 'yes' instead of 'Not Applicable'.",
+      "root_cause": "manual.md never defines a 'fine' or 'penalty' mechanism tied to fraud rate (only fee-rate brackets, which are a different concept); the agent conflated the two undefined-vs-defined concepts.",
+      "surface": "system.md",
+      "change": "Ported v1's ground rule: if a question names a mechanism manual.md never defines (e.g. a 'fine'), answer Not Applicable rather than inferring it from an adjacent concept.",
+      "verified_in_session": false,
+      "verification": "Not independently re-run this cycle (no computation involved); rule is unchanged from the version that fixed this task in cycle 1 and held through cycle 1's evaluation."
+    },
+    {
+      "task_id": "1273",
+      "symptom": "Agent averaged only the fee rules with an exact is_credit=True match, excluding rules with is_credit=null (wildcard, applies to both), producing 0.117667 instead of 0.120132.",
+      "root_cause": "fees.json's null/[] wildcard convention applies to every field, including scalar fields like is_credit and card_scheme, not just list-typed fields; hand-filtering on == True silently drops wildcard rules.",
+      "surface": "both",
+      "change": "Ported v1's fee_rule_matches/_field_matches (uniform null/[]-wildcard semantics on every field) and average_fee_across_rules built on it, plus the system.md rule stating the wildcard convention explicitly.",
+      "verified_in_session": true,
+      "verification": "helper.average_fee_across_rules(load_fees(), 10, card_scheme='GlobalCard', is_credit=True) = 0.120132, matches gold exactly."
+    },
+    {
+      "task_id": "1681",
+      "symptom": "Agent ran out of turns (21/20) hand-looping over 1000 fees x transactions with ad hoc code across many tool calls, never producing a final answer.",
+      "root_cause": "No vectorised/helper-backed way to combine merchant-level fee filters (account_type/mcc/capture_delay/monthly stats) with per-transaction filters (card_scheme/is_credit/aci/intracountry) in one call; the agent re-derived this logic from scratch across many turns.",
+      "surface": "both",
+      "change": "Ported v1's monthly_merchant_stats + applicable_fee_ids (one call each) and the system.md rule pointing agents at them instead of hand-looping.",
+      "verified_in_session": true,
+      "verification": "helper.applicable_fee_ids(fees, day10_transactions, account_type='R', mcc=5942, capture_delay='<3', monthly_fraud_level='>8.3%', monthly_volume='100k-1m') returns {286,381,454,473,477,536,572,709,741,813}, exactly the gold set (order differs, set-equal)."
+    },
+    {
+      "task_id": "1753",
+      "symptom": "Agent's fee-ID list included false positives (80, 304, 631, 678, 849, 861, 871, 942) not in gold, and was missing true positives (150, 231, 384, 394, 556, 608, 626, 868, 939) — an ad hoc fee-matching implementation with subtly wrong field semantics (likely mishandling one or more of capture_delay/monthly_fraud_level/monthly_volume bucketing or the wildcard convention).",
+      "root_cause": "Same underlying gap as 1681: no shared, correctly-specified fee-matching primitive, so each task re-derives (and re-breaks) the null/[]-wildcard + bucketing logic by hand.",
+      "surface": "both",
+      "change": "Same fix as 1681: monthly_merchant_stats + applicable_fee_ids give one correctly-specified call instead of ad hoc matching code.",
+      "verified_in_session": true,
+      "verification": "helper.applicable_fee_ids(fees, march_transactions, account_type='R', mcc=5942, capture_delay='<3', monthly_fraud_level=<computed>, monthly_volume=<computed>) returns a 34-ID set that, sorted, exactly equals the sorted gold list of 34 IDs."
+    },
+    {
+      "task_id": "1871",
+      "symptom": "(Regression introduced by the held v1 challenger, not in the original failing set.) v1's best_matching_fee selected only 8 of the 12 Jan-2023 Belles_cookbook_store transactions that satisfy fee ID=384's own card_scheme/is_credit/aci criteria, because a more specific rule (231) also matched and 'won' a specificity competition for 4 of them, producing the wrong delta when rule 384's rate is hypothetically changed to 1.",
+      "root_cause": "There is no single most-specific-rule-wins competition in this domain: a transaction can satisfy more than one fee rule's criteria simultaneously and is charged under every one of them (fees are additive line items). best_matching_fee's premise (pick one winner per transaction) is wrong whenever a named rule's own transaction set needs to be isolated (e.g. 'what if fee ID=X changed'), because it silently excludes transactions that satisfy X's criteria but ALSO satisfy some other, more specific rule.",
+      "surface": "both",
+      "change": "Removed best_matching_fee entirely; added transactions_matching_rule/fee_total_for_rule/total_fees_paid, which isolate a named rule's own matching transactions directly (via fee_rule_matches against that rule, never competing it against other rules) and sum its fee contribution; updated system.md to state the additive model explicitly and steer agents away from picking a single 'winning' rule for these question types.",
+      "verified_in_session": true,
+      "verification": "Recomputed by hand: 12 of Belles' Jan-2023 transactions satisfy rule 384's criteria (card_scheme=NexPay, is_credit=True, aci in [C,B]); fee_total_for_rule(rule384, jan_txns, ..., rate=1) - fee_total_for_rule(rule384, jan_txns, ...) = -0.948103, matching gold -0.94810300000017 (float rounding only). The old best_matching_fee-based calc (8/12 transactions) gave -0.80054, which is wrong."
+    },
+    {
+      "task_id": "2697",
+      "symptom": "Agent (and every fee-matching methodology I tried this cycle: sum-across-all-matching-rules, average-across-matching-rules, and specificity-based best-match, each both with and without full merchant-level filters) picks the same ACI as gold (E) but never reproduces the gold cost figure 13.57 EUR.",
+      "root_cause": "Not found. Every methodology tried agrees that ACI E is the cheapest choice among the fraudulent transactions' card schemes, but the exact cost aggregation rule the benchmark uses (which transactions count, whether unmatched card-scheme/ACI combinations are excluded/kept-at-original/etc.) does not match any of: total sum over all matching rules (77.68), average across matching rules (41.66), specificity-based single-rule pick with full merchant filters (16.63, closest), or the same with only account_type+mcc+intracountry as filters (42.82).",
+      "surface": "helper.py",
+      "change": "No change attempted for this task specifically; left unresolved rather than guess a formula I could not verify, per the loop's own note that this was already tried and still failed in cycle 1.",
+      "verified_in_session": false,
+      "verification": "Ran 4 candidate methodologies against the gold E:13.57; none reproduced the number (closest was 16.63 using best_matching_fee, which this cycle removes for other reasons). Documenting as still-open rather than claiming a fix."
+    }
+  ],
+  "prompt_diff_summary": "Ported v1's four ground rules (manual-undefined mechanisms -> Not Applicable, fraud-as-rate, uniform null/[] wildcard incl. scalar fields, use helper fee-matching functions) verbatim, and replaced the 'use best_matching_fee' guidance with a new rule stating fees are additive across every matching rule (no single-winner competition) and pointing at total_fees_paid/fee_total_for_rule for 'what does the merchant pay'/'what if fee ID=X changed' questions, reserving average_fee_across_rules strictly for literal 'average fee' wording.",
+  "helper_diff_summary": "Kept all of v1's helper.py (loaders, calculate_fee, fraud_rate/fraud_rate_by, monthly bucketing, is_intracountry, fee_rule_matches, applicable_fee_ids, average_fee_across_rules) unchanged and verified; removed best_matching_fee (proved wrong for task 1871: it dropped transactions from a named rule's total whenever a more specific rule also matched them) and added transactions_matching_rule/fee_total_for_rule/total_fees_paid, which isolate one rule's own matching transactions and sum its contribution without competing it against other rules.",
+  "expected_to_fix": ["49", "70", "1273", "1681", "1753", "1871"],
+  "risks": [
+    "total_fees_paid/fee_total_for_rule assume fees are additive across every matching rule, generalizing from the single verified example (task 1871's delta). If some other 'total fees paid' question type in the 450 leaderboard tasks actually expects single-rule selection instead, this could produce a new class of wrong answers - but I found no such passing task in the champion's shown failures that depended on single-rule selection, and the additive model is the only one that reproduces 1871's gold exactly.",
+    "Removing best_matching_fee could regress a leaderboard task that happened to want exactly the specificity-based single-rule semantics (e.g. if some sibling of 1871 or 2697 actually does need a single winning rule) - but best_matching_fee was unverified in cycle 1 ('not tuned to this task's exact number') and is now proven wrong on the one case I could check, so keeping it as the suggested tool seemed like the larger risk.",
+    "Task 2697 and its siblings remain unfixed; no regression expected since the change set for this task type is a no-op (guidance already didn't cover it definitively), but it will not convert to a pass either."
+  ]
+}

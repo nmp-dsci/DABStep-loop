@@ -2,18 +2,18 @@
 
 A Claude Agent SDK agent for the [DABstep](https://huggingface.co/spaces/adyen/DABstep) benchmark, and the loop that improves it from its own failures.
 
-## 1 · Result — one cycle took Haiku from 4 to 8 of the 10 gold tasks, and the gate still said no
+## 1 · Result — two cycles took Haiku from 4 to 9 of the 10 gold tasks; the gate held the first
 
-| | v0 (baseline) | v1 (cycle 1 challenger) |
-|---|---|---|
-| dev split, 10 tasks with gold | **4/10** | **8/10** |
-| easy (3) | 1 | 3 |
-| hard (7) | 3 | 5 |
-| fixed | — | 49, 70, 1273, 1681, 1753 |
-| broken | — | 1871 |
-| verdict | champion | **held** — one-sided McNemar on the 6 discordant tasks: p = 0.109, not < 0.05 |
+| | v0 (baseline) | v1 (cycle 1) | v2 (cycle 2) |
+|---|---|---|---|
+| dev split, 10 tasks with gold | **4/10** | 8/10 | **9/10** |
+| easy (3) | 1 | 3 | 3 |
+| hard (7) | 3 | 5 | 6 |
+| fixed vs v0 | — | 49, 70, 1273, 1681, 1753 | 49, 70, 1273, 1681, 1753 |
+| broken vs v0 | — | 1871 | none |
+| McNemar, one-sided | — | p = 0.109 → **held** | p = 0.031 → **promoted** |
 
-v0 is NVIDIA's inference prompt on Haiku 4.5 with a thin helper. v1 is what one optimiser session (Sonnet 5, 40 turns, 3.85M input tokens) wrote after reading v0's six failed traces: uniform null-as-wildcard fee matching, volume-based monthly fraud rates, natural-month bucketing, four prompt rules. It passed eight, but computed task 1871's delta with a specificity tie-break the gold does not use; five fixes against one break is p = 0.109 on a one-sided exact McNemar test, so the gate held it (five fixes and no break, p = 0.031, would have cleared it). The offline reflection pass then found and verified the root cause against the data and recorded it in the ledger for the next cycle. Source: `runs/`, `loop/ledger.jsonl`.
+v0 is NVIDIA's inference prompt on Haiku 4.5 with a thin helper. v1 is what one optimiser session (Sonnet 5, 40 turns, 3.85M input tokens) wrote after reading v0's six failed traces: uniform null-as-wildcard fee matching, volume-based monthly fraud rates, natural-month bucketing, four prompt rules. It passed eight, but computed task 1871's delta with a specificity tie-break the gold does not use; five fixes against one break is p = 0.109 on a one-sided exact McNemar test, so the gate held it (five fixes and no break, p = 0.031, would have cleared it). The offline reflection pass then found and verified the root cause against the data and recorded it in the ledger. Cycle 2's optimiser was shown v0's failures, cycle 1's per-task outcomes, that note, and `agents/v1/` as a held starting point: it kept v1's helper, removed `best_matching_fee`, added additive `fee_total_for_rule` / `total_fees_paid`, and left 2697 alone rather than guess — v2 passes 9, breaks nothing, and is the champion. Source: `runs/`, `loop/ledger.jsonl`, `agents/v2/diagnosis.json`.
 
 The 450 leaderboard tasks are **not scored** in this build (deferred M8), and no answer key is derived from other teams' submissions. For scale: NVIDIA's Data Explorer reports 87.50% easy / 89.95% hard on the leaderboard with the same model; the plain Sonnet 4 ReAct baseline is 81.94 / 19.84.
 

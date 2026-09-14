@@ -3,6 +3,70 @@
  "tracking_uri": "http://127.0.0.1:5600",
  "runs": [
   {
+   "mlflow_run_id": "7607c63695194bada944f7f0d52c9354",
+   "name": "cycle-3",
+   "status": "FINISHED",
+   "start_time": 1789357653426,
+   "end_time": 1789357653452,
+   "tags": {
+    "kind": "cycle",
+    "champion": "v0",
+    "challenger": "v2",
+    "verdict": "promote"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_optimiser_in": 2051695.0,
+    "tokens_optimiser_out": 46950.0
+   }
+  },
+  {
+   "mlflow_run_id": "df852c379f28429d93270a3a947fabb2",
+   "name": "20260914T034447Z_v2_dev_haiku",
+   "status": "FINISHED",
+   "start_time": 1789357653234,
+   "end_time": 1789357653358,
+   "tags": {
+    "agent": "v2",
+    "fingerprint": "665f5ffa88eb",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v2",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "workers": "3",
+    "passes": "1",
+    "n_tasks": "10",
+    "fingerprint": "665f5ffa88eb"
+   },
+   "metrics": {
+    "passed": 9.0,
+    "pass_rate": 0.9,
+    "easy_passed": 3.0,
+    "hard_passed": 6.0,
+    "cost_usd": 0.6318922,
+    "duration_s": 369.755,
+    "errors": 0.0,
+    "turns_total": 75.0,
+    "input_tokens": 2623426.0,
+    "output_tokens": 35977.0,
+    "task_5": 1.0,
+    "task_49": 1.0,
+    "task_70": 1.0,
+    "task_1273": 1.0,
+    "task_1305": 1.0,
+    "task_1464": 1.0,
+    "task_1681": 1.0,
+    "task_1753": 1.0,
+    "task_1871": 1.0,
+    "task_2697": 0.0
+   }
+  },
+  {
    "mlflow_run_id": "5f34b51ae63a46018d739d89cdfdc780",
    "name": "cycle-2",
    "status": "FINISHED",
