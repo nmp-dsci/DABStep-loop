@@ -13,7 +13,7 @@ from typing import Any
 from rich.console import Console
 
 from dabstep_loop.agent.versions import load_version
-from dabstep_loop.eval.compare import compare, gate_a
+from dabstep_loop.eval.compare import GATES, compare
 from dabstep_loop.eval.runner import RunMeta, list_runs, load_run, run_eval
 from dabstep_loop.eval.score import TaskResult
 from dabstep_loop.loop.ledger import append_entry, next_cycle_number, update_entry
@@ -201,6 +201,7 @@ async def run_ucycle(
     passes: int = 2,
     workers: int = 3,
     reflect_model: str = "sonnet",
+    gate: str = "a",
 ) -> dict[str, Any]:
     from dabstep_loop.loop.ureflect import read_cards, run_ureflection
 
@@ -234,6 +235,7 @@ async def run_ucycle(
         "sample": probe_meta.sample,
         "challenger": opt.new_version,
         "optimiser_model": optimiser_model,
+        "gate": gate,
         "failed": [r.task_id for r in failures],
         "diagnoses": opt.diagnosis.get("diagnoses", []),
         "prompt_diff_summary": opt.diagnosis.get("prompt_diff_summary", ""),
@@ -271,7 +273,7 @@ async def run_ucycle(
         f"ucycle {cycle} challenger probe",
         probe_meta.task_ids,
     )
-    verdict = gate_a(dev, before.get("composite") or {}, after.get("composite") or {})
+    verdict = GATES[gate](dev, before.get("composite") or {}, after.get("composite") or {})
     outcome = {
         "verdict": "promote" if verdict.promote else "hold",
         "reason": verdict.reason,
@@ -339,9 +341,10 @@ async def run_uloop(
     seed: int = 0,
     passes: int = 2,
     workers: int = 3,
+    gate: str = "a",
 ) -> None:
     current = agent or (read_registry().get("champion") or {}).get("agent") or "v0"
     for _ in range(cycles):
-        entry = await run_ucycle(current, optimiser_model, k, seed, passes, workers)
+        entry = await run_ucycle(current, optimiser_model, k, seed, passes, workers, gate=gate)
         if (entry.get("outcome") or {}).get("verdict") == "promote":
             current = str(entry["challenger"])

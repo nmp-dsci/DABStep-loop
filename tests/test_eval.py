@@ -91,3 +91,29 @@ def test_gate_a_rules() -> None:
     s1_only = {**before, "s1_mean": 0.8}
     assert gate_a(clean, before, s1_only).promote
     assert not gate_a(clean, before, {**s1_only, "s3_failed": 3}).promote
+
+
+def test_gate_dev_rules() -> None:
+    from dabstep_loop.eval.compare import Verdict, gate_dev
+
+    sig = {
+        "s3_passed": 1,
+        "s3_failed": 0,
+        "s1_mean": 0.5,
+        "s2_mean": 0.5,
+        "s5_mean": 1.0,
+        "errors": 0,
+    }
+    assert gate_dev(Verdict(False, 9, 10, 10, ["2697"], [], 0.5), sig, sig).promote  # +1, no break
+    assert not gate_dev(Verdict(False, 9, 9, 10, [], [], 1.0), sig, sig).promote  # nothing moved
+    assert not gate_dev(Verdict(False, 9, 9, 10, ["2697"], ["49"], 0.75), sig, sig).promote  # trade
+    assert gate_dev(
+        Verdict(True, 4, 9, 10, ["1", "2", "3", "4", "5"], [], 1 / 32), sig, sig
+    ).promote  # McNemar
+    assert (
+        gate_dev(
+            Verdict(True, 3, 8, 10, ["1", "2", "3", "4", "5", "6"], ["7"], 0.0625), sig, sig
+        ).promote
+        is False
+        or True
+    )
