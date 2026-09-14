@@ -196,6 +196,25 @@ def coverage() -> list[dict[str, Any]]:
     return out
 
 
+def guidelines_by_family(split: str = "all") -> dict[str, list[dict[str, Any]]]:
+    """Per family, the distinct answer guidelines its tasks carry, verbatim, with counts.
+
+    The guideline is the contract for the answer's shape ("just a number rounded
+    to 6 decimals", "a list of values in comma separated list", "Not Applicable"
+    when nothing applies). It matters more than the question's wording, because
+    the scorer reads the shape first; the routing table quotes it verbatim."""
+    from dabstep_loop.loop.signals import format_of
+
+    merchants = _merchants()
+    by: dict[str, Counter[str]] = defaultdict(Counter)
+    for t in load_tasks(split):
+        by[family_of(t.question, merchants).id][t.guidelines.strip()] += 1
+    return {
+        fid: [{"guideline": g, "n": n, "format": format_of(g)} for g, n in c.most_common()]
+        for fid, c in sorted(by.items())
+    }
+
+
 def templates_by_family(split: str = "all") -> dict[str, list[dict[str, Any]]]:
     merchants = _merchants()
     by: dict[str, Counter[str]] = defaultdict(Counter)
@@ -213,6 +232,7 @@ def write_families_file() -> dict[str, Any]:
     doc = {
         "families": coverage(),
         "templates": templates_by_family("all"),
+        "guidelines": guidelines_by_family("all"),
         "tasks": assign("all"),
     }
     (FAMILIES_DIR / "families.json").write_text(

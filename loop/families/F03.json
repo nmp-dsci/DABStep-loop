@@ -7,6 +7,13 @@
  "members": 45,
  "templates": 3,
  "dev_anchor": [],
+ "guidelines": [
+  {
+   "guideline": "Answer must be just a number rounded to 2 decimals. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'",
+   "n": 45,
+   "format": "number"
+  }
+ ],
  "status": "provisional",
  "canonical_method": {
   "helper": "total_fees_paid(fees, transactions, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume) -> dict[id, amount]",
