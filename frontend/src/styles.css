@@ -129,3 +129,10 @@ summary{cursor:pointer;color:var(--accent);font-weight:500;min-height:24px}
 .diff-sum{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s2) var(--s4);margin-top:var(--s3);font-size:var(--t-1)}
 .diff-sum dt{font-family:var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:var(--track-label);font-size:var(--t-2)}
 .diff-sum dd{margin:0;color:var(--ink-2)}
+
+/* diff */
+.code.diff pre{font-size:var(--t-1);line-height:1.5}
+.code.diff .add{display:block;background:var(--accent-soft);color:var(--ink)}
+.code.diff .del{display:block;background:var(--amber-soft);color:var(--ink)}
+.code.diff .hunk{display:block;color:var(--faint);margin-top:var(--s3)}
+.code.diff .ctx{display:block;color:var(--ink-2)}

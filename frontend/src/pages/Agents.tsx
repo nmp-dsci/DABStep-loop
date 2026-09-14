@@ -19,7 +19,7 @@ export function Agents() {
       </h1>
       <p className="lead">
         <code>agents/vN/</code> holds a system prompt, a helper module and a frozen config. The optimiser writes the next folder and
-        a <code>diagnosis.json</code> beside it; the gate decides which folder the registry points at.
+        a <code>diagnosis.json</code> beside it; the gate decides which folder the registry points at. <Link to="/evolution">Evolution</Link> shows the diff between any two versions with that reasoning.
       </p>
       <div className="tw">
         <table>

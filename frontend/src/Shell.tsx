@@ -10,6 +10,7 @@ const NAV: [string, string][] = [
   ['/runs', 'Runs'],
   ['/compare', 'Gate'],
   ['/loop', 'Loop'],
+  ['/evolution', 'Evolution'],
   ['/ask', 'Ask'],
 ];
 

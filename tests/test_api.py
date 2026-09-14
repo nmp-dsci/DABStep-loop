@@ -47,3 +47,12 @@ def test_ask_in_demo_mode_declines_unknown_questions(client: TestClient) -> None
         text = "".join(r.iter_text())
     events = [json.loads(line[5:]) for line in text.splitlines() if line.startswith("data:")]
     assert events and events[0]["type"] == "decline"
+
+
+def test_agent_diff_carries_reasoning(client: TestClient) -> None:
+    d = client.get("/api/agents/diff?a=v0&b=v1").json()
+    assert [f["name"] for f in d["files"]] == ["system.md", "helper.py", "agent.yaml"]
+    assert d["files"][2]["changed"] is False, "agent.yaml is frozen"
+    assert d["files"][1]["changed"] and d["diagnosis"]["diagnoses"]
+    assert d["cycles"] and d["cycles"][0]["challenger"] == "v1"
+    assert client.get("/api/agents/diff?a=v0&b=v99").status_code == 404
