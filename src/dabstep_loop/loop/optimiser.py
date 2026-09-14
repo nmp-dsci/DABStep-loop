@@ -185,8 +185,9 @@ def build_prompt(
     held_block = (
         "\n".join(
             f"- `agents/{h['challenger']}/` (cycle {h['cycle']}, held: {h['reason']}; passes {h['passes']}; fixed {h['fixed']}; "
-            f"broke {h['broken']}). Its system.md and helper.py are on disk: read them, and copy what held — "
-            "a held challenger is a starting point, not a rejected one. Do not repeat what broke."
+            f"broke {h['broken']}). {h.get('signals') or ''} Its system.md and helper.py are on disk: read them, and copy what held — "
+            "a held challenger is a starting point, not a rejected one. Do not repeat what broke: read the traces of the broken "
+            f"tasks ({', '.join(h.get('broken_traces') or []) or 'none'}) before you decide what to keep."
             for h in held
         )
         or "none"
@@ -272,7 +273,7 @@ def held_challengers(champion_name: str) -> list[dict[str, Any]]:
     for e in read_ledger():
         o = e.get("outcome") or {}
         if (
-            e.get("kind", "cycle") == "cycle"
+            e.get("kind", "cycle") in {"cycle", "ucycle"}
             and e.get("champion") == champion_name
             and o.get("verdict") == "hold"
             and e.get("challenger")
@@ -285,6 +286,22 @@ def held_challengers(champion_name: str) -> list[dict[str, Any]]:
                     "passes": o.get("passes"),
                     "fixed": o.get("fixed"),
                     "broken": o.get("broken"),
+                    "kind": e.get("kind", "cycle"),
+                    "broken_traces": [
+                        f"runs/{o.get('challenger_run')}/traces/{t}.json"
+                        for t in (o.get("broken") or [])
+                    ]
+                    if o.get("challenger_run")
+                    else [],
+                    "signals": (
+                        f"probe signals went {e.get('signals_before', {}).get('s3_passed')}/"
+                        f"{e.get('signals_before', {}).get('s3_failed')} → "
+                        f"{(e.get('signals_after') or {}).get('s3_passed')}/"
+                        f"{(e.get('signals_after') or {}).get('s3_failed')} invariants passed/failed, "
+                        f"S1 {e.get('signals_before', {}).get('s1_mean')} → {(e.get('signals_after') or {}).get('s1_mean')}"
+                        if e.get("kind") == "ucycle" and e.get("signals_before")
+                        else ""
+                    ),
                 }
             )
     return out

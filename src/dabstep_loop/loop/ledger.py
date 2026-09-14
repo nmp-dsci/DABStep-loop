@@ -53,9 +53,23 @@ def prior_attempts(task_id: str) -> list[dict[str, Any]]:
     """Every earlier diagnosis of one task, with the cycle's verdict and whether the task got fixed."""
     out: list[dict[str, Any]] = []
     for e in read_ledger():
-        if e.get("kind", "cycle") != "cycle":
+        if e.get("kind", "cycle") not in {"cycle", "ucycle"}:
             continue
         outcome = e.get("outcome") or {}
+        if task_id in (outcome.get("broken") or []) and not any(
+            str(d.get("task_id")) == str(task_id) for d in e.get("diagnoses", [])
+        ):
+            out.append(
+                {
+                    "cycle": e.get("cycle"),
+                    "challenger": e.get("challenger"),
+                    "root_cause": "not diagnosed: this task passed on the champion and BROKE on the challenger",
+                    "surface": "both",
+                    "change": f"the cycle's edits ({e.get('prompt_diff_summary', '')[:160]} / {e.get('helper_diff_summary', '')[:160]})",
+                    "verdict": outcome.get("verdict", "pending"),
+                    "task_outcome": "broken",
+                }
+            )
         for d in e.get("diagnoses", []):
             if str(d.get("task_id")) != str(task_id):
                 continue
@@ -93,13 +107,24 @@ def render_history(task_ids: list[str]) -> str:
     for e in entries:
         kind = e.get("kind", "cycle")
         o = e.get("outcome") or {}
-        if kind == "cycle":
+        if kind in {"cycle", "ucycle"}:
             lines.append(
-                f"- cycle {e.get('cycle')}: {e.get('champion')} → {e.get('challenger')} · verdict {o.get('verdict', 'pending')}"
+                f"- {kind} {e.get('cycle')}: {e.get('champion')} → {e.get('challenger')} · verdict {o.get('verdict', 'pending')}"
                 f" · passes {o.get('passes', '?')} · fixed {o.get('fixed', [])} · broken {o.get('broken', [])}"
+                + (f" · reason: {o.get('reason', '')[:300]}" if o.get("reason") else "")
             )
             lines.append(f"    prompt: {e.get('prompt_diff_summary', '')}")
             lines.append(f"    helper: {e.get('helper_diff_summary', '')}")
+            if kind == "ucycle" and e.get("signals_before"):
+                sb, sa = e.get("signals_before") or {}, e.get("signals_after") or {}
+                lines.append(
+                    f"    probe (same {sb.get('tasks')} unscored tasks): invariants {sb.get('s3_passed')}/{sb.get('s3_failed')} → "
+                    f"{sa.get('s3_passed')}/{sa.get('s3_failed')} passed/failed · S1 {sb.get('s1_mean')} → {sa.get('s1_mean')} · "
+                    f"S2 {sb.get('s2_mean')} → {sa.get('s2_mean')} · S5 {sb.get('s5_mean')} → {sa.get('s5_mean')}"
+                )
+        elif kind == "ureflect":
+            lines.append(f"- {kind} {e.get('cycle')}: {str(e.get('summary', ''))[:800]}")
+            lines.append(f"    cards: {e.get('statuses')} · priorities {e.get('priorities')}")
         else:
             lines.append(f"- {kind} {e.get('cycle')}: {e.get('summary', '')[:800]}")
             for n in e.get("notes", [])[:8]:
