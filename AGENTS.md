@@ -50,7 +50,8 @@ data/tasks/           dev.jsonl (10, gold) · all.jsonl (450, no gold)     commi
 data/samples/         every context file; payments.csv first 500 rows       committed
 data/context/         the full download (`make data`)                        gitignored
 runs/<id>/            run.json · results.jsonl · submission.jsonl · agent/ · traces/<task>.json
-loop/ledger.jsonl     one entry per cycle: diagnoses + outcome
+loop/ledger.jsonl     one entry per cycle: diagnoses + outcome (kinds: cycle · reflect · ureflect · ucycle)
+loop/families/        families.json (lens 1) · lenses.json (lenses 2+3) · Fnn.json (one card per family, written by the reflector)
 loop/registry.json    champion / challenger aliases (mirrored to MLflow)
 loop/mlflow_snapshot.json  `make snapshot`, for the demo image
 src/dabstep_loop/
@@ -59,7 +60,7 @@ src/dabstep_loop/
   agent/              llm.py (models, billing) · versions.py · prompt.py · session.py · answer.py · tools/python_executor.py
   eval/               scorer.py (vendored) · score.py · runner.py · compare.py (gate) · submission.py
   tracking/           mlflow_log.py · registry.py · snapshot.py · gate.py (CI)
-  loop/               run.py · optimiser.py · ledger.py · reflect.py
+  loop/               run.py · optimiser.py · ledger.py · reflect.py · families.py · lenses.py · slots.py · sampler.py · invariants.py · signals.py · ureflect.py
   serving/            app.py (FastAPI + SPA) · demo_pack/ (build + pack.json)
 frontend/             Vite + React; src/tokens.css verbatim from DESIGN.md; scripts/design_lint.mjs
 infra/terraform/      bootstrap (OIDC role, run once locally) · demo (ECR + App Runner)
@@ -78,6 +79,10 @@ make compare CHAMPION=<run> CHALLENGER=<run>
 make promote RUN=<run>        make register RUN=<run>
 make loop CYCLES=1            eval → optimiser session → challenger eval → gate → ledger
 make reflect                  offline reflection over the champion's traces → ledger entry
+make families · make lenses   the 450 by family (lens 1), then embeddings + a Sonnet membership pass (lenses 2+3)
+make probe [K=3 SEED=0]       unscored probe of the champion on a seeded per-family sample, 2 passes
+make ureflect RUN=<probe>     unsupervised reflection → loop/families/Fnn.json
+make uloop CYCLES=1           probe → cards → optimiser → paired eval → gate A → ledger
 make snapshot · make demo-pack  export for the demo image
 make dev                      API on :8080; `cd frontend && npm run dev` for the UI on :5173
 make demo-up                  build + run the demo image locally
@@ -104,6 +109,32 @@ The `eval` command refuses `SPLIT=all` without an interactive confirmation.
    one-sided exact McNemar test on the discordant tasks, promote at p < 0.05.
 5. Promote → registry champion; hold → registry challenger. Either way the
    version folder and its run stay in the repo.
+
+## 5b · The unsupervised cycle, precisely
+
+1. `run_ucycle` evaluates the champion on dev-10 as above, then **probes** it:
+   `sampler.draw(k, seed)` takes k tasks per family from the 450 (boundary
+   tasks from `lenses.json` first, never a dev id, plus the siblings each
+   invariant needs), `run_eval(score=False, passes=2)` runs them with gold
+   blanked into `runs/<ts>_vN_probe_haiku/` (`kind: probe`, `correct: null`,
+   no submission), and `signals.compute` writes `signals.json` next to it. A
+   finished probe of the same bytes, k, seed and passes is reused.
+2. If any card is missing or cites another probe, `ureflect.run_ureflection`
+   runs one read-only Sonnet session over the family blocks (traces side by
+   side, S1–S3, S5, the current card, the dev anchors) and the harness writes
+   `loop/families/Fnn.json` from its JSON reply; ledger kind `ureflect`.
+3. `run_optimiser(..., families_block=render_families_block(probe))` is the
+   same session as §5 with the cards (worst status first) and every failed
+   invariant's two traces appended, plus rules 4b–4d: one routing row and at
+   most one blanked example per family in `system.md`, one entry point per
+   family in `helper.py`, verified in-session against an invariant, never
+   against a leaderboard answer. `loop/families/` is in `GUARDED`.
+4. The challenger runs dev-10 (scored) and the same probe sample (unscored);
+   `compare.gate_a` decides; the ledger entry (kind `ucycle`) carries
+   `signals_before`, `signals_after` and `signals_by_family`.
+5. Lenses 2 and 3 (`lenses.py`) are computed once by `dabstep lenses` and
+   only say how far to trust lens 1 per task; the family id on a card is
+   always the regex family.
 
 ## 6 · Conventions
 

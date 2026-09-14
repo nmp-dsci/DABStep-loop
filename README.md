@@ -29,6 +29,22 @@ make reflect      read-only review of a run's traces → ledger notes for the ne
 - `loop/ledger.jsonl` is committed. Every diagnosis, every change, every verdict; per-task prior attempts are rendered into the next optimiser's prompt so a failed fix is not retried unchanged, and a held challenger is offered as a starting point.
 - The gate (`eval/compare.py`): a one-sided exact McNemar test on the paired tasks, promote at p < 0.05; the verdict carries b (fixed), c (broken) and p. CI re-scores the champion's committed results with the vendored scorer and fails if the registry, the run and the agent folder disagree.
 
+## 2b · The unsupervised loop — the 450 by family, probed, judged without answers
+
+Ten gold tasks anchor six of the twelve question families the 450 fall into; the other six (188 of the 378 hard tasks) can only be learned from the 450 themselves, which have no answers. `make uloop` does that without ever scoring them:
+
+```
+make families     lens 1: the 106 templates → 12 operation families (an ordered regex table) → loop/families/families.json
+make lenses       lenses 2+3: local MiniLM k-means, then one Sonnet membership pass; ARI + confusion + boundary tasks → lenses.json
+make probe        a seeded sample (k per family, boundary tasks first, invariant siblings, never a dev id) run unscored, 2 passes
+make ureflect RUN=<probe>   one read-only Sonnet session → loop/families/Fnn.json: canonical method, entry point, prompt rule, status
+make uloop        probe champion → cards → optimiser (cards in its prompt) → dev-10 + the same probe on the challenger → gate A → ledger
+```
+
+- **Signals, none of which read gold** (`loop/signals.py`): S1 the share of a family's traces on its modal method; S2 agreement between two passes; S3 metamorphic invariants between sibling answers (`ids(day) ⊆ ids(month) ⊆ ids(year)`, `fees(month) ≤ fees(year)`, a month delta has the year's sign, min-scheme ≠ max-scheme…); S5 the guideline's format. S4 is the reflector's audit.
+- **Gate A** (`eval/compare.gate_a`): promote when no dev task broke *and* the paired gold-free composite improved on the same seeded sample (invariants passed up with failures not up, or S1 up with S3 not worse; S5 and errors not worse). The McNemar p is recorded, not required: with one dev failure left it cannot clear 0.05.
+- A probe run has `correct: null` on every row and writes no submission; the CI gate refuses a version whose prompt quotes a leaderboard question verbatim. The viewer's **Families** page shows the coverage, the cards, the three-lens confusion matrix and each family's paired signals across cycles.
+
 ## 3 · The agent — Haiku 4.5, one tool, two editable files
 
 `agents/vN/system.md` (prompt) · `agents/vN/helper.py` (importable as `helper` inside the tool) · `agents/vN/agent.yaml` (frozen: `max_turns 20`, `timeout_s 270`, `tools [mcp__py__execute_python]`). The tool is an in-process MCP server: a persistent namespace with pandas preloaded, 120s per call, and NVIDIA's loop-breaker. Answers are scored with `question_scorer` vendored verbatim from the benchmark space.
@@ -48,4 +64,4 @@ The viewer shows the data, the tasks, the architecture, every run and trace, the
 
 ## 5 · Where things are
 
-See [`AGENTS.md`](AGENTS.md) for the layout, the decisions and their reasons, and the prerequisites; [`DESIGN.md`](DESIGN.md) for the visual brief; `.lavish/s00_dabstep-loop-init-plan.html` for the plan this was built to.
+See [`AGENTS.md`](AGENTS.md) for the layout, the decisions and their reasons, and the prerequisites; [`DESIGN.md`](DESIGN.md) for the visual brief; `.lavish/s00_dabstep-loop-init-plan.html` for the plan build 1 was built to and `.lavish/s01_unsupervised-reflection-plan.html` for build 2.
