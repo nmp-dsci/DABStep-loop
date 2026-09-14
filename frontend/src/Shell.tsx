@@ -22,7 +22,9 @@ export function Shell() {
         <div className="in">
           <NavLink to="/" className="brand">
             <img src="/favicon.svg" alt="" width="22" height="22" />
-            DABstep<b>-loop</b>
+            <span>
+              DABstep<b>-loop</b>
+            </span>
           </NavLink>
           <nav aria-label="Pages">
             {NAV.map(([to, label]) => (
