@@ -1,0 +1,67 @@
+{
+ "id": "F10",
+ "name": "move-fraud-to-aci",
+ "pattern": "move the fraudulent transactions towards a different authorization",
+ "operation": "fees on the merchant's fraudulent transactions recomputed per ACI, then argmin",
+ "invariant": "the chosen ACI's cost is ≤ every alternative in the same table",
+ "members": 25,
+ "templates": 2,
+ "dev_anchor": [
+  "2697"
+ ],
+ "status": "open",
+ "canonical_method": {
+  "helper": "total_fees_paid_with_aci_override(fees, fraud_transactions, new_aci, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume) — proposed new helper",
+  "exists": false,
+  "steps": [
+   "fraud_txns = period transactions where has_fraudulent_dispute is true",
+   "current_acis = fraud_txns['aci'].unique() — these must be EXCLUDED from the candidate set, since the question asks for a DIFFERENT ACI",
+   "for each month (if period > 1 month): stats = monthly_merchant_stats(...); cd_bucket = capture_delay_bucket(info['capture_delay'])",
+   "for each candidate ACI not in current_acis: cost = fee cost of fraud_txns as if aci==candidate, summed across months",
+   "argmin over candidates only (never re-select an ACI already in current_acis)"
+  ],
+  "manual": [
+   "§4 Authorization Characteristics Indicator",
+   "§7 Reducing Fraud-Related Fees"
+  ]
+ },
+ "conflict_ruling": "task 2767 explicitly separates the CURRENT ACI's cost from the alternatives and picks the cheapest ALTERNATIVE (excluding current) — this matches the question's wording 'move towards a different ACI' and is the correct interpretation. Tasks 2746 and 2755 both computed a full per-ACI cost table but then picked the ACI that was ALREADY the current one for 100% of the merchant's fraud transactions (G in both cases) as their 'preferred different choice' — this contradicts the question and is almost certainly why dev-anchor task 2697 FAILed.",
+ "pitfalls": [
+  "Selecting the argmin ACI without excluding the fraud transactions' current ACI(s) answers a different question than the one asked ('different ACI' means excluding status quo) — this is the leading suspect for the 2697 dev failure",
+  "Period spanning a full year needs the per-month bucket loop (task 2767 did this; simpler traces on single-month questions don't need it)",
+  "No existing helper supports 'recompute fees as if these transactions had a different ACI' — currently hand-rolled per task, inviting drift"
+ ],
+ "few_shot": {
+  "task_id": "2767",
+  "question": "Looking at the year 2023 and at the merchant Belles_cookbook_store, if we were to move the fraudulent transactions towards a different ACI ... what would be the preferred choice?",
+  "code": "min({aci: cost for aci, cost in results.items() if aci != current_aci}, key=results.get)"
+ },
+ "prompt_rule": "if the question asks which DIFFERENT ACI a merchant should move fraudulent transactions to → compute per-ACI cost for fraud transactions only, EXCLUDE the ACI(s) already used by those fraud transactions from the candidate set, then argmin; format: {aci}:{fee} rounded to 2 decimals.",
+ "note": "This is the family with a confirmed gold failure (2697) plus a concrete, well-evidenced mechanism for it — top priority for the optimiser.",
+ "evidence": [
+  "runs/20260914T034447Z_v2_dev_haiku/traces/2697.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2746.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2755.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2767.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.333,
+  "s2_agreement": 0.333,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 28.7
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "open"
+  }
+ ]
+}

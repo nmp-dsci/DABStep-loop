@@ -50,6 +50,67 @@ def eval(  # noqa: A001 - the Makefile target is `eval`
 
 
 @app.command()
+def probe(
+    agent: str | None = None,
+    k: int = 3,
+    seed: int = 0,
+    passes: int = 2,
+    workers: int = 3,
+    model: str | None = None,
+    note: str = "",
+) -> None:
+    """Run a seeded per-family sample of the 450 through an agent, unscored; then compute the signals."""
+    from dabstep_loop.eval.runner import run_eval
+    from dabstep_loop.loop.sampler import draw
+    from dabstep_loop.loop.signals import compute
+    from dabstep_loop.tracking.registry import read_registry
+
+    agent = agent or str((read_registry().get("champion") or {}).get("agent") or "v0")
+    sample = draw(k=k, seed=seed)
+    console.print(
+        f"sample: {len(sample.task_ids)} tasks · k={k} seed={seed} · {sample.boundary_first} boundary-first"
+    )
+    meta, _ = asyncio.run(
+        run_eval(
+            agent,
+            "all",
+            model,
+            workers,
+            passes,
+            False,
+            sample.task_ids,
+            note or f"probe k={k} seed={seed}",
+            score=False,
+            sample=sample.as_dict(),
+        )
+    )
+    doc = compute(meta.run_id)
+    console.print(f"run: runs/{meta.run_id}")
+    console.print(json.dumps(doc["composite"]))
+
+
+@app.command()
+def signals(run_id: str) -> None:
+    """Recompute the gold-free signals for a run folder (writes signals.json)."""
+    from dabstep_loop.loop.signals import compute
+
+    doc = compute(run_id)
+    t = Table("family", "n", "S1 modal", "S2 agree", "S3 pass/fail/skip", "S5 format", "turns")
+    for fid, b in doc["families"].items():
+        t.add_row(
+            fid,
+            str(b["n"]),
+            str(b["s1_modal_share"]),
+            str(b["s2_agreement"]),
+            f"{b['s3_passed']}/{b['s3_failed']}/{b['s3_skipped']}",
+            str(b["s5_compliance"]),
+            str(b["turns_mean"]),
+        )
+    console.print(t)
+    console.print(json.dumps(doc["composite"]))
+
+
+@app.command()
 def score(run_id: str) -> None:
     """Re-score a run folder from its results.jsonl."""
     from dabstep_loop.eval.runner import load_run
@@ -139,11 +200,38 @@ def loop(
 
 
 @app.command()
+def uloop(
+    cycles: int = 1,
+    agent: str | None = None,
+    optimiser_model: str = "sonnet",
+    k: int = 3,
+    seed: int = 0,
+    passes: int = 2,
+    workers: int = 3,
+) -> None:
+    """The unsupervised loop: probe the 450 by family → cards → optimiser → paired eval → gate A → ledger."""
+    from dabstep_loop.loop.run import run_uloop
+
+    asyncio.run(run_uloop(cycles, agent, optimiser_model, k, seed, passes, workers))
+
+
+@app.command()
 def reflect(run_id: str | None = None, model: str = "sonnet") -> None:
     """One offline reflection pass over the champion's traces (NVIDIA phase 3, on the smoke set)."""
     from dabstep_loop.loop.reflect import run_reflection
 
     asyncio.run(run_reflection(run_id=run_id, model=model))
+
+
+@app.command()
+def ureflect(run_id: str, model: str = "sonnet") -> None:
+    """Unsupervised reflection over a probe run: writes one card per family to loop/families/."""
+    from dabstep_loop.loop.ureflect import run_ureflection
+
+    entry = asyncio.run(run_ureflection(run_id, model=model))
+    console.print(
+        json.dumps({k: entry[k] for k in ("statuses", "priorities", "tokens", "outcome")}, indent=1)
+    )
 
 
 @app.command()
@@ -153,6 +241,40 @@ def annotate(version: str, model: str = "sonnet") -> None:
 
     out = asyncio.run(_annotate(version, model=model))
     console.print(f"{len(out['changes'])} changes annotated for {version}")
+
+
+@app.command()
+def families(write: bool = True) -> None:
+    """Lens 1: the 450 by operation family; writes loop/families/families.json."""
+    from dabstep_loop.loop.families import coverage, write_families_file
+
+    if write:
+        write_families_file()
+    t = Table("family", "name", "tasks", "templates", "levels", "dev anchor")
+    for r in coverage():
+        t.add_row(
+            r["id"],
+            r["name"],
+            str(r["tasks"]),
+            str(r["templates"]),
+            json.dumps(r["levels"]),
+            ", ".join(r["dev_anchor"]) or "—",
+        )
+    console.print(t)
+
+
+@app.command()
+def lenses(model: str = "sonnet", seed: int = 0, k: int = 12) -> None:
+    """Lenses 2 and 3: local embeddings + one Sonnet membership pass; writes loop/families/lenses.json."""
+    from dabstep_loop.loop.lenses import build_lenses
+
+    doc = asyncio.run(build_lenses(model=model, seed=seed, k=k))
+    a = doc["agreement"]
+    console.print(
+        f"k = {doc['embedding']['k']} · ARI l1/l2 {a['ari']['l1_l2']} · l1/l3 {a['ari']['l1_l3']} · "
+        f"l2/l3 {a['ari']['l2_l3']} · boundary {a['boundary_count']}/450 · split {a['split_count']} · "
+        f"tokens {doc['tokens']}"
+    )
 
 
 @app.command()

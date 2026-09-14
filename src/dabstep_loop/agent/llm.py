@@ -8,6 +8,7 @@ at all — `require_live()` raises under DEMO_MODE before any session starts.
 from __future__ import annotations
 
 import os
+from typing import Literal
 
 from dabstep_loop.config import settings
 
@@ -16,6 +17,12 @@ MODELS: dict[str, str] = {
     "sonnet": "claude-sonnet-5",
     "opus": "claude-opus-5",
 }
+
+# Every Agent SDK session in this app (task agent, optimiser, reflection, annotate)
+# runs at this effort. `agent.yaml` may pin a different one for the task agent, and
+# a CLI flag may override the loop sessions; neither happens by default.
+Effort = Literal["low", "medium", "high", "xhigh", "max"]
+EFFORT: Effort = "medium"
 
 
 class BillingError(RuntimeError):

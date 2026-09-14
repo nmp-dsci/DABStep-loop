@@ -3,6 +3,184 @@
  "tracking_uri": "http://127.0.0.1:5600",
  "runs": [
   {
+   "mlflow_run_id": "8d304fc36e3b4ad09b3c5f02cfac44c1",
+   "name": "20260914T075909Z_v3_probe_haiku",
+   "status": "FINISHED",
+   "start_time": 1789373806247,
+   "end_time": 1789373806541,
+   "tags": {
+    "agent": "v3",
+    "fingerprint": "065f1507a441",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v3",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "workers": "3",
+    "passes": "2",
+    "n_tasks": "47",
+    "fingerprint": "065f1507a441"
+   },
+   "metrics": {
+    "cost_usd": 3.66867,
+    "duration_s": 3045.578,
+    "errors": 0.0,
+    "turns_total": 481.0,
+    "input_tokens": 16237487.0,
+    "output_tokens": 215493.0
+   }
+  },
+  {
+   "mlflow_run_id": "0ab370928913498aa82d54ea18c0f74f",
+   "name": "cycle-5",
+   "status": "FINISHED",
+   "start_time": 1789369815281,
+   "end_time": 1789369815309,
+   "tags": {
+    "kind": "ucycle",
+    "champion": "v2",
+    "challenger": "v3",
+    "verdict": "hold"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_optimiser_in": 2311606.0,
+    "tokens_optimiser_out": 34154.0
+   }
+  },
+  {
+   "mlflow_run_id": "ede440b318e74bd482c0b1faae00598e",
+   "name": "20260914T070132Z_v3_probe_haiku",
+   "status": "FINISHED",
+   "start_time": 1789369814871,
+   "end_time": 1789369815152,
+   "tags": {
+    "agent": "v3",
+    "fingerprint": "065f1507a441",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v3",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "workers": "3",
+    "passes": "2",
+    "n_tasks": "47",
+    "fingerprint": "065f1507a441"
+   },
+   "metrics": {
+    "cost_usd": 1.9056608000000002,
+    "duration_s": 1561.117,
+    "errors": 28.0,
+    "turns_total": 293.0,
+    "input_tokens": 8129757.0,
+    "output_tokens": 110991.0
+   }
+  },
+  {
+   "mlflow_run_id": "c19e628165134b45ad47180247d468f1",
+   "name": "20260914T070028Z_v3_dev_haiku",
+   "status": "FINISHED",
+   "start_time": 1789369292626,
+   "end_time": 1789369292743,
+   "tags": {
+    "agent": "v3",
+    "fingerprint": "065f1507a441",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v3",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "workers": "3",
+    "passes": "1",
+    "n_tasks": "10",
+    "fingerprint": "065f1507a441"
+   },
+   "metrics": {
+    "passed": 7.0,
+    "pass_rate": 0.7,
+    "easy_passed": 2.0,
+    "hard_passed": 5.0,
+    "cost_usd": 0.2794232,
+    "duration_s": 161.058,
+    "errors": 0.0,
+    "turns_total": 28.0,
+    "input_tokens": 911317.0,
+    "output_tokens": 12706.0,
+    "task_5": 1.0,
+    "task_49": 0.0,
+    "task_70": 1.0,
+    "task_1273": 1.0,
+    "task_1305": 1.0,
+    "task_1464": 1.0,
+    "task_1681": 0.0,
+    "task_1753": 1.0,
+    "task_1871": 1.0,
+    "task_2697": 0.0
+   }
+  },
+  {
+   "mlflow_run_id": "6b02a4cb702040e89422bec766359ac1",
+   "name": "cycle-4",
+   "status": "FINISHED",
+   "start_time": 1789368851299,
+   "end_time": 1789368851336,
+   "tags": {
+    "kind": "ureflect",
+    "champion": "v2",
+    "challenger": "None",
+    "verdict": "recorded"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_reflect_in": 98985.0,
+    "tokens_reflect_out": 22312.0
+   }
+  },
+  {
+   "mlflow_run_id": "fb0ac73d01914fd9ad23f3900e9f22b3",
+   "name": "20260914T061927Z_v2_probe_haiku",
+   "status": "FINISHED",
+   "start_time": 1789368613949,
+   "end_time": 1789368614270,
+   "tags": {
+    "agent": "v2",
+    "fingerprint": "665f5ffa88eb",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v2",
+    "model": "claude-haiku-4-5",
+    "split": "all",
+    "workers": "3",
+    "passes": "2",
+    "n_tasks": "47",
+    "fingerprint": "665f5ffa88eb"
+   },
+   "metrics": {
+    "cost_usd": 5.7690924,
+    "duration_s": 5461.862,
+    "errors": 3.0,
+    "turns_total": 721.0,
+    "input_tokens": 24308373.0,
+    "output_tokens": 337446.0
+   }
+  },
+  {
    "mlflow_run_id": "7607c63695194bada944f7f0d52c9354",
    "name": "cycle-3",
    "status": "FINISHED",

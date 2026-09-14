@@ -1,0 +1,62 @@
+{
+ "id": "F04",
+ "name": "delta-fee-rate-change",
+ "pattern": "delta would <merchant> pay if the relative fee",
+ "operation": "fees under a rule with its rate replaced, minus fees under the rule as is",
+ "invariant": "delta is linear in (new − old) rate; an unchanged rate gives 0",
+ "members": 40,
+ "templates": 2,
+ "dev_anchor": [
+  "1871"
+ ],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "fee_total_for_rule(rule, transactions, account_type, mcc, capture_delay, monthly_fraud_level, monthly_volume, rate=<override>)",
+  "exists": true,
+  "steps": [
+   "rule = next(f for f in fees if f['ID']==id)",
+   "info = get_merchant_info(merchant); cd_bucket = capture_delay_bucket(info['capture_delay'])",
+   "for each month touching the period: stats = monthly_merchant_stats(...); current = fee_total_for_rule(rule, stats['transactions'], ..., ); new = fee_total_for_rule(rule, stats['transactions'], ..., rate=new_rate)",
+   "delta = sum(new - current) across months, rounded to 14 decimals"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "",
+ "pitfalls": [
+  "Check whether the rule's current rate already equals the proposed new rate first (task 2484) — delta is legitimately 0.0 in that case, don't treat it as an error",
+  "Must iterate per month like F01/F03 since the rule's monthly_fraud_level match (and hence whether it applies at all) can differ month to month within a year period"
+ ],
+ "few_shot": {
+  "task_id": "2489",
+  "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=792 changed to 1?",
+  "code": "helper.fee_total_for_rule(rule_792, matching_txns, rate=1) - helper.fee_total_for_rule(rule_792, matching_txns, rate=83)"
+ },
+ "prompt_rule": "if the question asks the fee delta from changing a named rule's rate → fee_total_for_rule with and without rate= override, iterate months if the period spans more than one, sum the deltas; format: number rounded to 14 decimals.",
+ "note": "Dev anchor 1871 already validates this family end-to-end; keep it in the McNemar gate set as regression insurance.",
+ "evidence": [
+  "runs/20260914T061927Z_v2_probe_haiku/traces/2489.json",
+  "runs/20260914T034447Z_v2_dev_haiku/traces/1871.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.333,
+  "s2_agreement": 1.0,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 23.3
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}

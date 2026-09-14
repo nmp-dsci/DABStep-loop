@@ -56,3 +56,17 @@ def test_agent_diff_carries_reasoning(client: TestClient) -> None:
     assert d["files"][1]["changed"] and d["diagnosis"]["diagnoses"]
     assert d["cycles"] and d["cycles"][0]["challenger"] == "v1"
     assert client.get("/api/agents/diff?a=v0&b=v99").status_code == 404
+
+
+def test_families_routes(client) -> None:  # type: ignore[no-untyped-def]
+    r = client.get("/api/families")
+    assert r.status_code == 200
+    doc = r.json()
+    assert len(doc["families"]) == 12 and sum(f["tasks"] for f in doc["families"]) == 450
+    assert doc["dev_anchored"] == 6
+    one = client.get("/api/families/F03").json()
+    assert one["name"] == "total-fees-paid" and len(one["members"]) == 45
+    assert client.get("/api/families/F99").status_code == 404
+    lenses = client.get("/api/lenses")
+    if lenses.status_code == 200:
+        assert "ari" in lenses.json()["agreement"]

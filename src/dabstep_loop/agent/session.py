@@ -29,7 +29,7 @@ from claude_agent_sdk import (
 )
 
 from dabstep_loop.agent.answer import extract_agent_answer
-from dabstep_loop.agent.llm import require_live, resolve_model, subscription_env
+from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.prompt import build_task_prompt
 from dabstep_loop.agent.tools.python_executor import ExecutorState, make_executor_server
 from dabstep_loop.agent.versions import AgentVersion
@@ -112,7 +112,7 @@ async def solve_task(
         cwd=str(ROOT),
         env=subscription_env(),
         setting_sources=[],
-        effort=effort or cfg.effort,  # type: ignore[arg-type]
+        effort=effort or cfg.effort or EFFORT,  # type: ignore[arg-type]
     )
     prompt = build_task_prompt(version, task, data_dir)
     solve = Solve(task_id=task.task_id, agent_answer="", final_text="", model=model_id)

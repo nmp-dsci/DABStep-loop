@@ -53,11 +53,18 @@ class RunMeta:
     mlflow_run_id: str | None = None
     note: str = ""
     task_ids: list[str] = field(default_factory=list)
+    kind: str = "eval"  # "eval" scores against gold; "probe" runs unscored tasks from the 450
+    sample: dict[str, Any] | None = None  # probe only: the sampler's seed, k and per-family draw
 
 
 def new_run_id(version: AgentVersion, model: str, split: str) -> str:
     ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     return f"{ts}_{version.name}_{split}_{short_model(model)}"
+
+
+def _unscored(task: Task) -> Task:
+    """The task with its gold blanked, so a probe can never score even a dev task by accident."""
+    return Task(task.task_id, task.question, task.guidelines, task.level, "")
 
 
 def _vote(answers: list[str]) -> str:
@@ -71,6 +78,10 @@ def _vote(answers: list[str]) -> str:
 async def _solve_with_passes(
     version: AgentVersion, task: Task, model: str, passes: int, run_dir: Path, dry_run: bool
 ) -> tuple[TaskResult, Solve | None]:
+    """One task, `passes` sessions, the majority answer; every pass's trace is saved.
+
+    A `TaskResult` carries the voted answer; the per-pass answers a probe needs for
+    self-agreement are read back from the traces by `loop/signals.py`."""
     if dry_run:
         r = TaskResult(
             task.task_id,
@@ -123,14 +134,20 @@ async def run_eval(
     task_ids: list[str] | None = None,
     note: str = "",
     track: bool = True,
+    score: bool = True,
+    sample: dict[str, Any] | None = None,
 ) -> tuple[RunMeta, list[TaskResult]]:
+    """`score=False` is a probe: gold is blanked, `correct` is None on every row, no
+    submission file is written, and the run folder is marked `kind: probe`."""
     version = load_version(agent)
     model_id = resolve_model(model or version.config.model)
     tasks = load_tasks(split)
     if task_ids:
         wanted = set(task_ids)
         tasks = [t for t in tasks if t.task_id in wanted]
-    run_id = new_run_id(version, model_id, split)
+    if not score:
+        tasks = [_unscored(t) for t in tasks]
+    run_id = new_run_id(version, model_id, "probe" if not score else split)
     run_dir = RUNS_DIR / run_id
     (run_dir / "traces").mkdir(parents=True, exist_ok=True)
     meta = RunMeta(
@@ -147,6 +164,8 @@ async def run_eval(
         code_sha=settings().code_sha,
         note=note,
         task_ids=[t.task_id for t in tasks],
+        kind="eval" if score else "probe",
+        sample=sample,
     )
     _write_meta(run_dir, meta)
     for name, text in version.files().items():
@@ -181,7 +200,8 @@ async def run_eval(
     await asyncio.gather(*(one(t) for t in tasks))
     ordered = [results[t.task_id] for t in tasks]
     write_results(run_dir / "results.jsonl", ordered)
-    write_submission(run_dir / "submission.jsonl", ordered, traces_text)
+    if score:
+        write_submission(run_dir / "submission.jsonl", ordered, traces_text)
     summary = summarise(ordered)
     meta.finished_at = datetime.now(UTC).isoformat()
     meta.summary = asdict(summary)

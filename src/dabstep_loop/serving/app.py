@@ -251,6 +251,101 @@ def create_app() -> FastAPI:
             )
         return {"verdict": v.__dict__, "rows": rows}
 
+    # ── the 450 by family: lens 1 table, cards, lenses, probes ────────────
+    @app.get("/api/families")
+    def families() -> dict[str, Any]:
+        from dabstep_loop.loop.families import coverage
+        from dabstep_loop.loop.lenses import read_lenses
+        from dabstep_loop.loop.ureflect import read_cards
+
+        cards = read_cards()
+        lenses = read_lenses() or {}
+        latest = _latest_probe_signals()
+        rows = []
+        for r in coverage():
+            c = cards.get(r["id"])
+            rows.append(
+                {
+                    **r,
+                    "status": (c or {}).get("status", "none"),
+                    "card": c,
+                    "signals": ((latest or {}).get("families") or {}).get(r["id"]),
+                }
+            )
+        return {
+            "families": rows,
+            "agreement": lenses.get("agreement"),
+            "embedding": lenses.get("embedding"),
+            "membership_model": lenses.get("membership_model"),
+            "probe": {
+                "run_id": latest.get("run_id"),
+                "agent": latest.get("agent"),
+                "composite": latest.get("composite"),
+            }
+            if latest
+            else None,
+            "dev_anchored": sum(1 for r in rows if r["dev_anchor"]),
+            "with_entry_point": sum(
+                1 for r in rows if ((r["card"] or {}).get("canonical_method") or {}).get("exists")
+            ),
+        }
+
+    @app.get("/api/families/{fid}")
+    def family(fid: str) -> dict[str, Any]:
+        from dabstep_loop.loop.families import coverage, members, templates_by_family
+        from dabstep_loop.loop.lenses import read_lenses
+        from dabstep_loop.loop.ureflect import read_card
+
+        row = next((r for r in coverage() if r["id"] == fid), None)
+        if not row:
+            raise HTTPException(404, f"no family {fid}")
+        lenses = read_lenses() or {}
+        lt = lenses.get("tasks", {})
+        latest = _latest_probe_signals()
+        return {
+            **row,
+            "card": read_card(fid),
+            "templates_list": templates_by_family("all").get(fid, []),
+            "members": [
+                {
+                    "task_id": t.task_id,
+                    "question": t.question,
+                    "level": t.level,
+                    "boundary": (lt.get(t.task_id) or {}).get("boundary", []),
+                }
+                for t in members(fid)
+            ],
+            "signals": ((latest or {}).get("families") or {}).get(fid),
+            "probe_run": latest.get("run_id") if latest else None,
+            "history": _family_history(fid),
+        }
+
+    @app.get("/api/lenses")
+    def lenses_() -> dict[str, Any]:
+        from dabstep_loop.loop.lenses import read_lenses
+
+        doc = read_lenses()
+        if not doc:
+            raise HTTPException(404, "no lenses.json yet: run `dabstep lenses`")
+        boundary = [
+            {"task_id": tid, "family": t["family"], "reasons": t["boundary"]}
+            for tid, t in doc["tasks"].items()
+            if t.get("boundary")
+        ]
+        return {k: v for k, v in doc.items() if k != "tasks"} | {"boundary": boundary}
+
+    @app.get("/api/probes")
+    def probes() -> list[dict[str, Any]]:
+        from dabstep_loop.loop.signals import read_signals
+
+        out = []
+        for m in list_runs():
+            if m.kind != "probe":
+                continue
+            sig = read_signals(m.run_id)
+            out.append({**m.__dict__, "composite": (sig or {}).get("composite")})
+        return out
+
     @app.get("/api/ledger")
     def ledger() -> list[dict[str, Any]]:
         return read_ledger()
@@ -396,6 +491,39 @@ def _wants_document(sec_fetch_dest: str | None, accept: str | None) -> bool:
     if sec_fetch_dest:
         return False
     return bool(accept) and "text/html" in str(accept)
+
+
+def _latest_probe_signals() -> dict[str, Any]:
+    """The newest probe of the registry champion with signals, else the newest probe of anything."""
+    from dabstep_loop.loop.signals import read_signals
+
+    champ = (read_registry().get("champion") or {}).get("agent")
+    probes = [m for m in list_runs() if m.kind == "probe" and m.finished_at]
+    for pool in ([m for m in probes if m.agent == champ], probes):
+        for m in reversed(pool):
+            sig = read_signals(m.run_id)
+            if sig:
+                return sig
+    return {}
+
+
+def _family_history(fid: str) -> list[dict[str, Any]]:
+    """Per ledger ucycle: this family's signals before and after."""
+    out = []
+    for e in read_ledger():
+        if e.get("kind") != "ucycle":
+            continue
+        by = (e.get("signals_by_family") or {}).get(fid)
+        if by:
+            out.append(
+                {
+                    "cycle": e.get("cycle"),
+                    "challenger": e.get("challenger"),
+                    "verdict": (e.get("outcome") or {}).get("verdict"),
+                    **by,
+                }
+            )
+    return out
 
 
 def _mount_frontend(app: FastAPI) -> None:

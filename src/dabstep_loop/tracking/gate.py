@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 
-from dabstep_loop.agent.versions import load_version
+from dabstep_loop.agent.versions import AgentVersion, load_version
 from dabstep_loop.data.tasks import load_tasks
 from dabstep_loop.eval.runner import load_run
 from dabstep_loop.eval.score import score_answer
@@ -46,6 +46,32 @@ def check() -> list[str]:
     for e in read_ledger():
         if (e.get("outcome") or {}).get("verdict") == "pending":
             problems.append(f"ledger cycle {e.get('cycle')} is still pending")
+    problems += check_families(version)
+    return problems
+
+
+def check_families(version: AgentVersion) -> list[str]:
+    """Every card's evidence run exists, and the champion's surfaces quote no leaderboard question."""
+    from dabstep_loop.config import RUNS_DIR
+    from dabstep_loop.loop.ureflect import read_cards
+
+    problems: list[str] = []
+    for fid, card in read_cards().items():
+        run = str(card.get("probe_run") or "")
+        if run and not (RUNS_DIR / run / "signals.json").exists():
+            problems.append(f"card {fid} cites probe {run}, which has no signals.json in runs/")
+        if card.get("status") not in {"verified", "provisional", "open"}:
+            problems.append(f"card {fid} has status {card.get('status')!r}")
+    surfaces = " ".join(version.files().get(s, "") for s in ("system.md", "helper.py")).lower()
+    quoted = [
+        t.task_id
+        for t in load_tasks("all")
+        if len(t.question) >= 40 and t.question.lower() in surfaces
+    ]
+    if quoted:
+        problems.append(
+            f"agents/{version.name} quotes leaderboard questions verbatim: tasks {quoted[:5]} — examples must use blanks"
+        )
     return problems
 
 

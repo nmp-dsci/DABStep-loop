@@ -1,0 +1,62 @@
+{
+ "id": "F07",
+ "name": "average-fee-for-scheme",
+ "pattern": "average fee that the card scheme <scheme> would charge",
+ "operation": "mean of fee(rule, value) over the scheme's rules that match the stated filters",
+ "invariant": "avg(value) is affine in value; a narrower filter uses a subset of rules",
+ "members": 60,
+ "templates": 6,
+ "dev_anchor": [
+  "1273",
+  "1305"
+ ],
+ "status": "verified",
+ "canonical_method": {
+  "helper": "average_fee_across_rules(fees, transaction_value, **filters)",
+  "exists": true,
+  "steps": [
+   "resolve any named MCC description via load_mcc() to its numeric code",
+   "call average_fee_across_rules(fees, transaction_value=value, card_scheme=..., account_type=..., mcc=..., is_credit=...) with only the filters the question states"
+  ],
+  "manual": [
+   "§5 Understanding Payment Processing Fees"
+  ]
+ },
+ "conflict_ruling": "",
+ "pitfalls": [
+  "The kwarg is mcc=, not merchant_category_code= (task 1427's first call errored on this)",
+  "average_fee_across_rules is strictly for hypothetical 'average fee across rules' questions, never for pricing an actual paid transaction (see helper docstring / ground rules)"
+ ],
+ "few_shot": {
+  "task_id": "1675",
+  "question": "For account type S, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR?",
+  "code": "helper.average_fee_across_rules(fees, transaction_value=1234, account_type='S', card_scheme='SwiftCharge')"
+ },
+ "prompt_rule": "if the question asks the average/hypothetical fee a card scheme would charge for a given transaction value and filters → average_fee_across_rules(fees, transaction_value, **stated filters); format: number rounded to 6 decimals.",
+ "note": "Two dev anchors already pass; this is the cleanest family in the probe.",
+ "evidence": [
+  "runs/20260914T034447Z_v2_dev_haiku/traces/1273.json",
+  "runs/20260914T024154Z_v1_dev_haiku/traces/1305.json",
+  "runs/20260914T061927Z_v2_probe_haiku/traces/1675.json"
+ ],
+ "signals": {
+  "n": 3,
+  "s1_modal_share": 0.667,
+  "s2_agreement": 1.0,
+  "s3_passed": 0,
+  "s3_failed": 0,
+  "s3_skipped": 0,
+  "s5_compliance": 1.0,
+  "turns_mean": 8.0
+ },
+ "probe_run": "20260914T061927Z_v2_probe_haiku",
+ "model": "sonnet",
+ "history": [
+  {
+   "cycle": 4,
+   "kind": "ureflect",
+   "run": "20260914T061927Z_v2_probe_haiku",
+   "status": "verified"
+  }
+ ]
+}

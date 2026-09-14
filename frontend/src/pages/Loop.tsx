@@ -1,6 +1,43 @@
 import { Link } from 'react-router-dom';
 import { type LedgerEntry, fmtK, fmtS, shortRun, useGet } from '../lib/api';
 
+const isCycle = (e: LedgerEntry) => e.kind === 'cycle' || e.kind === 'ucycle';
+
+type Composite = { s3_passed: number; s3_failed: number; s1_mean: number | null; s2_mean: number | null; s5_mean: number | null; errors: number; tasks: number };
+const pct = (x: number | null | undefined) => (x == null ? '—' : `${Math.round(x * 100)}%`);
+
+function Paired({ before, after }: { before: Composite; after: Composite | null }) {
+  const cell = (b: number | string, a: number | string | null) => (a == null ? String(b) : `${b} → ${a}`);
+  return (
+    <div className="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>paired probe signal</th>
+            <th className="num">invariants passed</th>
+            <th className="num">failed</th>
+            <th className="num">S1 method</th>
+            <th className="num">S2 agreement</th>
+            <th className="num">S5 format</th>
+            <th className="num">errors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="sub">champion → challenger · {before.tasks} tasks</td>
+            <td className="num">{cell(before.s3_passed, after?.s3_passed ?? null)}</td>
+            <td className="num">{cell(before.s3_failed, after?.s3_failed ?? null)}</td>
+            <td className="num">{cell(pct(before.s1_mean), after ? pct(after.s1_mean) : null)}</td>
+            <td className="num">{cell(pct(before.s2_mean), after ? pct(after.s2_mean) : null)}</td>
+            <td className="num">{cell(pct(before.s5_mean), after ? pct(after.s5_mean) : null)}</td>
+            <td className="num">{cell(before.errors, after?.errors ?? null)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function Loop() {
   const { data: ledger } = useGet<LedgerEntry[]>('/api/ledger');
   const entries = ledger ?? [];
@@ -18,7 +55,7 @@ export function Loop() {
       {entries.map((e) => (
         <section key={`${e.kind}-${e.cycle}`} className="band" style={{ marginTop: 'var(--s6)' }}>
           <h2 style={{ marginTop: 0 }}>
-            {e.kind === 'cycle' ? `cycle ${e.cycle}` : `${e.kind} ${e.cycle}`} — {e.kind === 'cycle' ? `${e.champion} → ${e.challenger ?? '—'}` : e.champion}:{' '}
+            {e.kind === 'cycle' ? `cycle ${e.cycle}` : e.kind === 'ucycle' ? `unsupervised cycle ${e.cycle}` : `${e.kind} ${e.cycle}`} — {isCycle(e) ? `${e.champion} → ${e.challenger ?? '—'}` : e.champion}:{' '}
             {e.outcome?.verdict ?? 'pending'}
             {e.outcome?.passes ? ` (${e.outcome.passes})` : ''}
           </h2>
@@ -39,7 +76,7 @@ export function Loop() {
               </Link>
             )}
           </div>
-          {e.kind === 'cycle' && (
+          {isCycle(e) && (
             <dl className="diff-sum">
               <dt>prompt</dt>
               <dd>{e.prompt_diff_summary || '—'}</dd>
@@ -59,7 +96,7 @@ export function Loop() {
               )}
             </dl>
           )}
-          {e.kind !== 'cycle' && (
+          {!isCycle(e) && (
             <>
               <p>{e.summary}</p>
               {e.notes?.length ? (
@@ -91,7 +128,7 @@ export function Loop() {
                     const res = o.fixed?.includes(d.task_id) ? 'fixed' : o.broken?.includes(d.task_id) ? 'broken' : o.still_failed?.includes(d.task_id) ? 'still failed' : o.verdict === 'pending' ? 'pending' : 'unchanged';
                     return (
                       <tr key={d.task_id + d.surface}>
-                        <td className="sub num">{d.task_id}</td>
+                        <td className={d.task_id.length > 8 ? "sub wrap" : "sub num"} style={d.task_id.length > 8 ? { whiteSpace: "normal", maxWidth: "18ch" } : undefined}>{d.task_id}</td>
                         <td className="wrap">{d.symptom}</td>
                         <td className="wrap">{d.root_cause}</td>
                         <td className="mono">{d.surface}</td>
@@ -103,6 +140,16 @@ export function Loop() {
                   })}
                 </tbody>
               </table>
+            </div>
+          ) : null}
+          {e.kind === 'ucycle' && e.signals_before ? <Paired before={e.signals_before as Composite} after={(e.signals_after as Composite | undefined) ?? null} /> : null}
+          {e.kind === 'ureflect' && e.statuses ? (
+            <div className="chips">
+              {Object.entries(e.statuses).map(([fid, st]) => (
+                <Link key={fid} className={`chip ${st === 'verified' ? 'ok' : st === 'open' ? 'warn' : ''}`} to={`/families/${fid}`}>
+                  {fid} · {String(st)}
+                </Link>
+              ))}
             </div>
           ) : null}
           {e.risks?.length ? (
