@@ -128,7 +128,7 @@ export function Loop() {
                     const res = o.fixed?.includes(d.task_id) ? 'fixed' : o.broken?.includes(d.task_id) ? 'broken' : o.still_failed?.includes(d.task_id) ? 'still failed' : o.verdict === 'pending' ? 'pending' : 'unchanged';
                     return (
                       <tr key={d.task_id + d.surface}>
-                        <td className="sub num">{d.task_id}</td>
+                        <td className={d.task_id.length > 8 ? "sub wrap" : "sub num"} style={d.task_id.length > 8 ? { whiteSpace: "normal", maxWidth: "18ch" } : undefined}>{d.task_id}</td>
                         <td className="wrap">{d.symptom}</td>
                         <td className="wrap">{d.root_cause}</td>
                         <td className="mono">{d.surface}</td>
