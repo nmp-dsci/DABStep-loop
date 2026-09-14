@@ -32,7 +32,7 @@ baseline, full runs and a leaderboard submission are the deferred M8.
 |---|---|---|
 | Labels | dev-10 gold only (NVIDIA protocol) | an answer key derived from other teams' `task_scores` would be training on the test set |
 | Model under test | `claude-haiku-4-5` | the recipe being replicated; the cheap model is the one worth improving |
-| Optimiser | `claude-sonnet-5`, effort high, one session per cycle | must read ~10 traces and the manual and verify a helper in one context |
+| Optimiser | `claude-sonnet-5`, effort medium (`llm.EFFORT`, shared by every SDK session), one session per cycle | must read ~10 traces and the manual and verify a helper in one context |
 | Optimiser surfaces | `system.md`, `helper.py` only; `agent.yaml` frozen | a comparison is between prompts and helpers, not budgets |
 | Tracking | MLflow 3, sqlite, `:5600`, self-hosted | the user's requirement; the run folder is the record, MLflow the index |
 | Billing | subscription in dev via the CLI; demo image cannot call a model | `llm.py` blanks `ANTHROPIC_API_KEY`, strips `CLAUDE_CODE_*`, refuses if both a key and `BILLING=subscription` are set |

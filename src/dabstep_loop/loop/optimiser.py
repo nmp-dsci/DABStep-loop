@@ -27,7 +27,7 @@ from claude_agent_sdk import (
     ToolUseBlock,
 )
 
-from dabstep_loop.agent.llm import require_live, resolve_model, subscription_env
+from dabstep_loop.agent.llm import EFFORT, Effort, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import SURFACES, AgentVersion, load_version, next_version_name
 from dabstep_loop.config import AGENTS_DIR, ROOT, RUNS_DIR, context_dir
 from dabstep_loop.eval.score import TaskResult
@@ -247,7 +247,7 @@ async def run_optimiser(
     run_id: str,
     failures: list[TaskResult],
     model: str = "sonnet",
-    effort: str = "high",
+    effort: Effort = EFFORT,
 ) -> OptimiserOutput:
     require_live()
     new_name = next_version_name()
@@ -274,7 +274,7 @@ async def run_optimiser(
 
     options = ClaudeAgentOptions(
         model=resolve_model(model),
-        effort=effort,  # type: ignore[arg-type]
+        effort=effort,
         allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep"],
         permission_mode="bypassPermissions",
         max_turns=MAX_TURNS,

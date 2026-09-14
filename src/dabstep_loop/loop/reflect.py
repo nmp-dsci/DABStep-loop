@@ -23,7 +23,7 @@ from claude_agent_sdk import (
     TextBlock,
 )
 
-from dabstep_loop.agent.llm import require_live, resolve_model, subscription_env
+from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import load_version
 from dabstep_loop.config import ROOT, RUNS_DIR
 from dabstep_loop.eval.runner import load_run
@@ -101,7 +101,7 @@ async def run_reflection(run_id: str | None = None, model: str = "sonnet") -> di
 
     options = ClaudeAgentOptions(
         model=resolve_model(model),
-        effort="high",
+        effort=EFFORT,
         allowed_tools=["Read", "Bash", "Glob", "Grep"],
         disallowed_tools=["Write", "Edit", "MultiEdit", "NotebookEdit"],
         permission_mode="bypassPermissions",

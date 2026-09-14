@@ -24,7 +24,7 @@ from claude_agent_sdk import (
     TextBlock,
 )
 
-from dabstep_loop.agent.llm import require_live, resolve_model, subscription_env
+from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import load_version
 from dabstep_loop.config import AGENTS_DIR, ROOT
 from dabstep_loop.loop.ledger import read_ledger
@@ -109,7 +109,7 @@ Every hunk in the diff must be covered by at least one entry."""
 
     options = ClaudeAgentOptions(
         model=resolve_model(model),
-        effort="medium",
+        effort=EFFORT,
         allowed_tools=["Read", "Grep"],
         disallowed_tools=["Write", "Edit", "MultiEdit", "Bash", "NotebookEdit"],
         permission_mode="bypassPermissions",

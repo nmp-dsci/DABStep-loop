@@ -73,3 +73,18 @@ def test_template_collapses_permutations() -> None:
         ["Belles_cookbook_store", "Crossfit_Hanna"],
     )
     assert a == b == "for <merchant> in <month> <year>, what are the fee ids?"
+
+
+def test_every_sdk_session_uses_the_shared_effort() -> None:
+    """One constant governs effort; no session hard-codes its own."""
+    import inspect
+
+    from dabstep_loop.agent import llm, session
+    from dabstep_loop.loop import annotate, optimiser, reflect
+
+    assert llm.EFFORT == "medium"
+    for mod in (session, optimiser, reflect, annotate):
+        src = inspect.getsource(mod)
+        assert "EFFORT" in src, mod.__name__
+        assert 'effort="high"' not in src and 'effort="low"' not in src, mod.__name__
+        assert 'effort="medium"' not in src, f"{mod.__name__} should use llm.EFFORT"
