@@ -41,7 +41,9 @@ FAMILY_RULES = """4b. The family cards are the point of this cycle. For every fa
    additive fee model the champion already uses. For every family, add ONE routing row to a
    "## Question families (route first, then compute)" table in system.md: `if the question asks … → call
    helper.… → answer format …`, and at most one example line per family (the card's few-shot, if any). Keep the
-   prompt short: one row and at most one example per family, no prose.
+   prompt short: one row and at most one example per family, no prose. Write the example with blanks
+   (`<merchant>`, `<month> <year>`, `<fee id>`), never a leaderboard question verbatim and never an answer;
+   the CI gate rejects a version that quotes one.
 4c. Verify a new entry point in-session against an invariant, not against gold: e.g. run it for a merchant's
    day, its month and its year and check ids(day) ⊆ ids(month) ⊆ ids(year) or fees(day) ≤ fees(month) ≤
    fees(year); run a min and a max steer-traffic for the same merchant and check the schemes differ. Record

@@ -14,6 +14,7 @@ import { Compare } from './pages/Compare';
 import { Loop } from './pages/Loop';
 import { Ask } from './pages/Ask';
 import { Evolution } from './pages/Evolution';
+import { Families } from './pages/Families';
 import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -33,6 +34,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/compare" element={<Compare />} />
           <Route path="/loop" element={<Loop />} />
           <Route path="/evolution" element={<Evolution />} />
+          <Route path="/families" element={<Families />} />
+          <Route path="/families/:fid" element={<Families />} />
           <Route path="/ask" element={<Ask />} />
         </Route>
       </Routes>

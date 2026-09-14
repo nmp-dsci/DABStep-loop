@@ -17,12 +17,14 @@ export function Overview() {
   const { data: ledger } = useGet<LedgerEntry[]>('/api/ledger');
   const champ = reg?.champion;
   const baseline = runs?.find((r) => r.agent === 'v0' && r.split === 'dev' && !r.dry_run && r.summary?.n_scored);
-  const cycles = (ledger ?? []).filter((e) => e.kind === 'cycle');
+  const cycles = (ledger ?? []).filter((e) => e.kind === 'cycle' || e.kind === 'ucycle');
   const reflections = (ledger ?? []).filter((e) => e.kind === 'reflect');
   const promoted = cycles.filter((e) => e.outcome?.verdict === 'promote').length;
   const best = runs?.filter((r) => r.split === 'dev' && r.summary?.n_scored).sort((a, b) => (b.summary?.passed ?? 0) - (a.summary?.passed ?? 0))[0];
   const optTokens = cycles.reduce((n, e) => n + (e.tokens?.optimiser_in ?? 0) + (e.tokens?.optimiser_out ?? 0), 0);
   const { data: champDetail } = useGet<{ results: TaskResult[] }>(champ ? `/api/runs/${champ.run_id}` : null);
+  const { data: fam } = useGet<{ with_entry_point: number; dev_anchored: number; families: { status: string }[] }>('/api/families');
+  const ucycles = (ledger ?? []).filter((e) => e.kind === 'ucycle');
   const champRun = champDetail
     ? {
         n: champDetail.results.length,
@@ -52,14 +54,19 @@ export function Overview() {
           <div className="b">{champ ? `${champ.agent} · ${champ.model}` : 'no champion yet'}{baseline?.summary && champ && baseline.agent !== champ.agent ? ` · v0 baseline ${baseline.summary.passed}/${baseline.summary.n_scored}` : ''}</div>
         </div>
         <div className="kpi">
-          <div className="label">best challenger</div>
-          <div className={`n ${best && best.agent !== champ?.agent ? 'warn' : ''}`}>{best?.summary ? `${best.summary.passed}/${best.summary.n_scored}` : '—'}</div>
-          <div className="b">{best ? (best.agent === champ?.agent ? 'is the champion' : `${best.agent} · held by the gate`) : '—'}</div>
+          <div className="label">families with an entry point</div>
+          <div className={`n ${fam && fam.with_entry_point === 12 ? 'ok' : ''}`}>{fam ? `${fam.with_entry_point}/12` : '—'}</div>
+          <div className="b">
+            {fam
+              ? `of the 450's question families · ${fam.dev_anchored} anchored by dev-10 · ${fam.families.filter((f) => f.status === 'verified').length} verified, ${fam.families.filter((f) => f.status === 'open').length} open`
+              : 'run `dabstep families`'}
+            {best && best.agent !== champ?.agent ? ` · best held challenger ${best.agent} ${best.summary?.passed}/${best.summary?.n_scored}` : ''}
+          </div>
         </div>
         <div className="kpi">
           <div className="label">loop cycles</div>
           <div className="n">{cycles.length}</div>
-          <div className="b">{promoted} promoted · {cycles.length - promoted} held · {reflections.length} reflection{reflections.length === 1 ? '' : 's'} · {fmtK(optTokens)} optimiser tokens</div>
+          <div className="b">{promoted} promoted · {cycles.length - promoted} held · {reflections.length} reflection{reflections.length === 1 ? '' : 's'}{ucycles.length ? ` · ${ucycles.length} unsupervised` : ''} · {fmtK(optTokens)} optimiser tokens</div>
         </div>
         <div className="kpi">
           <div className="label">tokens per question</div>

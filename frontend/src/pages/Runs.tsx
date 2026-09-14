@@ -42,8 +42,11 @@ export function Runs() {
                 </td>
                 <td className="mono">{r.agent} · {r.fingerprint}</td>
                 <td className="mono">{r.model.replace('claude-', '')}</td>
-                <td>{r.split}</td>
-                <td className="num">{r.summary?.n_scored ? `${r.summary.passed}/${r.summary.n_scored}` : '—'}</td>
+                <td>
+                  {r.split}
+                  {r.kind === 'probe' && <span className="path">unscored · {r.sample?.n ?? r.n_tasks} of the 450 · seed {r.sample?.seed}</span>}
+                </td>
+                <td className="num">{r.kind === 'probe' ? 'n/a' : r.summary?.n_scored ? `${r.summary.passed}/${r.summary.n_scored}` : '—'}</td>
                 <td className="num">{r.summary ? `${r.summary.easy_passed}/${r.summary.easy_n}` : '—'}</td>
                 <td className="num">{r.summary ? `${r.summary.hard_passed}/${r.summary.hard_n}` : '—'}</td>
                 <td className="num">{r.summary?.errored_ids.length ?? '—'}</td>
