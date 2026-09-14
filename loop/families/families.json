@@ -1,0 +1,3328 @@
+{
+ "families": [
+  {
+   "id": "F01",
+   "name": "fee-ids-for-merchant-period",
+   "pattern": "(applicable fee ids for <merchant>|fee ids applicable to <merchant>)",
+   "operation": "the fee rules whose criteria match a merchant's transactions in a day, month or year",
+   "invariant": "ids(day) ⊆ ids(month) ⊆ ids(year) for one merchant",
+   "tasks": 45,
+   "dev_anchor": [
+    "1681",
+    "1753"
+   ],
+   "templates": 3,
+   "levels": {
+    "hard": 45
+   }
+  },
+  {
+   "id": "F02",
+   "name": "fee-ids-by-attributes",
+   "pattern": "fee id or ids that apply to account_type",
+   "operation": "the fee rules whose account_type and aci fields match, wildcards included",
+   "invariant": "rules with both fields null appear in every (account_type, aci) answer",
+   "tasks": 20,
+   "dev_anchor": [
+    "1464"
+   ],
+   "templates": 1,
+   "levels": {
+    "hard": 20
+   }
+  },
+  {
+   "id": "F03",
+   "name": "total-fees-paid",
+   "pattern": "total fees \\(in euros\\) that <merchant>",
+   "operation": "sum of fee(rule, transaction) over every matching rule for a merchant in a period",
+   "invariant": "Σ months = year; Σ days of a month = month",
+   "tasks": 45,
+   "dev_anchor": [],
+   "templates": 3,
+   "levels": {
+    "hard": 45
+   }
+  },
+  {
+   "id": "F04",
+   "name": "delta-fee-rate-change",
+   "pattern": "delta would <merchant> pay if the relative fee",
+   "operation": "fees under a rule with its rate replaced, minus fees under the rule as is",
+   "invariant": "delta is linear in (new − old) rate; an unchanged rate gives 0",
+   "tasks": 40,
+   "dev_anchor": [
+    "1871"
+   ],
+   "templates": 2,
+   "levels": {
+    "hard": 40
+   }
+  },
+  {
+   "id": "F05",
+   "name": "delta-mcc-change",
+   "pattern": "changed its mcc code",
+   "operation": "yearly fees with the merchant's MCC swapped, minus yearly fees as is",
+   "invariant": "the merchant's own MCC gives 0; delta = fees(new) − fees(old), both via F03",
+   "tasks": 20,
+   "dev_anchor": [],
+   "templates": 1,
+   "levels": {
+    "hard": 20
+   }
+  },
+  {
+   "id": "F06",
+   "name": "merchants-affected-by-fee",
+   "pattern": "(which merchants would have been affected|which merchants were affected by the fee)",
+   "operation": "the merchants with at least one transaction matching a rule (or losing it under a change)",
+   "invariant": "affected ⊆ merchants matching the rule today",
+   "tasks": 27,
+   "dev_anchor": [],
+   "templates": 2,
+   "levels": {
+    "hard": 27
+   }
+  },
+  {
+   "id": "F07",
+   "name": "average-fee-for-scheme",
+   "pattern": "average fee that the card scheme <scheme> would charge",
+   "operation": "mean of fee(rule, value) over the scheme's rules that match the stated filters",
+   "invariant": "avg(value) is affine in value; a narrower filter uses a subset of rules",
+   "tasks": 60,
+   "dev_anchor": [
+    "1273",
+    "1305"
+   ],
+   "templates": 6,
+   "levels": {
+    "hard": 60
+   }
+  },
+  {
+   "id": "F08",
+   "name": "cheapest-or-priciest-choice",
+   "pattern": "(most expensive authorization|in the average scenario, which card scheme|most expensive mcc)",
+   "operation": "the same per-option fee table F07 averages, then argmin or argmax over options",
+   "invariant": "the chosen option's cost is ≤ (or ≥) every alternative in the same table; max ≥ mean",
+   "tasks": 46,
+   "dev_anchor": [],
+   "templates": 4,
+   "levels": {
+    "hard": 46
+   }
+  },
+  {
+   "id": "F09",
+   "name": "steer-traffic-scheme",
+   "pattern": "steer traffic",
+   "operation": "a merchant's period fees recomputed per card scheme, then argmin or argmax",
+   "invariant": "min-scheme ≠ max-scheme; per-scheme totals reconcile with F03's total",
+   "tasks": 30,
+   "dev_anchor": [],
+   "templates": 4,
+   "levels": {
+    "hard": 30
+   }
+  },
+  {
+   "id": "F10",
+   "name": "move-fraud-to-aci",
+   "pattern": "move the fraudulent transactions towards a different authorization",
+   "operation": "fees on the merchant's fraudulent transactions recomputed per ACI, then argmin",
+   "invariant": "the chosen ACI's cost is ≤ every alternative in the same table",
+   "tasks": 25,
+   "dev_anchor": [
+    "2697"
+   ],
+   "templates": 2,
+   "levels": {
+    "hard": 25
+   }
+  },
+  {
+   "id": "F11",
+   "name": "avg-value-grouped-by",
+   "pattern": "average transaction value grouped by",
+   "operation": "mean eur_amount of a merchant's scheme transactions in a month range, per group",
+   "invariant": "the count-weighted mean of the groups equals the ungrouped mean",
+   "tasks": 20,
+   "dev_anchor": [],
+   "templates": 6,
+   "levels": {
+    "hard": 20
+   }
+  },
+  {
+   "id": "F12",
+   "name": "easy-descriptive",
+   "pattern": ".*",
+   "operation": "descriptive statistics over payments.csv; format discipline, not fee logic",
+   "invariant": "two runs agree and the answer matches the guideline format",
+   "tasks": 72,
+   "dev_anchor": [
+    "5",
+    "49",
+    "70"
+   ],
+   "templates": 72,
+   "levels": {
+    "easy": 72
+   }
+  }
+ ],
+ "templates": {
+  "F01": [
+   {
+    "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+    "n": 20
+   },
+   {
+    "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+    "n": 20
+   },
+   {
+    "template": "what are the applicable fee ids for <merchant> in <year>?",
+    "n": 5
+   }
+  ],
+  "F02": [
+   {
+    "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+    "n": 20
+   }
+  ],
+  "F03": [
+   {
+    "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+    "n": 20
+   },
+   {
+    "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+    "n": 20
+   },
+   {
+    "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+    "n": 5
+   }
+  ],
+  "F04": [
+   {
+    "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+    "n": 20
+   },
+   {
+    "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+    "n": 20
+   }
+  ],
+  "F05": [
+   {
+    "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+    "n": 20
+   }
+  ],
+  "F06": [
+   {
+    "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+    "n": 20
+   },
+   {
+    "template": "in <year>, which merchants were affected by the fee with id <n>?",
+    "n": 7
+   }
+  ],
+  "F07": [
+   {
+    "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+    "n": 20
+   },
+   {
+    "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+    "n": 20
+   },
+   {
+    "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+    "n": 8
+   },
+   {
+    "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+    "n": 5
+   },
+   {
+    "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+    "n": 5
+   },
+   {
+    "template": "for account type <letter> and the mcc description: fast food restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+    "n": 2
+   }
+  ],
+  "F08": [
+   {
+    "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+    "n": 20
+   },
+   {
+    "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+    "n": 10
+   },
+   {
+    "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+    "n": 8
+   },
+   {
+    "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+    "n": 8
+   }
+  ],
+  "F09": [
+   {
+    "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+    "n": 11
+   },
+   {
+    "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+    "n": 9
+   },
+   {
+    "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+    "n": 5
+   },
+   {
+    "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+    "n": 5
+   }
+  ],
+  "F10": [
+   {
+    "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+    "n": 20
+   },
+   {
+    "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+    "n": 5
+   }
+  ],
+  "F11": [
+   {
+    "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 6
+   },
+   {
+    "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 5
+   },
+   {
+    "template": "what is the average transaction value grouped by device_type for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 3
+   },
+   {
+    "template": "what is the average transaction value grouped by acquirer_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 3
+   },
+   {
+    "template": "what is the average transaction value grouped by shopper_interaction for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 2
+   },
+   {
+    "template": "what is the average transaction value grouped by ip_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+    "n": 1
+   }
+  ],
+  "F12": [
+   {
+    "template": "is the fraud rate for ecommerce transactions higher than in-store transactions during the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what are the possible values for the field aci?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of the transactions are made using credit cards?",
+    "n": 1
+   },
+   {
+    "template": "which device type is most commonly used in fraudulent transactions?",
+    "n": 1
+   },
+   {
+    "template": "are there any duplicate (by all columns) transactions in the payments dataset?",
+    "n": 1
+   },
+   {
+    "template": "what is the fraud rate for in-person transactions for the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of transactions came from the top <n> merchants in amount volume?",
+    "n": 1
+   },
+   {
+    "template": "what are the top <n> countries (ip_country) by avg transaction value for <merchant>'s <scheme> transactions in the last quarter of <year>?",
+    "n": 1
+   },
+   {
+    "template": "how many outliers are there in the transaction amount data (using z-score > <n>)?",
+    "n": 1
+   },
+   {
+    "template": "how many total transactions are there in the dataset?",
+    "n": 1
+   },
+   {
+    "template": "how many unique merchants are present in the dataset?",
+    "n": 1
+   },
+   {
+    "template": "are credit payments more likely to result in a fraudulent dispute compared to debit card payments?",
+    "n": 1
+   },
+   {
+    "template": "is <merchant> in danger of getting a high-fraud rate fine?",
+    "n": 1
+   },
+   {
+    "template": "what is the highest avg fraud rate for the year <year>? (by card_scheme)",
+    "n": 1
+   },
+   {
+    "template": "what percentage of shoppers are repeat customers (based on email addresses)?",
+    "n": 1
+   },
+   {
+    "template": "during which hour of the day do the most outlier transactions occur (using z-score > <n>)?",
+    "n": 1
+   },
+   {
+    "template": "what is the average number of transactions per unique shopper based on email addresses?",
+    "n": 1
+   },
+   {
+    "template": "during which hour of the day do the most transactions occur?",
+    "n": 1
+   },
+   {
+    "template": "which issuing country has the highest number of transactions?",
+    "n": 1
+   },
+   {
+    "template": "across these segments: merchant, issuer country, card_scheme, and shopper interaction, which segment has the worst fraud rate, that we should target for support?",
+    "n": 1
+   },
+   {
+    "template": "which factors contribute to a cheaper fee rate if the factors' value is increased?",
+    "n": 1
+   },
+   {
+    "template": "is there a strong correlation (><n>) between transaction amount and fraudulent disputes?",
+    "n": 1
+   },
+   {
+    "template": "which merchant has the highest number of transactions?",
+    "n": 1
+   },
+   {
+    "template": "is the fraud rate of outliers higher than inliers (using z-score > <n>) during the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what is the highest volume at which the fees do not become cheaper?",
+    "n": 1
+   },
+   {
+    "template": "what is the most frequent card scheme among transactions with missing email addresses?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of high-value transactions (above the <nth> percentile of amount) are made by repeat customers?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of outlier transactions are identified as fraudulent (using z-score > <n>)?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of the payments dataset is missing?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of transactions are considered high-value (above the <nth> percentile of amount)?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of transactions have missing ip addresses and also have a fraudulent dispute?",
+    "n": 1
+   },
+   {
+    "template": "how many transactions have missing ip addresses?",
+    "n": 1
+   },
+   {
+    "template": "what is the most common shopper interaction type?",
+    "n": 1
+   },
+   {
+    "template": "which merchant has the highest number of outlier transactions (using z-score > <n>)?",
+    "n": 1
+   },
+   {
+    "template": "what is the lowest avg fraud rate per merchant for the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what is the average transaction amount per unique email?",
+    "n": 1
+   },
+   {
+    "template": "what is the unique set of merchants in the dataset?",
+    "n": 1
+   },
+   {
+    "template": "which factors contribute to a cheaper fee rate if the factors' value is decreased?",
+    "n": 1
+   },
+   {
+    "template": "which merchant had the highest total transaction amount volume?",
+    "n": 1
+   },
+   {
+    "template": "which merchant had the highest fluctuation (std) in fraud rate during the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what is the ratio of credit card transactions to debit card transactions?",
+    "n": 1
+   },
+   {
+    "template": "how many unique ip addresses are present in the payments dataset?",
+    "n": 1
+   },
+   {
+    "template": "how many unique shoppers are there in the payments dataset based on ip addresses?",
+    "n": 1
+   },
+   {
+    "template": "what is the most common device type used for transactions?",
+    "n": 1
+   },
+   {
+    "template": "which columns in the payments dataset contain missing data? a. ip_address, b. email_address, c. both ip_address and email_address, d. neither",
+    "n": 1
+   },
+   {
+    "template": "what are the possible values for the field account_type?",
+    "n": 1
+   },
+   {
+    "template": "how many transactions were conducted on ios devices?",
+    "n": 1
+   },
+   {
+    "template": "how much, if exists, is the excessive retry fee?",
+    "n": 1
+   },
+   {
+    "template": "what is the highest transaction amount (in eur) recorded?",
+    "n": 1
+   },
+   {
+    "template": "what is the avg fraud rate of <merchant> for q3 of <year>?",
+    "n": 1
+   },
+   {
+    "template": "which country is associated with the highest transaction amount in total?",
+    "n": 1
+   },
+   {
+    "template": "which card scheme is the most commonly used?",
+    "n": 1
+   },
+   {
+    "template": "which merchant has the lowest average fraud rate for the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what is the name of the column that indicates fraud?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of transactions have an associated email address?",
+    "n": 1
+   },
+   {
+    "template": "what percentage of transactions are fraudulent in year <year>?",
+    "n": 1
+   },
+   {
+    "template": "which payment method (card_scheme) has the highest avg fraud rate for the year <year>?",
+    "n": 1
+   },
+   {
+    "template": "what is the average transaction amount (in eur)?",
+    "n": 1
+   },
+   {
+    "template": "on which day of the year are the most transactions recorded?",
+    "n": 1
+   },
+   {
+    "template": "which column has the most missing data in the payments dataset?",
+    "n": 1
+   },
+   {
+    "template": "how many transactions were made using <scheme> cards?",
+    "n": 1
+   },
+   {
+    "template": "are there any merchants under the excessive fraud threshold?",
+    "n": 1
+   },
+   {
+    "template": "how many shoppers have made more than one transaction based on email addresses?",
+    "n": 1
+   },
+   {
+    "template": "which ip country has the highest number of transactions?",
+    "n": 1
+   },
+   {
+    "template": "what boolean factors contribute to a cheaper fee rate if set to true?",
+    "n": 1
+   },
+   {
+    "template": "is there a strong correlation (><n>) between the hour of day and the likelihood of a fraudulent dispute?",
+    "n": 1
+   },
+   {
+    "template": "what boolean factors contribute to a cheaper fee rate if set to false?",
+    "n": 1
+   },
+   {
+    "template": "how many transactions were flagged as fraudulent?",
+    "n": 1
+   },
+   {
+    "template": "which merchant has the highest average transaction amount?",
+    "n": 1
+   },
+   {
+    "template": "what is the percentage of transactions below the <nth> percentile of transaction amounts?",
+    "n": 1
+   },
+   {
+    "template": "what is the top country (ip_country) for fraud? a. nl, b. be, c. es, d. fr",
+    "n": 1
+   },
+   {
+    "template": "how many unique shoppers are there in the payments dataset based on email addresses?",
+    "n": 1
+   }
+  ]
+ },
+ "tasks": {
+  "1712": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what is the total fees (in euros) that Belles_cookbook_store should pay?"
+  },
+  "1810": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Rafa_AI in December 2023?"
+  },
+  "1741": {
+   "family": "F01",
+   "template": "what are the applicable fee ids for <merchant> in <year>?",
+   "level": "hard",
+   "question": "What are the applicable fee IDs for Belles_cookbook_store in 2023?"
+  },
+  "1480": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = H and aci = D?"
+  },
+  "1234": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by shopper_interaction for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by shopper_interaction for Crossfit_Hanna's TransactPlus transactions between January and April 2023?"
+  },
+  "2761": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic to in order to pay the maximum fees?"
+  },
+  "2644": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of July, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the minimum fees?"
+  },
+  "1738": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what is the total fees (in euros) that Rafa_AI should pay?"
+  },
+  "2564": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 384 was only applied to account type O, which merchants would have been affected by this change?"
+  },
+  "2536": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Crossfit_Hanna had changed its MCC code to 5999 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1696": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what are the Fee IDs applicable to Golfclub_Baron_Friso?"
+  },
+  "2691": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of December, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic in order to pay the maximum fees?"
+  },
+  "30": {
+   "family": "F12",
+   "template": "is the fraud rate for ecommerce transactions higher than in-store transactions during the year <year>?",
+   "level": "easy",
+   "question": "Is the fraud rate for ecommerce transactions higher than in-store transactions during the year 2023?"
+  },
+  "2550": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Rafa_AI had changed its MCC code to 5911 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2769": {
+   "family": "F10",
+   "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023 and at the merchant Golfclub_Baron_Friso, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1274": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 10 EUR?"
+  },
+  "1763": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Crossfit_Hanna in January 2023?"
+  },
+  "973": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by aci for Belles_cookbook_store's SwiftCharge transactions between January and February 2023?"
+  },
+  "1748": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in 2023?"
+  },
+  "1507": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 50 EUR?"
+  },
+  "1427": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Taxicabs and Limousines, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2746": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Rafa_AI in October, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "64": {
+   "family": "F12",
+   "template": "what are the possible values for the field aci?",
+   "level": "easy",
+   "question": "What are the possible values for the field aci?"
+  },
+  "1861": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Rafa_AI paid in March 2023?"
+  },
+  "1511": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 500 EUR?"
+  },
+  "2529": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Belles_cookbook_store had changed its MCC code to 5411 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2520": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=276 changed to 99?"
+  },
+  "1502": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = O and aci = E?"
+  },
+  "6": {
+   "family": "F12",
+   "template": "what percentage of the transactions are made using credit cards?",
+   "level": "easy",
+   "question": "What percentage of the transactions are made using credit cards?"
+  },
+  "2566": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 17 was only applied to account type D, which merchants would have been affected by this change?"
+  },
+  "1829": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Crossfit_Hanna paid in July 2023?"
+  },
+  "2524": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 17?"
+  },
+  "24": {
+   "family": "F12",
+   "template": "which device type is most commonly used in fraudulent transactions?",
+   "level": "easy",
+   "question": "Which device type is most commonly used in fraudulent transactions?"
+  },
+  "2530": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Belles_cookbook_store had changed its MCC code to 5911 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2480": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=150 changed to 99?"
+  },
+  "42": {
+   "family": "F12",
+   "template": "are there any duplicate (by all columns) transactions in the payments dataset?",
+   "level": "easy",
+   "question": "Are there any duplicate (by all columns) transactions in the payments dataset?"
+  },
+  "2397": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In May 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=787 changed to 1?"
+  },
+  "2729": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Golfclub_Baron_Friso in July, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1716": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what is the total fees (in euros) that Belles_cookbook_store should pay?"
+  },
+  "1348": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 100 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1450": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10 euros on TransactPlus, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1700": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what are the Fee IDs applicable to Martinis_Fine_Steakhouse?"
+  },
+  "2565": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 17 was only applied to account type R, which merchants would have been affected by this change?"
+  },
+  "2485": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=276 changed to 1?"
+  },
+  "1460": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10000 euros on NexPay, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "2562": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 384 was only applied to account type F, which merchants would have been affected by this change?"
+  },
+  "2484": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=398 changed to 99?"
+  },
+  "1749": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Martinis_Fine_Steakhouse paid in 2023?"
+  },
+  "23": {
+   "family": "F12",
+   "template": "what is the fraud rate for in-person transactions for the year <year>?",
+   "level": "easy",
+   "question": "What is the fraud rate for in-person transactions for the year 2023?"
+  },
+  "2575": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 787 was only applied to account type S, which merchants would have been affected by this change?"
+  },
+  "1287": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 500 EUR?"
+  },
+  "1455": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1000 euros on GlobalCard, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1789": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Martinis_Fine_Steakhouse in March 2023?"
+  },
+  "2767": {
+   "family": "F10",
+   "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023 and at the merchant Belles_cookbook_store, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "2554": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type D, which merchants would have been affected by this change?"
+  },
+  "617": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by device_type for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by device_type for Rafa_AI's SwiftCharge transactions between May and June 2023?"
+  },
+  "2674": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of October, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the minimum fees?"
+  },
+  "1470": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = D and aci = A?"
+  },
+  "1729": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what is the total fees (in euros) that Martinis_Fine_Steakhouse should pay?"
+  },
+  "2712": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Belles_cookbook_store in April, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "178": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by ip_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by ip_country for Belles_cookbook_store's SwiftCharge transactions between June and October 2023?"
+  },
+  "2509": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Martinis_Fine_Steakhouse pay if the relative fee of the fee with ID=280 changed to 1?"
+  },
+  "1722": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what is the total fees (in euros) that Crossfit_Hanna should pay?"
+  },
+  "2528": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Belles_cookbook_store had changed its MCC code to 8062 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "38": {
+   "family": "F12",
+   "template": "what percentage of transactions came from the top <n> merchants in amount volume?",
+   "level": "easy",
+   "question": "What percentage of transactions came from the top 2 merchants in amount volume?"
+  },
+  "2496": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=709 changed to 99?"
+  },
+  "2558": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type O, which merchants would have been affected by this change?"
+  },
+  "59": {
+   "family": "F12",
+   "template": "what are the top <n> countries (ip_country) by avg transaction value for <merchant>'s <scheme> transactions in the last quarter of <year>?",
+   "level": "easy",
+   "question": "What are the top 3 countries (ip_country) by avg transaction value for Crossfit_Hanna's NexPay transactions in the last quarter of 2023?"
+  },
+  "1452": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 100 euros on NexPay, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1570": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type D, what would be the average fee that the card scheme NexPay would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1753": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Belles_cookbook_store in March 2023?"
+  },
+  "25": {
+   "family": "F12",
+   "template": "how many outliers are there in the transaction amount data (using z-score > <n>)?",
+   "level": "easy",
+   "question": "How many outliers are there in the transaction amount data (using Z-Score > 3)?"
+  },
+  "1497": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = S and aci = G?"
+  },
+  "1435": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 10 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2555": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type H, which merchants would have been affected by this change?"
+  },
+  "1305": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Eating Places and Restaurants, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 10 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1732": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what is the total fees (in euros) that Martinis_Fine_Steakhouse should pay?"
+  },
+  "1509": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 100 EUR?"
+  },
+  "2573": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 787 was only applied to account type H, which merchants would have been affected by this change?"
+  },
+  "2552": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Rafa_AI had changed its MCC code to 7523 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1": {
+   "family": "F12",
+   "template": "how many total transactions are there in the dataset?",
+   "level": "easy",
+   "question": "How many total transactions are there in the dataset?"
+  },
+  "1853": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Martinis_Fine_Steakhouse paid in July 2023?"
+  },
+  "1520": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 4321 EUR?"
+  },
+  "2583": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of January, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the maximum fees?"
+  },
+  "2571": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 787 was only applied to account type R, which merchants would have been affected by this change?"
+  },
+  "1674": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type S, what would be the average fee that the card scheme NexPay would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "10": {
+   "family": "F12",
+   "template": "how many unique merchants are present in the dataset?",
+   "level": "easy",
+   "question": "How many unique merchants are present in the dataset?"
+  },
+  "1846": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in December 2023?"
+  },
+  "50": {
+   "family": "F12",
+   "template": "are credit payments more likely to result in a fraudulent dispute compared to debit card payments?",
+   "level": "easy",
+   "question": "Are credit payments more likely to result in a fraudulent dispute compared to debit card payments?"
+  },
+  "1745": {
+   "family": "F01",
+   "template": "what are the applicable fee ids for <merchant> in <year>?",
+   "level": "hard",
+   "question": "What are the applicable fee IDs for Rafa_AI in 2023?"
+  },
+  "70": {
+   "family": "F12",
+   "template": "is <merchant> in danger of getting a high-fraud rate fine?",
+   "level": "easy",
+   "question": "Is Martinis_Fine_Steakhouse in danger of getting a high-fraud rate fine?"
+  },
+  "1486": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = F and aci = C?"
+  },
+  "1281": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 100 EUR?"
+  },
+  "2539": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Golfclub_Baron_Friso had changed its MCC code to 5411 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2419": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In July 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=276 changed to 1?"
+  },
+  "19": {
+   "family": "F12",
+   "template": "what is the highest avg fraud rate for the year <year>? (by card_scheme)",
+   "level": "easy",
+   "question": "What is the highest avg fraud rate for the year 2023? (by card_scheme)"
+  },
+  "1705": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what are the Fee IDs applicable to Rafa_AI?"
+  },
+  "1366": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme NexPay would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "44": {
+   "family": "F12",
+   "template": "what percentage of shoppers are repeat customers (based on email addresses)?",
+   "level": "easy",
+   "question": "What percentage of shoppers are repeat customers (based on email addresses)?"
+  },
+  "1694": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what are the Fee IDs applicable to Golfclub_Baron_Friso?"
+  },
+  "1771": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Crossfit_Hanna in September 2023?"
+  },
+  "1636": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "2494": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=64 changed to 99?"
+  },
+  "2758": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Belles_cookbook_store steer traffic to in order to pay the minimum fees?"
+  },
+  "402": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Golfclub_Baron_Friso's SwiftCharge transactions between November and December 2023?"
+  },
+  "1457": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1000 euros on SwiftCharge, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1444": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1 euros on NexPay, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1441": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 10000 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "1734": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what is the total fees (in euros) that Martinis_Fine_Steakhouse should pay?"
+  },
+  "2766": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Rafa_AI steer traffic to in order to pay the minimum fees?"
+  },
+  "2628": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of June, to which card scheme should the merchant Belles_cookbook_store steer traffic in order to pay the minimum fees?"
+  },
+  "1462": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10000 euros on TransactPlus, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "27": {
+   "family": "F12",
+   "template": "during which hour of the day do the most outlier transactions occur (using z-score > <n>)?",
+   "level": "easy",
+   "question": "During which hour of the day do the most outlier transactions occur (using Z-Score > 3)?"
+  },
+  "36": {
+   "family": "F12",
+   "template": "what is the average number of transactions per unique shopper based on email addresses?",
+   "level": "easy",
+   "question": "What is the average number of transactions per unique shopper based on email addresses?"
+  },
+  "1756": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Belles_cookbook_store in June 2023?"
+  },
+  "13": {
+   "family": "F12",
+   "template": "during which hour of the day do the most transactions occur?",
+   "level": "easy",
+   "question": "During which hour of the day do the most transactions occur?"
+  },
+  "1709": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 300th of the year 2023, what are the Fee IDs applicable to Rafa_AI?"
+  },
+  "382": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Belles_cookbook_store's SwiftCharge transactions between November and December 2023?"
+  },
+  "1461": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10000 euros on SwiftCharge, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "2553": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type R, which merchants would have been affected by this change?"
+  },
+  "1744": {
+   "family": "F01",
+   "template": "what are the applicable fee ids for <merchant> in <year>?",
+   "level": "hard",
+   "question": "What are the applicable fee IDs for Martinis_Fine_Steakhouse in 2023?"
+  },
+  "2547": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Martinis_Fine_Steakhouse had changed its MCC code to 7523 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2728": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Crossfit_Hanna in July, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1467": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = R and aci = E?"
+  },
+  "2412": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In July 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=384 changed to 99?"
+  },
+  "2581": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of January, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic in order to pay the maximum fees?"
+  },
+  "2768": {
+   "family": "F10",
+   "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023 and at the merchant Crossfit_Hanna, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1698": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what are the Fee IDs applicable to Golfclub_Baron_Friso?"
+  },
+  "623": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by device_type for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by device_type for Belles_cookbook_store's TransactPlus transactions between January and February 2023?"
+  },
+  "2771": {
+   "family": "F10",
+   "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023 and at the merchant Rafa_AI, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "5": {
+   "family": "F12",
+   "template": "which issuing country has the highest number of transactions?",
+   "level": "easy",
+   "question": "Which issuing country has the highest number of transactions?"
+  },
+  "2522": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 10?"
+  },
+  "60": {
+   "family": "F12",
+   "template": "across these segments: merchant, issuer country, card_scheme, and shopper interaction, which segment has the worst fraud rate, that we should target for support?",
+   "level": "easy",
+   "question": "Across these segments: merchant, issuer country, card_scheme, and shopper interaction, which segment has the worst fraud rate, that we should target for support?"
+  },
+  "1508": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 50 EUR?"
+  },
+  "1295": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 5000 EUR?"
+  },
+  "2623": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of May, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the maximum fees?"
+  },
+  "1217": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by shopper_interaction for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by shopper_interaction for Rafa_AI's SwiftCharge transactions between May and June 2023?"
+  },
+  "67": {
+   "family": "F12",
+   "template": "which factors contribute to a cheaper fee rate if the factors' value is increased?",
+   "level": "easy",
+   "question": "Which factors contribute to a cheaper fee rate if the factors' value is increased?"
+  },
+  "2264": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In April 2023 what delta would Martinis_Fine_Steakhouse pay if the relative fee of the fee with ID=12 changed to 99?"
+  },
+  "1704": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what are the Fee IDs applicable to Martinis_Fine_Steakhouse?"
+  },
+  "2463": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In December 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=141 changed to 1?"
+  },
+  "1730": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what is the total fees (in euros) that Martinis_Fine_Steakhouse should pay?"
+  },
+  "1301": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 4321 EUR?"
+  },
+  "1711": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what is the total fees (in euros) that Belles_cookbook_store should pay?"
+  },
+  "2366": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In February 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=17 changed to 99?"
+  },
+  "1750": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Rafa_AI paid in 2023?"
+  },
+  "22": {
+   "family": "F12",
+   "template": "is there a strong correlation (><n>) between transaction amount and fraudulent disputes?",
+   "level": "easy",
+   "question": "Is there a strong correlation (>0.5) between transaction amount and fraudulent disputes?"
+  },
+  "1817": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Belles_cookbook_store paid in July 2023?"
+  },
+  "2770": {
+   "family": "F10",
+   "template": "looking at the year <year> and at the merchant <merchant>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023 and at the merchant Martinis_Fine_Steakhouse, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing shoppers to use a different payment interactions, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "20": {
+   "family": "F12",
+   "template": "which merchant has the highest number of transactions?",
+   "level": "easy",
+   "question": "Which merchant has the highest number of transactions?"
+  },
+  "29": {
+   "family": "F12",
+   "template": "is the fraud rate of outliers higher than inliers (using z-score > <n>) during the year <year>?",
+   "level": "easy",
+   "question": "Is the fraud rate of outliers higher than inliers (using Z-Score > 3) during the year 2023?"
+  },
+  "69": {
+   "family": "F12",
+   "template": "what is the highest volume at which the fees do not become cheaper?",
+   "level": "easy",
+   "question": "What is the highest volume at which the fees do not become cheaper?"
+  },
+  "1728": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what is the total fees (in euros) that Golfclub_Baron_Friso should pay?"
+  },
+  "883": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by aci for Crossfit_Hanna's GlobalCard transactions between January and February 2023?"
+  },
+  "1731": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 100th of the year 2023, what is the total fees (in euros) that Martinis_Fine_Steakhouse should pay?"
+  },
+  "45": {
+   "family": "F12",
+   "template": "what is the most frequent card scheme among transactions with missing email addresses?",
+   "level": "easy",
+   "question": "What is the most frequent card scheme among transactions with missing email addresses?"
+  },
+  "1453": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 100 euros on SwiftCharge, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1477": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = H and aci = A?"
+  },
+  "47": {
+   "family": "F12",
+   "template": "what percentage of high-value transactions (above the <nth> percentile of amount) are made by repeat customers?",
+   "level": "easy",
+   "question": "What percentage of high-value transactions (above the 90th percentile of amount) are made by repeat customers?"
+  },
+  "471": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Rafa_AI's TransactPlus transactions between September and October 2023?"
+  },
+  "1715": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 300th of the year 2023, what is the total fees (in euros) that Belles_cookbook_store should pay?"
+  },
+  "1808": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Rafa_AI in October 2023?"
+  },
+  "1446": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1 euros on TransactPlus, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1688": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what are the Fee IDs applicable to Crossfit_Hanna?"
+  },
+  "28": {
+   "family": "F12",
+   "template": "what percentage of outlier transactions are identified as fraudulent (using z-score > <n>)?",
+   "level": "easy",
+   "question": "What percentage of outlier transactions are identified as fraudulent (using Z-Score > 3)?"
+  },
+  "2521": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 1?"
+  },
+  "1299": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR?"
+  },
+  "1676": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type S, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1420": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Taxicabs and Limousines, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1447": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10 euros on GlobalCard, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1365": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "32": {
+   "family": "F12",
+   "template": "what percentage of the payments dataset is missing?",
+   "level": "easy",
+   "question": "What percentage of the payments dataset is missing?"
+  },
+  "1434": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 5 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2526": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 709?"
+  },
+  "2719": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Golfclub_Baron_Friso in May, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "2229": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In December 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=595 changed to 1?"
+  },
+  "2407": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In June 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=787 changed to 1?"
+  },
+  "1459": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10000 euros on GlobalCard, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "40": {
+   "family": "F12",
+   "template": "what percentage of transactions are considered high-value (above the <nth> percentile of amount)?",
+   "level": "easy",
+   "question": "What percentage of transactions are considered high-value (above the 90th percentile of amount)?"
+  },
+  "1505": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 10 EUR?"
+  },
+  "2132": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In March 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=65 changed to 99?"
+  },
+  "2751": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Rafa_AI in November, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1297": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1234 EUR?"
+  },
+  "46": {
+   "family": "F12",
+   "template": "what percentage of transactions have missing ip addresses and also have a fraudulent dispute?",
+   "level": "easy",
+   "question": "What percentage of transactions have missing IP addresses and also have a fraudulent dispute?"
+  },
+  "1686": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "3": {
+   "family": "F12",
+   "template": "how many transactions have missing ip addresses?",
+   "level": "easy",
+   "question": "How many transactions have missing IP addresses?"
+  },
+  "1385": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: fast food restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Fast Food Restaurants, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2740": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Martinis_Fine_Steakhouse in September, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "8": {
+   "family": "F12",
+   "template": "what is the most common shopper interaction type?",
+   "level": "easy",
+   "question": "What is the most common shopper interaction type?"
+  },
+  "1465": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = R and aci = C?"
+  },
+  "2489": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=792 changed to 1?"
+  },
+  "1646": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme NexPay would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1277": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 50 EUR?"
+  },
+  "1685": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 300th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "1445": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1 euros on SwiftCharge, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1818": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Belles_cookbook_store paid in August 2023?"
+  },
+  "2523": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 12?"
+  },
+  "26": {
+   "family": "F12",
+   "template": "which merchant has the highest number of outlier transactions (using z-score > <n>)?",
+   "level": "easy",
+   "question": "Which merchant has the highest number of outlier transactions (using Z-Score > 3)?"
+  },
+  "1473": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = D and aci = D?"
+  },
+  "17": {
+   "family": "F12",
+   "template": "what is the lowest avg fraud rate per merchant for the year <year>?",
+   "level": "easy",
+   "question": "What is the lowest avg fraud rate per merchant for the year 2023?"
+  },
+  "1475": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = D and aci = F?"
+  },
+  "1347": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 100 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1442": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 50000 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2316": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In September 2023 what delta would Martinis_Fine_Steakhouse pay if the relative fee of the fee with ID=16 changed to 99?"
+  },
+  "1740": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 365th of the year 2023, what is the total fees (in euros) that Rafa_AI should pay?"
+  },
+  "1474": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = D and aci = E?"
+  },
+  "1837": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in March 2023?"
+  },
+  "341": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Crossfit_Hanna's NexPay transactions between September and October 2023?"
+  },
+  "2762": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic to in order to pay the minimum fees?"
+  },
+  "1683": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 100th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "916": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by aci for Rafa_AI's GlobalCard transactions between March and December 2023?"
+  },
+  "1857": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Martinis_Fine_Steakhouse paid in November 2023?"
+  },
+  "43": {
+   "family": "F12",
+   "template": "what is the average transaction amount per unique email?",
+   "level": "easy",
+   "question": "What is the average transaction amount per unique email?"
+  },
+  "2481": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=384 changed to 1?"
+  },
+  "1775": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Golfclub_Baron_Friso in January 2023?"
+  },
+  "2568": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 17 was only applied to account type F, which merchants would have been affected by this change?"
+  },
+  "72": {
+   "family": "F12",
+   "template": "what is the unique set of merchants in the dataset?",
+   "level": "easy",
+   "question": "What is the unique set of merchants in the dataset?"
+  },
+  "1341": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 50 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2574": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 787 was only applied to account type F, which merchants would have been affected by this change?"
+  },
+  "1518": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 1234 EUR?"
+  },
+  "2741": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Rafa_AI in September, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1012": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by aci for Martinis_Fine_Steakhouse's SwiftCharge transactions between November and December 2023?"
+  },
+  "1724": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what is the total fees (in euros) that Golfclub_Baron_Friso should pay?"
+  },
+  "1799": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Rafa_AI in January 2023?"
+  },
+  "2385": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In April 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=17 changed to 1?"
+  },
+  "1742": {
+   "family": "F01",
+   "template": "what are the applicable fee ids for <merchant> in <year>?",
+   "level": "hard",
+   "question": "What are the applicable fee IDs for Crossfit_Hanna in 2023?"
+  },
+  "2439": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In September 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=276 changed to 1?"
+  },
+  "68": {
+   "family": "F12",
+   "template": "which factors contribute to a cheaper fee rate if the factors' value is decreased?",
+   "level": "easy",
+   "question": "Which factors contribute to a cheaper fee rate if the factors' value is decreased?"
+  },
+  "2708": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Crossfit_Hanna in March, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1513": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 1000 EUR?"
+  },
+  "1746": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Belles_cookbook_store paid in 2023?"
+  },
+  "54": {
+   "family": "F12",
+   "template": "which merchant had the highest total transaction amount volume?",
+   "level": "easy",
+   "question": "Which merchant had the highest total transaction amount volume?"
+  },
+  "1439": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 1000 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "1641": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1458": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1000 euros on TransactPlus, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1840": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in June 2023?"
+  },
+  "61": {
+   "family": "F12",
+   "template": "which merchant had the highest fluctuation (std) in fraud rate during the year <year>?",
+   "level": "easy",
+   "question": "Which merchant had the highest fluctuation (std) in fraud rate during the year 2023?"
+  },
+  "37": {
+   "family": "F12",
+   "template": "what is the ratio of credit card transactions to debit card transactions?",
+   "level": "easy",
+   "question": "What is the ratio of credit card transactions to debit card transactions?"
+  },
+  "2543": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Martinis_Fine_Steakhouse had changed its MCC code to 8062 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2477": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=276 changed to 1?"
+  },
+  "1723": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what is the total fees (in euros) that Golfclub_Baron_Friso should pay?"
+  },
+  "2493": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=64 changed to 1?"
+  },
+  "1437": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 100 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2559": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 384 was only applied to account type R, which merchants would have been affected by this change?"
+  },
+  "1784": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Golfclub_Baron_Friso in October 2023?"
+  },
+  "793": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by acquirer_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by acquirer_country for Golfclub_Baron_Friso's SwiftCharge transactions between January and February 2023?"
+  },
+  "2619": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of May, to which card scheme should the merchant Crossfit_Hanna steer traffic in order to pay the maximum fees?"
+  },
+  "1689": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 100th of the year 2023, what are the Fee IDs applicable to Crossfit_Hanna?"
+  },
+  "57": {
+   "family": "F12",
+   "template": "how many unique ip addresses are present in the payments dataset?",
+   "level": "easy",
+   "question": "How many unique IP addresses are present in the payments dataset?"
+  },
+  "1681": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "2759": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Crossfit_Hanna steer traffic to in order to pay the maximum fees?"
+  },
+  "2641": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of July, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic in order to pay the maximum fees?"
+  },
+  "2535": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Crossfit_Hanna had changed its MCC code to 5911 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "34": {
+   "family": "F12",
+   "template": "how many unique shoppers are there in the payments dataset based on ip addresses?",
+   "level": "easy",
+   "question": "How many unique shoppers are there in the payments dataset based on IP addresses?"
+  },
+  "55": {
+   "family": "F12",
+   "template": "what is the most common device type used for transactions?",
+   "level": "easy",
+   "question": "What is the most common device type used for transactions?"
+  },
+  "31": {
+   "family": "F12",
+   "template": "which columns in the payments dataset contain missing data? a. ip_address, b. email_address, c. both ip_address and email_address, d. neither",
+   "level": "easy",
+   "question": "Which columns in the payments dataset contain missing data? A. ip_address, B. email_address, C. both ip_address and email_address, D. neither"
+  },
+  "1417": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Taxicabs and Limousines, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2478": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=276 changed to 99?"
+  },
+  "2760": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Crossfit_Hanna steer traffic to in order to pay the minimum fees?"
+  },
+  "2527": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 454?"
+  },
+  "1801": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Rafa_AI in March 2023?"
+  },
+  "1312": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Eating Places and Restaurants, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 50 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1684": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "1577": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type D, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "63": {
+   "family": "F12",
+   "template": "what are the possible values for the field account_type?",
+   "level": "easy",
+   "question": "What are the possible values for the field account_type?"
+  },
+  "56": {
+   "family": "F12",
+   "template": "how many transactions were conducted on ios devices?",
+   "level": "easy",
+   "question": "How many transactions were conducted on iOS devices?"
+  },
+  "62": {
+   "family": "F12",
+   "template": "how much, if exists, is the excessive retry fee?",
+   "level": "easy",
+   "question": "How much, if exists, is the excessive retry fee?"
+  },
+  "1504": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = O and aci = G?"
+  },
+  "1279": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 50 EUR?"
+  },
+  "11": {
+   "family": "F12",
+   "template": "what is the highest transaction amount (in eur) recorded?",
+   "level": "easy",
+   "question": "What is the highest transaction amount (in EUR) recorded?"
+  },
+  "1292": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1000 EUR?"
+  },
+  "2556": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type F, which merchants would have been affected by this change?"
+  },
+  "1752": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Belles_cookbook_store in February 2023?"
+  },
+  "842": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by acquirer_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by acquirer_country for Crossfit_Hanna's TransactPlus transactions between November and December 2023?"
+  },
+  "1294": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 5000 EUR?"
+  },
+  "58": {
+   "family": "F12",
+   "template": "what is the avg fraud rate of <merchant> for q3 of <year>?",
+   "level": "easy",
+   "question": "What is the avg fraud rate of Crossfit_Hanna for Q3 of 2023?"
+  },
+  "1826": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Crossfit_Hanna paid in April 2023?"
+  },
+  "1484": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = F and aci = A?"
+  },
+  "682": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by acquirer_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by acquirer_country for Belles_cookbook_store's GlobalCard transactions between November and December 2023?"
+  },
+  "1519": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 4321 EUR?"
+  },
+  "1538": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type R, what would be the average fee that the card scheme NexPay would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1862": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Rafa_AI paid in April 2023?"
+  },
+  "1765": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Crossfit_Hanna in March 2023?"
+  },
+  "2441": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In October 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=384 changed to 1?"
+  },
+  "2563": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 384 was only applied to account type S, which merchants would have been affected by this change?"
+  },
+  "2652": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of August, to which card scheme should the merchant Golfclub_Baron_Friso steer traffic in order to pay the minimum fees?"
+  },
+  "1966": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In October 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=398 changed to 99?"
+  },
+  "2569": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 17 was only applied to account type S, which merchants would have been affected by this change?"
+  },
+  "1531": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type R, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 100 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "52": {
+   "family": "F12",
+   "template": "which country is associated with the highest transaction amount in total?",
+   "level": "easy",
+   "question": "Which country is associated with the highest transaction amount in total?"
+  },
+  "12": {
+   "family": "F12",
+   "template": "which card scheme is the most commonly used?",
+   "level": "easy",
+   "question": "Which card scheme is the most commonly used?"
+  },
+  "1574": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type D, what would be the average fee that the card scheme NexPay would charge for a transaction value of 5000 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1593": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type H, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 100 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1451": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 100 euros on GlobalCard, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "2544": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Martinis_Fine_Steakhouse had changed its MCC code to 5411 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2491": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=65 changed to 1?"
+  },
+  "2678": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of November, to which card scheme should the merchant Belles_cookbook_store steer traffic in order to pay the minimum fees?"
+  },
+  "1289": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 1000 EUR?"
+  },
+  "2713": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Crossfit_Hanna in April, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1720": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what is the total fees (in euros) that Crossfit_Hanna should pay?"
+  },
+  "1449": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10 euros on SwiftCharge, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1584": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type D, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1514": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 1000 EUR?"
+  },
+  "16": {
+   "family": "F12",
+   "template": "which merchant has the lowest average fraud rate for the year <year>?",
+   "level": "easy",
+   "question": "Which merchant has the lowest average fraud rate for the year 2023?"
+  },
+  "2589": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of February, to which card scheme should the merchant Crossfit_Hanna steer traffic in order to pay the maximum fees?"
+  },
+  "2727": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Belles_cookbook_store in July, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1875": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In January 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=398 changed to 1?"
+  },
+  "2731": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Rafa_AI in July, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1448": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 10 euros on NexPay, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1769": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Crossfit_Hanna in July 2023?"
+  },
+  "1868": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Rafa_AI paid in October 2023?"
+  },
+  "625": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by device_type for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by device_type for Belles_cookbook_store's TransactPlus transactions between March and April 2023?"
+  },
+  "2587": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of February, to which card scheme should the merchant Belles_cookbook_store steer traffic in order to pay the maximum fees?"
+  },
+  "14": {
+   "family": "F12",
+   "template": "what is the name of the column that indicates fraud?",
+   "level": "easy",
+   "question": "What is the name of the column that indicates fraud?"
+  },
+  "1819": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Belles_cookbook_store paid in September 2023?"
+  },
+  "7": {
+   "family": "F12",
+   "template": "what percentage of transactions have an associated email address?",
+   "level": "easy",
+   "question": "What percentage of transactions have an associated email address?"
+  },
+  "1835": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in January 2023?"
+  },
+  "1931": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In July 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=384 changed to 1?"
+  },
+  "1290": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 1000 EUR?"
+  },
+  "2538": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Golfclub_Baron_Friso had changed its MCC code to 8062 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1489": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = F and aci = F?"
+  },
+  "2507": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Martinis_Fine_Steakhouse pay if the relative fee of the fee with ID=276 changed to 1?"
+  },
+  "1739": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 300th of the year 2023, what is the total fees (in euros) that Rafa_AI should pay?"
+  },
+  "15": {
+   "family": "F12",
+   "template": "what percentage of transactions are fraudulent in year <year>?",
+   "level": "easy",
+   "question": "What percentage of transactions are fraudulent in year 2023?"
+  },
+  "18": {
+   "family": "F12",
+   "template": "which payment method (card_scheme) has the highest avg fraud rate for the year <year>?",
+   "level": "easy",
+   "question": "Which payment method (card_scheme) has the highest avg fraud rate for the year 2023?"
+  },
+  "1438": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 500 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2699": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Golfclub_Baron_Friso in January, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "2121": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In February 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=65 changed to 1?"
+  },
+  "1300": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1234 EUR?"
+  },
+  "1822": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Belles_cookbook_store paid in December 2023?"
+  },
+  "2634": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of June, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the minimum fees?"
+  },
+  "1454": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 100 euros on TransactPlus, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1456": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1000 euros on NexPay, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1358": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme NexPay would charge for a transaction value of 5000 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2": {
+   "family": "F12",
+   "template": "what is the average transaction amount (in eur)?",
+   "level": "easy",
+   "question": "What is the average transaction amount (in EUR)?"
+  },
+  "2537": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Crossfit_Hanna had changed its MCC code to 7523 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1331": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Eating Places and Restaurants, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1516": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 5000 EUR?"
+  },
+  "1701": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 100th of the year 2023, what are the Fee IDs applicable to Martinis_Fine_Steakhouse?"
+  },
+  "347": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Golfclub_Baron_Friso's NexPay transactions between May and June 2023?"
+  },
+  "9": {
+   "family": "F12",
+   "template": "on which day of the year are the most transactions recorded?",
+   "level": "easy",
+   "question": "On which day of the year are the most transactions recorded?"
+  },
+  "1841": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Golfclub_Baron_Friso paid in July 2023?"
+  },
+  "1717": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what is the total fees (in euros) that Crossfit_Hanna should pay?"
+  },
+  "41": {
+   "family": "F12",
+   "template": "which column has the most missing data in the payments dataset?",
+   "level": "easy",
+   "question": "Which column has the most missing data in the payments dataset?"
+  },
+  "2703": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Crossfit_Hanna in February, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1431": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Taxicabs and Limousines, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "51": {
+   "family": "F12",
+   "template": "how many transactions were made using <scheme> cards?",
+   "level": "easy",
+   "question": "How many transactions were made using NexPay cards?"
+  },
+  "1834": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Crossfit_Hanna paid in December 2023?"
+  },
+  "1308": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Eating Places and Restaurants, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 10 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "2765": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Rafa_AI steer traffic to in order to pay the maximum fees?"
+  },
+  "71": {
+   "family": "F12",
+   "template": "are there any merchants under the excessive fraud threshold?",
+   "level": "easy",
+   "question": "Are there any merchants under the excessive fraud threshold?"
+  },
+  "1760": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Belles_cookbook_store in October 2023?"
+  },
+  "2506": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Martinis_Fine_Steakhouse pay if the relative fee of the fee with ID=16 changed to 99?"
+  },
+  "1275": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 10 EUR?"
+  },
+  "2551": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Rafa_AI had changed its MCC code to 5999 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2606": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of March, to which card scheme should the merchant Rafa_AI steer traffic in order to pay the minimum fees?"
+  },
+  "1892": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In March 2023 what delta would Belles_cookbook_store pay if the relative fee of the fee with ID=384 changed to 99?"
+  },
+  "2546": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Martinis_Fine_Steakhouse had changed its MCC code to 5999 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1433": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 1 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "35": {
+   "family": "F12",
+   "template": "how many shoppers have made more than one transaction based on email addresses?",
+   "level": "easy",
+   "question": "How many shoppers have made more than one transaction based on email addresses?"
+  },
+  "1604": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type H, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 1000 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "2764": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic to in order to pay the minimum fees?"
+  },
+  "1440": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 5000 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "4": {
+   "family": "F12",
+   "template": "which ip country has the highest number of transactions?",
+   "level": "easy",
+   "question": "Which IP country has the highest number of transactions?"
+  },
+  "2561": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 384 was only applied to account type H, which merchants would have been affected by this change?"
+  },
+  "1443": {
+   "family": "F08",
+   "template": "for a credit transaction of <n> euros on <scheme>, what would be the most expensive authorization characteristics indicator (aci)? in the case of a draw between multiple acis, return the aci with the lowest alphabetical order. provide the response in a list even if there is only one value.",
+   "level": "hard",
+   "question": "For a credit transaction of 1 euros on GlobalCard, what would be the most expensive Authorization Characteristics Indicator (ACI)? In the case of a draw between multiple ACIs, return the ACI with the lowest alphabetical order. Provide the response in a list even if there is only one value."
+  },
+  "1823": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Crossfit_Hanna paid in January 2023?"
+  },
+  "1791": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Martinis_Fine_Steakhouse in May 2023?"
+  },
+  "2057": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In July 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=150 changed to 1?"
+  },
+  "2584": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of January, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the minimum fees?"
+  },
+  "1517": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 1234 EUR?"
+  },
+  "1757": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Belles_cookbook_store in July 2023?"
+  },
+  "2725": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Martinis_Fine_Steakhouse in June, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "2549": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Rafa_AI had changed its MCC code to 5411 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "2710": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Martinis_Fine_Steakhouse in March, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1706": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what are the Fee IDs applicable to Rafa_AI?"
+  },
+  "2763": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic to in order to pay the maximum fees?"
+  },
+  "2748": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Crossfit_Hanna in November, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1463": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = R and aci = A?"
+  },
+  "1805": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Rafa_AI in July 2023?"
+  },
+  "1500": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = O and aci = C?"
+  },
+  "2675": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the month of October, to which card scheme should the merchant Rafa_AI steer traffic in order to pay the maximum fees?"
+  },
+  "1302": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 4321 EUR?"
+  },
+  "1280": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 50 EUR?"
+  },
+  "2490": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=792 changed to 99?"
+  },
+  "1343": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 50 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1615": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type H, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "65": {
+   "family": "F12",
+   "template": "what boolean factors contribute to a cheaper fee rate if set to true?",
+   "level": "easy",
+   "question": "What boolean factors contribute to a cheaper fee rate if set to True?"
+  },
+  "1721": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 300th of the year 2023, what is the total fees (in euros) that Crossfit_Hanna should pay?"
+  },
+  "2757": {
+   "family": "F09",
+   "template": "looking at the year <year>, to which card scheme should the merchant <merchant> steer traffic to in order to pay the maximum fees?",
+   "level": "hard",
+   "question": "Looking at the year 2023, to which card scheme should the merchant Belles_cookbook_store steer traffic to in order to pay the maximum fees?"
+  },
+  "2533": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Crossfit_Hanna had changed its MCC code to 8062 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1702": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 200th of the year 2023, what are the Fee IDs applicable to Martinis_Fine_Steakhouse?"
+  },
+  "1286": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 500 EUR?"
+  },
+  "1687": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what are the Fee IDs applicable to Crossfit_Hanna?"
+  },
+  "48": {
+   "family": "F12",
+   "template": "is there a strong correlation (><n>) between the hour of day and the likelihood of a fraudulent dispute?",
+   "level": "easy",
+   "question": "Is there a strong correlation (>0.50) between the hour of day and the likelihood of a fraudulent dispute?"
+  },
+  "2545": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Martinis_Fine_Steakhouse had changed its MCC code to 5911 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1472": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = D and aci = C?"
+  },
+  "1780": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Golfclub_Baron_Friso in June 2023?"
+  },
+  "1436": {
+   "family": "F08",
+   "template": "what is the most expensive mcc for a transaction of <n> euros, in general? if there are many mccs with the same value, list all of them. provide a list as an output even if it is one element.",
+   "level": "hard",
+   "question": "What is the most expensive MCC for a transaction of 50 euros, in general? If there are many MCCs with the same value, list all of them. Provide a list as an output even if it is one element."
+  },
+  "2578": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of January, to which card scheme should the merchant Belles_cookbook_store steer traffic in order to pay the minimum fees?"
+  },
+  "1631": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 500 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "2518": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=787 changed to 99?"
+  },
+  "66": {
+   "family": "F12",
+   "template": "what boolean factors contribute to a cheaper fee rate if set to false?",
+   "level": "easy",
+   "question": "What boolean factors contribute to a cheaper fee rate if set to False?"
+  },
+  "889": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by aci for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by aci for Crossfit_Hanna's GlobalCard transactions between June and August 2023?"
+  },
+  "2576": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 787 was only applied to account type O, which merchants would have been affected by this change?"
+  },
+  "2404": {
+   "family": "F04",
+   "template": "in <month> <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In June 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=141 changed to 99?"
+  },
+  "53": {
+   "family": "F12",
+   "template": "how many transactions were flagged as fraudulent?",
+   "level": "easy",
+   "question": "How many transactions were flagged as fraudulent?"
+  },
+  "1679": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type S, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1643": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1344": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: drinking places (alcoholic beverages) - bars, taverns, nightclubs, cocktail lounges, and discotheques, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Drinking Places (Alcoholic Beverages) - Bars, Taverns, Nightclubs, Cocktail Lounges, and Discotheques, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 50 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "21": {
+   "family": "F12",
+   "template": "which merchant has the highest average transaction amount?",
+   "level": "easy",
+   "question": "Which merchant has the highest average transaction amount?"
+  },
+  "2534": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Crossfit_Hanna had changed its MCC code to 5411 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1336": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: eating places and restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Eating Places and Restaurants, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "375": {
+   "family": "F11",
+   "template": "what is the average transaction value grouped by issuing_country for <merchant>'s <scheme> transactions between <month> and <month> <year>?",
+   "level": "hard",
+   "question": "What is the average transaction value grouped by issuing_country for Belles_cookbook_store's SwiftCharge transactions between March and April 2023?"
+  },
+  "2525": {
+   "family": "F06",
+   "template": "in <year>, which merchants were affected by the fee with id <n>?",
+   "level": "hard",
+   "question": "In 2023, which merchants were affected by the Fee with ID 65?"
+  },
+  "1485": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = F and aci = B?"
+  },
+  "1394": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: fast food restaurants, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Fast Food Restaurants, what would be the average fee that the card scheme NexPay would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1510": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 100 EUR?"
+  },
+  "1401": {
+   "family": "F07",
+   "template": "for account type <letter> and the mcc description: taxicabs and limousines, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals",
+   "level": "hard",
+   "question": "For account type H and the MCC description: Taxicabs and Limousines, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 10 EUR? Provide the answer in EUR and 6 decimals"
+  },
+  "1512": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 500 EUR?"
+  },
+  "2499": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Golfclub_Baron_Friso pay if the relative fee of the fee with ID=595 changed to 1?"
+  },
+  "2511": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Rafa_AI pay if the relative fee of the fee with ID=384 changed to 1?"
+  },
+  "1866": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Rafa_AI paid in August 2023?"
+  },
+  "39": {
+   "family": "F12",
+   "template": "what is the percentage of transactions below the <nth> percentile of transaction amounts?",
+   "level": "easy",
+   "question": "What is the percentage of transactions below the 25th percentile of transaction amounts?"
+  },
+  "2482": {
+   "family": "F04",
+   "template": "in the year <year> what delta would <merchant> pay if the relative fee of the fee with id=<n> changed to <n>?",
+   "level": "hard",
+   "question": "In the year 2023 what delta would Crossfit_Hanna pay if the relative fee of the fee with ID=384 changed to 99?"
+  },
+  "1773": {
+   "family": "F01",
+   "template": "what were the applicable fee ids for <merchant> in <month> <year>?",
+   "level": "hard",
+   "question": "What were the applicable Fee IDs for Crossfit_Hanna in November 2023?"
+  },
+  "2711": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Rafa_AI in March, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "2532": {
+   "family": "F05",
+   "template": "imagine the merchant <merchant> had changed its mcc code to <n> before <year> started, what amount delta will it have to pay in fees for the year <year>?",
+   "level": "hard",
+   "question": "Imagine the merchant Belles_cookbook_store had changed its MCC code to 7523 before 2023 started, what amount delta will it have to pay in fees for the year 2023?"
+  },
+  "1645": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type F, what would be the average fee that the card scheme GlobalCard would charge for a transaction value of 4321 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "2664": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of September, to which card scheme should the merchant Martinis_Fine_Steakhouse steer traffic in order to pay the minimum fees?"
+  },
+  "1594": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type H, what would be the average fee that the card scheme NexPay would charge for a transaction value of 100 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "1278": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme NexPay would charge for a transaction value of 50 EUR?"
+  },
+  "1743": {
+   "family": "F01",
+   "template": "what are the applicable fee ids for <merchant> in <year>?",
+   "level": "hard",
+   "question": "What are the applicable fee IDs for Golfclub_Baron_Friso in 2023?"
+  },
+  "1506": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the most expensive fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the most expensive fee for a transaction value of 10 EUR?"
+  },
+  "1682": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 12th of the year 2023, what are the Fee IDs applicable to Belles_cookbook_store?"
+  },
+  "2715": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Martinis_Fine_Steakhouse in April, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "1515": {
+   "family": "F08",
+   "template": "in the average scenario, which card scheme would provide the cheapest fee for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "In the average scenario, which card scheme would provide the cheapest fee for a transaction value of 5000 EUR?"
+  },
+  "1713": {
+   "family": "F03",
+   "template": "for the <nth> of the year <year>, what is the total fees (in euros) that <merchant> should pay?",
+   "level": "hard",
+   "question": "For the 100th of the year 2023, what is the total fees (in euros) that Belles_cookbook_store should pay?"
+  },
+  "1851": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <month> <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Martinis_Fine_Steakhouse paid in May 2023?"
+  },
+  "1699": {
+   "family": "F01",
+   "template": "for the <nth> of the year <year>, what are the fee ids applicable to <merchant>?",
+   "level": "hard",
+   "question": "For the 10th of the year 2023, what are the Fee IDs applicable to Martinis_Fine_Steakhouse?"
+  },
+  "1747": {
+   "family": "F03",
+   "template": "what are the total fees (in euros) that <merchant> paid in <year>?",
+   "level": "hard",
+   "question": "What are the total fees (in euros) that Crossfit_Hanna paid in 2023?"
+  },
+  "2755": {
+   "family": "F10",
+   "template": "for <merchant> in <month>, if we were to move the fraudulent transactions towards a different authorization characteristics indicator (aci) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?",
+   "level": "hard",
+   "question": "For Martinis_Fine_Steakhouse in December, if we were to move the fraudulent transactions towards a different Authorization Characteristics Indicator (ACI) by incentivizing users to use a different interaction, what would be the preferred choice considering the lowest possible fees?"
+  },
+  "49": {
+   "family": "F12",
+   "template": "what is the top country (ip_country) for fraud? a. nl, b. be, c. es, d. fr",
+   "level": "easy",
+   "question": "What is the top country (ip_country) for fraud? A. NL, B. BE, C. ES, D. FR"
+  },
+  "2608": {
+   "family": "F09",
+   "template": "looking at the month of <month>, to which card scheme should the merchant <merchant> steer traffic in order to pay the minimum fees?",
+   "level": "hard",
+   "question": "Looking at the month of April, to which card scheme should the merchant Belles_cookbook_store steer traffic in order to pay the minimum fees?"
+  },
+  "1494": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = S and aci = D?"
+  },
+  "33": {
+   "family": "F12",
+   "template": "how many unique shoppers are there in the payments dataset based on email addresses?",
+   "level": "easy",
+   "question": "How many unique shoppers are there in the payments dataset based on email addresses?"
+  },
+  "1675": {
+   "family": "F07",
+   "template": "for account type <letter>, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur? provide the answer in eur and <n> decimals.",
+   "level": "hard",
+   "question": "For account type S, what would be the average fee that the card scheme SwiftCharge would charge for a transaction value of 1234 EUR? Provide the answer in EUR and 6 decimals."
+  },
+  "2557": {
+   "family": "F06",
+   "template": "during <year>, imagine if the fee with id <n> was only applied to account type <letter>, which merchants would have been affected by this change?",
+   "level": "hard",
+   "question": "During 2023, imagine if the Fee with ID 64 was only applied to account type S, which merchants would have been affected by this change?"
+  },
+  "1493": {
+   "family": "F02",
+   "template": "what is the fee id or ids that apply to account_type = <letter> and aci = <letter>?",
+   "level": "hard",
+   "question": "What is the fee ID or IDs that apply to account_type = S and aci = C?"
+  },
+  "1296": {
+   "family": "F07",
+   "template": "for credit transactions, what would be the average fee that the card scheme <scheme> would charge for a transaction value of <n> eur?",
+   "level": "hard",
+   "question": "For credit transactions, what would be the average fee that the card scheme TransactPlus would charge for a transaction value of 5000 EUR?"
+  }
+ }
+}

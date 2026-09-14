@@ -1,0 +1,6678 @@
+{
+ "embedding": {
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "k": 12,
+  "silhouette": {
+   "8": 0.2344,
+   "9": 0.2423,
+   "10": 0.2593,
+   "11": 0.2518,
+   "12": 0.2778,
+   "13": 0.2805,
+   "14": 0.2848,
+   "15": 0.2753,
+   "16": 0.3132
+  },
+  "seed": 0
+ },
+ "membership_model": "sonnet",
+ "tokens": {
+  "in": 627584,
+  "out": 17429
+ },
+ "summaries": {
+  "C00": "These questions ask which merchants would be affected by a given fee rule (identified by id), either as observed in a year, or under a hypothetical where the fee applied only to a specified account type. Answering requires filtering the fee-rule table for the given fee id, checking its applicability conditions (account type, and other rule attributes), then cross-referencing transactions/merchants in the specified year to determine which merchants have transactions matching those conditions, and listing the affected merchant set.",
+  "C01": "This cluster covers merchant-level fee computations: total fees paid over a day/month/year, applicable fee ids for a period, and hypothetical deltas from changing a fee's relative rate, a merchant's MCC code, or the excessive-retry fee. Answering requires filtering transactions by merchant and period, applying the fee-rule table to compute actual fees, then recomputing fees under the modified parameter to find the difference, plus reading manual text for factors affecting fee cheapness.",
+  "C02": "These questions compute or compare average fees charged by card schemes for a hypothetical transaction of a given value, sliced by credit-transaction type, account type, or account type plus specific MCC descriptions, expressed in euros to a given decimal precision. Others ask which scheme is cheapest/most expensive on average, what factors lower fee rates, the volume threshold where fees stop decreasing, and the overall average transaction amount. Answering requires averaging applicable fee-rule formulas across matching rules and comparing across schemes.",
+  "C03": "This cluster asks for merchant-specific fee details over a day, month, or year: applicable fee ids, total fees paid, and hypothetical deltas from changing a fee's relative rate, plus one question on fraud-fine risk. Answering requires filtering transactions by merchant and period, matching them to applicable fee rules, summing computed fees, and for deltas, recomputing totals under the altered rate to find the difference; the fraud question needs comparing merchant fraud rate against a threshold.",
+  "C04": "These questions ask which MCC (merchant category code) is the most expensive, in general, for a hypothetical transaction of a given euro amount, requiring all tied MCCs to be listed even if only one exists. Answering requires computing the applicable fee for that transaction value under each MCC's matching fee rules, comparing the resulting fees across all MCCs, and identifying the maximum (with ties).",
+  "C05": "This cluster asks for merchant-specific fee information over a day, month, or year: which fee ids apply and what total fees (in euros) the merchant should pay/paid. Answering requires filtering transactions for the merchant within the specified period, matching each transaction to applicable fee rules, and either listing the distinct fee ids involved or summing the computed fee amounts.",
+  "C06": "These questions ask, for a merchant in a given month or year, which authorization characteristics indicator (ACI) fraudulent transactions should be shifted toward to minimize fees, framed as incentivizing shoppers to use a different payment interaction. Answering requires identifying the merchant's fraudulent transactions, determining candidate ACIs, computing the fee each ACI would incur under applicable fee rules, and selecting the ACI yielding the lowest total/average fee.",
+  "C07": "These questions ask which fee id(s) apply to a specific combination of account type and ACI (authorization characteristics indicator), plus one question asking for the full list of possible account_type values. Answering requires filtering the fee-rule table for rules matching the given account type and ACI conditions and listing the matching fee ids, or reading the manual/data schema for allowed account_type values.",
+  "C08": "These questions ask, for a merchant in a given month or year, which card scheme the merchant should steer transaction traffic toward to minimize or maximize total fees paid, plus one question on the most commonly used card scheme overall. Answering requires computing the fees the merchant's transactions would incur under each available card scheme via the fee-rule table, comparing totals per scheme, and selecting the minimum or maximum, or tallying scheme usage counts.",
+  "C09": "These questions ask, for a hypothetical credit transaction of a given euro amount on a specified card scheme, which ACI (authorization characteristics indicator) would be most expensive, with ties broken alphabetically and answers given as a list; one question asks for all possible ACI field values. Answering requires computing the fee for that transaction value under each ACI's applicable fee rules for the given scheme, comparing results, and identifying the maximum (with alphabetical tie-break), or reading the schema for ACI values.",
+  "C10": "This large, template-diverse cluster mostly asks for the average transaction value for a given merchant and card scheme over a date range, grouped by a dimension (issuing_country, aci, device_type, acquirer_country, shopper_interaction, or ip_country). Remaining questions cover various one-off dataset statistics: fraud rate comparisons between ecommerce and in-store or in-person transactions in a year, percentage of credit-card transactions, most common device type in fraud, duplicate-row detection, and revenue share of top-n merchants. Answering requires filtering/grouping the transactions table and computing averages, rates, percentages, or counts as specified.",
+  "C11": "This cluster asks for merchant-specific fee details over a day, month, or year: which fee ids applied and the total fees (in euros) paid/owed. Answering requires filtering transactions for the merchant within the specified period, matching transactions to applicable fee rules, and either listing distinct applicable fee ids or summing computed fee amounts to produce a total."
+ },
+ "cluster_to_family": {
+  "lens2": {
+   "C10": "F12",
+   "C02": "F07",
+   "C08": "F09",
+   "C01": "F04",
+   "C07": "F02",
+   "C09": "F08",
+   "C03": "F03",
+   "C04": "F08",
+   "C05": "F01",
+   "C11": "F01",
+   "C00": "F06",
+   "C06": "F10"
+  },
+  "lens3": {
+   "C10": "F12",
+   "C02": "F07",
+   "C08": "F09",
+   "C01": "F04",
+   "C07": "F02",
+   "C09": "F08",
+   "C03": "F12",
+   "C04": "F08",
+   "C05": "F01",
+   "C11": "F03",
+   "C00": "F06",
+   "C06": "F10"
+  }
+ },
+ "agreement": {
+  "ari": {
+   "l1_l2": 0.5823,
+   "l1_l3": 0.6631,
+   "l2_l3": 0.8134
+  },
+  "confusion": {
+   "l1_l2": {
+    "F12": {
+     "C10": 61,
+     "C02": 4,
+     "C08": 1,
+     "C01": 3,
+     "C07": 1,
+     "C09": 1,
+     "C03": 1
+    },
+    "F11": {
+     "C10": 20
+    },
+    "F07": {
+     "C02": 60
+    },
+    "F08": {
+     "C04": 10,
+     "C09": 20,
+     "C02": 16
+    },
+    "F02": {
+     "C07": 20
+    },
+    "F01": {
+     "C05": 12,
+     "C11": 18,
+     "C01": 7,
+     "C03": 8
+    },
+    "F03": {
+     "C05": 10,
+     "C11": 17,
+     "C01": 9,
+     "C03": 9
+    },
+    "F04": {
+     "C01": 35,
+     "C03": 5
+    },
+    "F06": {
+     "C00": 27
+    },
+    "F05": {
+     "C01": 20
+    },
+    "F09": {
+     "C08": 30
+    },
+    "F10": {
+     "C06": 25
+    }
+   },
+   "l1_l3": {
+    "F12": {
+     "C10": 61,
+     "C02": 6,
+     "C08": 1,
+     "C01": 1,
+     "C07": 1,
+     "C09": 1,
+     "C03": 1
+    },
+    "F11": {
+     "C10": 20
+    },
+    "F07": {
+     "C02": 60
+    },
+    "F08": {
+     "C04": 10,
+     "C09": 20,
+     "C02": 16
+    },
+    "F02": {
+     "C07": 20
+    },
+    "F01": {
+     "C05": 45
+    },
+    "F03": {
+     "C05": 33,
+     "C11": 12
+    },
+    "F04": {
+     "C01": 40
+    },
+    "F06": {
+     "C00": 27
+    },
+    "F05": {
+     "C01": 20
+    },
+    "F09": {
+     "C08": 30
+    },
+    "F10": {
+     "C06": 25
+    }
+   }
+  },
+  "boundary_count": 198,
+  "split_count": 133
+ },
+ "tasks": {
+  "1": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "2": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "3": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "4": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "5": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "6": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "7": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "8": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "9": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "10": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "11": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "12": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.85
+    },
+    {
+     "cluster": "C10",
+     "confidence": 0.4
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C08 is mostly F09",
+    "lens 3 top cluster C08 is mostly F09",
+    "lens 3 split: C08 0.85 / C10 0.40"
+   ]
+  },
+  "13": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "14": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": []
+  },
+  "15": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "16": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "17": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "18": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "19": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "20": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "21": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "22": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "23": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "24": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "25": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "26": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "27": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "28": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "29": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "30": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "31": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "32": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "33": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "34": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "35": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "36": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "37": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "38": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "39": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "40": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "41": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "42": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "43": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "44": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "45": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "46": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "47": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "48": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "49": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": []
+  },
+  "50": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "51": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "52": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "53": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "54": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "55": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.75
+    }
+   ],
+   "boundary": []
+  },
+  "56": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "57": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "58": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "59": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "60": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": []
+  },
+  "61": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": []
+  },
+  "62": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C02",
+     "confidence": 0.4
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04",
+    "lens 3 split: C01 0.60 / C02 0.40"
+   ]
+  },
+  "63": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C07 is mostly F02",
+    "lens 3 top cluster C07 is mostly F02"
+   ]
+  },
+  "64": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C09 is mostly F08",
+    "lens 3 top cluster C09 is mostly F08"
+   ]
+  },
+  "65": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "66": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.8
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "67": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "68": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "69": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.85
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "70": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C03",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 top cluster C03 is mostly F03"
+   ]
+  },
+  "71": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.4
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C10 0.60 / C03 0.40"
+   ]
+  },
+  "72": {
+   "family": "F12",
+   "level": "easy",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": []
+  },
+  "178": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "341": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "347": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "375": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "382": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "402": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "471": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "617": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "623": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "625": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "682": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "793": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "842": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "883": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "889": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "916": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "973": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "1012": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "1217": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "1234": {
+   "family": "F11",
+   "level": "hard",
+   "lens2": "C10",
+   "lens3": [
+    {
+     "cluster": "C10",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C10 is mostly F12",
+    "lens 3 top cluster C10 is mostly F12"
+   ]
+  },
+  "1274": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1275": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1277": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1278": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1279": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1280": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1281": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1286": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1287": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1289": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1290": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1292": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1294": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1295": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1296": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1297": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1299": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1300": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1301": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1302": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1305": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1308": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1312": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1331": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1336": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1341": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1343": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1344": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1347": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1348": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1358": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1365": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1366": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1385": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1394": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1401": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1417": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1420": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1427": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1431": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1433": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1434": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1435": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1436": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1437": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1438": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1439": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1440": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1441": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1442": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C04",
+   "lens3": [
+    {
+     "cluster": "C04",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1443": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1444": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1445": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1446": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1447": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1448": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1449": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1450": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1451": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1452": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1453": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1454": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1455": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1456": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1457": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1458": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1459": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1460": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1461": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1462": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C09",
+   "lens3": [
+    {
+     "cluster": "C09",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1463": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1465": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1467": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1470": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1472": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1473": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1474": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1475": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1477": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1480": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1484": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1485": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1486": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1489": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1493": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1494": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1497": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1500": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "1502": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1504": {
+   "family": "F02",
+   "level": "hard",
+   "lens2": "C07",
+   "lens3": [
+    {
+     "cluster": "C07",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1505": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1506": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1507": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1508": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1509": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1510": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1511": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1512": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1513": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1514": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1515": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1516": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1517": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1518": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1519": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1520": {
+   "family": "F08",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C02 is mostly F07",
+    "lens 3 top cluster C02 is mostly F07"
+   ]
+  },
+  "1531": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1538": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1570": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1574": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1577": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1584": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1593": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1594": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1604": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1615": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1631": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1636": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1641": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1643": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1645": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1646": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1674": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1675": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1676": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1679": {
+   "family": "F07",
+   "level": "hard",
+   "lens2": "C02",
+   "lens3": [
+    {
+     "cluster": "C02",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "1681": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1682": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1683": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1684": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1685": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1686": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1687": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1688": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1689": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1694": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1696": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1698": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1699": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1700": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1701": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1702": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1704": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1705": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1706": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1709": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1711": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1712": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1713": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1715": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1716": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1717": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1720": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1721": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1722": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1723": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1724": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1728": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1729": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1730": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1731": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1732": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1734": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1738": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1739": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1740": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1741": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1742": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1743": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1744": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1745": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1746": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1747": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1748": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1749": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1750": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1752": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1753": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.60 / C11 0.60"
+   ]
+  },
+  "1756": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1757": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1760": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1763": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1765": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1769": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1771": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1773": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1775": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1780": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1784": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1789": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1791": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1799": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1801": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1805": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1808": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1810": {
+   "family": "F01",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C05 0.70 / C11 0.60"
+   ]
+  },
+  "1817": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1818": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1819": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1822": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C05",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C05 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1823": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1826": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1829": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1834": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1835": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1837": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1840": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1841": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C05",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C11 is mostly F01",
+    "lens 3 split: C11 0.70 / C05 0.60"
+   ]
+  },
+  "1846": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1851": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1853": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1857": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1861": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1862": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1866": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1868": {
+   "family": "F03",
+   "level": "hard",
+   "lens2": "C11",
+   "lens3": [
+    {
+     "cluster": "C05",
+     "confidence": 0.7
+    },
+    {
+     "cluster": "C11",
+     "confidence": 0.7
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C11 is mostly F01",
+    "lens 3 top cluster C05 is mostly F01",
+    "lens 3 split: C05 0.70 / C11 0.70"
+   ]
+  },
+  "1875": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "1892": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "1931": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "1966": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2057": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2121": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2132": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2229": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2264": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2316": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2366": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2385": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2397": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2404": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2407": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2412": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2419": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2439": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2441": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2463": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2477": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2478": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.6
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.60"
+   ]
+  },
+  "2480": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2481": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2482": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2484": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2485": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2489": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2490": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2491": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2493": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2494": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2496": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2499": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2506": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2507": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2509": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C03",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C03 is mostly F03",
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2511": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2518": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2520": {
+   "family": "F04",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    },
+    {
+     "cluster": "C03",
+     "confidence": 0.5
+    }
+   ],
+   "boundary": [
+    "lens 3 split: C01 0.90 / C03 0.50"
+   ]
+  },
+  "2521": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2522": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2523": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2524": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2525": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2526": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2527": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2528": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2529": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2530": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2532": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2533": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2534": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2535": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2536": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2537": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2538": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2539": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2543": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2544": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2545": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2546": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2547": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2549": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2550": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2551": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2552": {
+   "family": "F05",
+   "level": "hard",
+   "lens2": "C01",
+   "lens3": [
+    {
+     "cluster": "C01",
+     "confidence": 0.9
+    }
+   ],
+   "boundary": [
+    "lens 2 cluster C01 is mostly F04",
+    "lens 3 top cluster C01 is mostly F04"
+   ]
+  },
+  "2553": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2554": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2555": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2556": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2557": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2558": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2559": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2561": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2562": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2563": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2564": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2565": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2566": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2568": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2569": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2571": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2573": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2574": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2575": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2576": {
+   "family": "F06",
+   "level": "hard",
+   "lens2": "C00",
+   "lens3": [
+    {
+     "cluster": "C00",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2578": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2581": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2583": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2584": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2587": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2589": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2606": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2608": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2619": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2623": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2628": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2634": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2641": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2644": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2652": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2664": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2674": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2675": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2678": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2691": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2699": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2703": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2708": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2710": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2711": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2712": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2713": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2715": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2719": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2725": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2727": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2728": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2729": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2731": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2740": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2741": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2746": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2748": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2751": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2755": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2757": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2758": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2759": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2760": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2761": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2762": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2763": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2764": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2765": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2766": {
+   "family": "F09",
+   "level": "hard",
+   "lens2": "C08",
+   "lens3": [
+    {
+     "cluster": "C08",
+     "confidence": 0.97
+    }
+   ],
+   "boundary": []
+  },
+  "2767": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2768": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2769": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2770": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  },
+  "2771": {
+   "family": "F10",
+   "level": "hard",
+   "lens2": "C06",
+   "lens3": [
+    {
+     "cluster": "C06",
+     "confidence": 0.95
+    }
+   ],
+   "boundary": []
+  }
+ }
+}

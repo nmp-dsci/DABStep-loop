@@ -28,6 +28,12 @@ dependencies = [
 [project.scripts]
 dabstep = "dabstep_loop.cli:app"
 
+[project.optional-dependencies]
+lenses = [
+    "scikit-learn>=1.5",
+    "sentence-transformers>=3",
+]
+
 [dependency-groups]
 dev = [
   "pytest>=8.3",
