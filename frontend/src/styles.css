@@ -136,3 +136,7 @@ summary{cursor:pointer;color:var(--accent);font-weight:500;min-height:24px}
 .code.diff .del{display:block;background:var(--amber-soft);color:var(--ink)}
 .code.diff .hunk{display:block;color:var(--faint);margin-top:var(--s3)}
 .code.diff .ctx{display:block;color:var(--ink-2)}
+
+.code.diff .note{background:var(--band);border-left:3px solid var(--accent);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:var(--s3) var(--s4);margin:var(--s4) 0 var(--s2);font:400 var(--t-1)/1.5 var(--sans);color:var(--ink-2);max-width:var(--measure)}
+.code.diff .note .label{display:block;margin-bottom:var(--s1)}
+.code.diff .note b{color:var(--ink)}

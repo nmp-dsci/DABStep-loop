@@ -167,6 +167,21 @@ def create_app() -> FastAPI:
                 }
             )
         diag = vb.path / "diagnosis.json"
+        diagnosis = json.loads(diag.read_text()) if diag.exists() else None
+        change_log: dict[str, Any] | None = None
+        if diagnosis and diagnosis.get("changes"):
+            change_log = {"source": "in-session", "changes": diagnosis["changes"]}
+        elif (vb.path / "change_log.json").exists():
+            change_log = json.loads((vb.path / "change_log.json").read_text())
+        transcript_path = vb.path / "optimiser_transcript.json"
+        closing = None
+        if transcript_path.exists():
+            prose = [
+                m["content"]
+                for m in json.loads(transcript_path.read_text())
+                if m.get("role") == "assistant"
+            ]
+            closing = prose[-1] if prose else None
         cycles = [e for e in read_ledger() if e.get("challenger") == b]
         runs_a = [m.__dict__ for m in list_runs() if m.agent == a and m.summary]
         runs_b = [m.__dict__ for m in list_runs() if m.agent == b and m.summary]
@@ -174,7 +189,9 @@ def create_app() -> FastAPI:
             "a": {"name": a, "fingerprint": va.fingerprint, "runs": runs_a},
             "b": {"name": b, "fingerprint": vb.fingerprint, "runs": runs_b},
             "files": files,
-            "diagnosis": json.loads(diag.read_text()) if diag.exists() else None,
+            "diagnosis": diagnosis,
+            "change_log": change_log,
+            "closing_account": closing,
             "cycles": cycles,
         }
 

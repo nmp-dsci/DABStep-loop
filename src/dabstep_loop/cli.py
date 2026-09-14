@@ -147,6 +147,15 @@ def reflect(run_id: str | None = None, model: str = "sonnet") -> None:
 
 
 @app.command()
+def annotate(version: str, model: str = "sonnet") -> None:
+    """Write agents/<version>/change_log.json from the optimiser's own record (post-hoc)."""
+    from dabstep_loop.loop.annotate import annotate as _annotate
+
+    out = asyncio.run(_annotate(version, model=model))
+    console.print(f"{len(out['changes'])} changes annotated for {version}")
+
+
+@app.command()
 def ledger() -> None:
     """Print the loop ledger."""
     from dabstep_loop.loop.ledger import read_ledger

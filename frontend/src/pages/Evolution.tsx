@@ -4,13 +4,35 @@ import { type AgentInfo, type Diagnosis, type LedgerEntry, type Registry, type R
 
 type Side = { name: string; fingerprint: string; runs: RunMeta[] };
 type DiffFile = { name: string; changed: boolean; added: number; removed: number; diff: string[]; before: string; after: string };
+type Change = { file: string; anchor: string; what: string; why: string; task_ids: string[] };
 type DiffPayload = {
   a: Side;
   b: Side;
   files: DiffFile[];
+  change_log: { source: 'in-session' | 'post-hoc'; changes: Change[] } | null;
+  closing_account: string | null;
   diagnosis: { diagnoses: Diagnosis[]; prompt_diff_summary: string; helper_diff_summary: string; expected_to_fix: string[]; risks: string[] } | null;
   cycles: LedgerEntry[];
 };
+
+type Hunk = { header: string; lines: string[] };
+
+function hunks(diff: string[]): Hunk[] {
+  const out: Hunk[] = [];
+  for (const line of diff.slice(2)) {
+    if (line.startsWith('@@')) out.push({ header: line, lines: [] });
+    else out[out.length - 1]?.lines.push(line);
+  }
+  return out;
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9_]+/g, ' ').trim();
+
+/** The change-log entries whose anchor text appears in this hunk's added or removed lines. */
+function commentaryFor(h: Hunk, changes: Change[], file: string): Change[] {
+  const body = norm(h.lines.filter((l) => l.startsWith('+') || l.startsWith('-')).join(' '));
+  return changes.filter((c) => c.file === file && c.anchor && body.includes(norm(c.anchor).split(' ').slice(0, 5).join(' ')));
+}
 
 function best(runs: RunMeta[]): RunMeta | undefined {
   return runs.filter((r) => r.split === 'dev' && r.summary?.n_scored).slice(-1)[0];
@@ -150,21 +172,86 @@ export function Evolution() {
               </button>
             ))}
           </div>
+          {data.change_log && (
+            <p className="small muted">
+              Commentary above each hunk comes from the version's change log —{' '}
+              {data.change_log.source === 'in-session' ? (
+                <span className="v-ok">written by the optimiser in the same session as the edit.</span>
+              ) : (
+                <span className="v-warn">annotated post hoc by a read-only session from the optimiser's own diagnosis and transcript; edits whose reason the record does not state say so.</span>
+              )}
+            </p>
+          )}
           {cur && (
             <div className="code diff">
               {cur.changed ? (
-                <pre>
-                  {cur.diff.map((line, i) => (
-                    <span key={i} className={line.startsWith('+') && !line.startsWith('+++') ? 'add' : line.startsWith('-') && !line.startsWith('---') ? 'del' : line.startsWith('@@') ? 'hunk' : 'ctx'}>
-                      {line}
-                      {'\n'}
-                    </span>
-                  ))}
-                </pre>
+                <>
+                  {hunks(cur.diff).map((h, hi) => {
+                    const notes = data.change_log ? commentaryFor(h, data.change_log.changes, cur.name) : [];
+                    return (
+                      <div key={hi}>
+                        {notes.map((c, ci) => (
+                          <div key={ci} className="note">
+                            <span className="label">why · tasks {c.task_ids.join(', ') || '—'}</span>
+                            <b>{c.what}</b> {c.why}
+                          </div>
+                        ))}
+                        <pre>
+                          <span className="hunk">{h.header}{'\n'}</span>
+                          {h.lines.map((line, i) => (
+                            <span key={i} className={line.startsWith('+') ? 'add' : line.startsWith('-') ? 'del' : 'ctx'}>
+                              {line}
+                              {'\n'}
+                            </span>
+                          ))}
+                        </pre>
+                      </div>
+                    );
+                  })}
+                </>
               ) : (
                 <pre className="muted">{cur.name} is identical in {data.a.name} and {data.b.name}{cur.name === 'agent.yaml' ? ' — frozen by design' : ''}.</pre>
               )}
             </div>
+          )}
+
+          {data.change_log && (
+            <>
+              <h2>3 · The change log — every edit, what it does, and the evidence for it</h2>
+              <div className="tw">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>file</th>
+                      <th>anchor</th>
+                      <th>what</th>
+                      <th>why</th>
+                      <th>tasks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.change_log.changes.map((c, i) => (
+                      <tr key={i}>
+                        <td className="mono">{c.file}</td>
+                        <td className="mono small wrap">{c.anchor}</td>
+                        <td className="wrap">{c.what}</td>
+                        <td className={`wrap ${/not stated/i.test(c.why) ? 'v-warn' : ''}`}>{c.why}</td>
+                        <td className="mono">{c.task_ids.join(', ') || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+          {data.closing_account && (
+            <>
+              <h2>4 · In the optimiser's own words — its closing account of the session</h2>
+              <div className="code">
+                <pre>{data.closing_account}</pre>
+              </div>
+              <p className="small muted">The last message of <code>agents/{data.b.name}/optimiser_transcript.json</code>, verbatim.</p>
+            </>
           )}
         </>
       )}
