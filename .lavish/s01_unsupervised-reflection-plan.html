@@ -540,6 +540,35 @@ March 2023?" → helper.total_fees_paid(p, f, "Crossfit_Hanna", 2023, 3)
       <tr><td class="num">5</td><td class="num">60 + siblings ≈ 66</td><td class="num">264</td><td class="num">≈ 91M</td><td class="num">≈ 3M</td><td class="num">≈ 94M</td><td>close to a fifth of the 450 each cycle; only worth it once the cards are mostly verified</td></tr>
     </tbody></table></div>
   <p class="insight">A cycle at k = 3 costs roughly twenty dev-10 evaluations (2.66M tokens each on v2). Halving it is easy: PASSES=1 drops S2 and the spend by half; verified families at k = 1 shrink the sample as cards mature.</p>
+  <div class="hd" style="margin-top:var(--s7)"><p class="label">8b · cost guide</p>
+  <h3 style="font-size:var(--t2)">8b · Cost guide — the whole build is about 95M tokens, about $32 at API list prices, $0 marginal on the subscription</h3>
+  <ul class="tight">
+    <li><b>Measured rates, not guesses:</b> v2's dev-10 run cost $0.63 for 2.62M input (cache reads included) and 36k output tokens, $0.063 per task, as reported by the SDK; a hard task averages 339k in / 4.7k out, ≈ $0.08. Cycle 3's optimiser session cost $1.27 for 2.05M in / 47k out; cycle 1's $1.97 for 3.85M in / 60k out. Source: <code>runs/20260914T034447Z_v2_dev_haiku</code>, <code>loop/ledger.jsonl</code>.</li>
+    <li><b>Dollars are what the API would bill;</b> dev runs are on the subscription, where the binding limit is the usage window, not money. A cycle at k = 3 is roughly twenty dev-10 evaluations' worth of window.</li>
+    <li><b>Effort:</b> those rates were at the SDK default effort; every session now runs at medium (<code>llm.EFFORT</code>), so expect the same or lower.</li>
+  </ul>
+  <div class="tw"><table>
+    <caption>Per stage · k = 3, two passes · Haiku for probes and evals, Sonnet 5 for lenses, reflector and optimiser · $ at the SDK-reported rates above</caption>
+    <thead><tr><th>Stage</th><th>Once / per cycle</th><th>Model</th><th>Calls</th><th>Tokens</th><th>≈ $</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">U0 lenses: summaries + membership pass</td><td>once</td><td>Sonnet</td><td class="num">≈ 27</td><td class="num">0.2M</td><td class="num">0.5</td><td>450 questions in batches of 30 with 12 summaries in context</td></tr>
+      <tr><td class="sub">U0 embeddings</td><td>once</td><td>local</td><td class="num">1</td><td class="num">0</td><td class="num">0</td><td>sentence model on the laptop</td></tr>
+      <tr><td class="sub">Probe: champion, 42 tasks × 2 passes</td><td>per cycle</td><td>Haiku</td><td class="num">84</td><td class="num">29M</td><td class="num">6.7</td><td>84 × 339k in, 4.7k out; $0.08 each</td></tr>
+      <tr><td class="sub">Reflector: 12 family cards</td><td>per cycle</td><td>Sonnet</td><td class="num">1 session</td><td class="num">1.5M</td><td class="num">1.5–2</td><td>current reflect was 0.39M in for 10 traces; 84 condensed traces + signals + cards</td></tr>
+      <tr><td class="sub">Optimiser → v(N+1)</td><td>per cycle</td><td>Sonnet</td><td class="num">1 session</td><td class="num">3M</td><td class="num">2</td><td>cycle 3 was 2.05M / $1.27; the cards block adds ≈ 1M</td></tr>
+      <tr><td class="sub">Paired eval: challenger on dev-10</td><td>per cycle</td><td>Haiku</td><td class="num">10</td><td class="num">2.7M</td><td class="num">0.6</td><td>the v2 run, measured</td></tr>
+      <tr><td class="sub">Paired eval: challenger on the same 42 × 2</td><td>per cycle</td><td>Haiku</td><td class="num">84</td><td class="num">29M</td><td class="num">6.7</td><td>as the probe</td></tr>
+      <tr class="pro"><td class="sub">One unsupervised cycle (U6)</td><td>per cycle</td><td>—</td><td class="num">≈ 180</td><td class="num">≈ 65M</td><td class="num">≈ 18</td><td>sum of the per-cycle rows</td></tr>
+      <tr><td class="sub">U3 first probe + cards (before any optimiser)</td><td>once</td><td>—</td><td class="num">≈ 85</td><td class="num">≈ 31M</td><td class="num">≈ 8.5</td><td>probe + reflector rows</td></tr>
+      <tr class="pro"><td class="sub">Whole build U0–U6, one cycle</td><td>once</td><td>—</td><td class="num">≈ 290</td><td class="num">≈ 95M</td><td class="num">≈ 32</td><td>lenses + U3 + U6; U1, U2, U4, U5 call no model</td></tr>
+      <tr><td class="sub">Each further cycle</td><td>per cycle</td><td>—</td><td class="num">≈ 180</td><td class="num">≈ 65M</td><td class="num">≈ 18</td><td>drops as verified families fall to k = 1</td></tr>
+      <tr><td class="sub">Later, M8: the 450 once, 1 pass</td><td>once</td><td>Haiku</td><td class="num">450</td><td class="num">≈ 140M</td><td class="num">≈ 34</td><td>378 hard × 339k + 72 easy × 85k; not in this build</td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s4)">
+    <li><b>Cheapest useful cut:</b> PASSES=1 halves both Haiku rows (a cycle ≈ 36M, ≈ $10) at the price of the self-agreement signal.</li>
+    <li><b>Where the money is:</b> 90% of a cycle is Haiku running probes; the Sonnet sessions are under $5 together. Sample size is the only lever that matters.</li>
+    <li><b>Wall clock:</b> a hard task runs 30–120 s; 84 probe runs at 3 workers ≈ 1 h; a cycle ≈ 2.5 h end to end.</li>
+  </ul>
   <form class="q" data-lavish-question="k" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const k=fd.get('k'); if(!k) return; window.lavish.queuePrompt('Probe sample size: ' + k, {tag:'decision', text:'k = '+k, element:event.currentTarget, data:{question:'k', answer:k}}); event.currentTarget.querySelector('.queued').textContent='queued: '+k;">
     <h3>Sample size per family for the first cycle</h3>
     <label><input type="radio" name="k" value="k=3 with PASSES=2 (≈ 60M tokens per cycle)" checked><span>k = 3, two passes<span class="rec">recommended</span></span></label>
