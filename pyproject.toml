@@ -78,3 +78,7 @@ ignore_errors = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-q -p no:warnings"
+
+[[tool.mypy.overrides]]
+module = ["sentence_transformers.*", "sklearn.*"]
+ignore_missing_imports = true

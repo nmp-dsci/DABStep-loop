@@ -115,8 +115,8 @@ def embed_and_cluster(
     `uv sync --extra lenses`."""
     try:
         from sentence_transformers import SentenceTransformer
-        from sklearn.cluster import KMeans  # type: ignore[import-untyped]
-        from sklearn.metrics import silhouette_score  # type: ignore[import-untyped]
+        from sklearn.cluster import KMeans
+        from sklearn.metrics import silhouette_score
     except ImportError as e:  # pragma: no cover - environment
         raise SystemExit("lens 2 needs the optional group: uv sync --extra lenses") from e
 
