@@ -1,0 +1,134 @@
+{
+ "experiment": "dabstep-loop",
+ "tracking_uri": "http://127.0.0.1:5600",
+ "runs": [
+  {
+   "mlflow_run_id": "5f34b51ae63a46018d739d89cdfdc780",
+   "name": "cycle-2",
+   "status": "FINISHED",
+   "start_time": 1789354121490,
+   "end_time": 1789354121523,
+   "tags": {
+    "kind": "reflect",
+    "champion": "v1",
+    "challenger": "None",
+    "verdict": "recorded"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_reflect_in": 394125.0,
+    "tokens_reflect_out": 16668.0
+   }
+  },
+  {
+   "mlflow_run_id": "0e0b224a7cb4478aa66903c7956a7aa6",
+   "name": "cycle-1",
+   "status": "FINISHED",
+   "start_time": 1789353895902,
+   "end_time": 1789353895937,
+   "tags": {
+    "kind": "cycle",
+    "champion": "v0",
+    "challenger": "v1",
+    "verdict": "hold"
+   },
+   "params": {},
+   "metrics": {
+    "tokens_optimiser_in": 3854819.0,
+    "tokens_optimiser_out": 60389.0
+   }
+  },
+  {
+   "mlflow_run_id": "466d34a27b634ee6ab4795d6e92bd911",
+   "name": "20260914T024154Z_v1_dev_haiku",
+   "status": "FINISHED",
+   "start_time": 1789353895701,
+   "end_time": 1789353895834,
+   "tags": {
+    "agent": "v1",
+    "fingerprint": "9c7a0a0a4daf",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v1",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "workers": "3",
+    "passes": "1",
+    "n_tasks": "10",
+    "fingerprint": "9c7a0a0a4daf"
+   },
+   "metrics": {
+    "passed": 8.0,
+    "pass_rate": 0.8,
+    "easy_passed": 3.0,
+    "hard_passed": 5.0,
+    "cost_usd": 0.6343671000000001,
+    "duration_s": 403.982,
+    "errors": 1.0,
+    "turns_total": 79.0,
+    "input_tokens": 2668562.0,
+    "output_tokens": 36434.0,
+    "task_5": 1.0,
+    "task_49": 1.0,
+    "task_70": 1.0,
+    "task_1273": 1.0,
+    "task_1305": 1.0,
+    "task_1464": 1.0,
+    "task_1681": 1.0,
+    "task_1753": 1.0,
+    "task_1871": 0.0,
+    "task_2697": 0.0
+   }
+  },
+  {
+   "mlflow_run_id": "3058749f24014d3aa80e869f812b5d93",
+   "name": "20260914T022440Z_v0_dev_haiku",
+   "status": "FINISHED",
+   "start_time": 1789352860802,
+   "end_time": 1789352860936,
+   "tags": {
+    "agent": "v0",
+    "fingerprint": "2bb61d74a7d1",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "code_sha": "unknown",
+    "kind": "eval"
+   },
+   "params": {
+    "agent": "v0",
+    "model": "claude-haiku-4-5",
+    "split": "dev",
+    "workers": "3",
+    "passes": "1",
+    "n_tasks": "10",
+    "fingerprint": "2bb61d74a7d1"
+   },
+   "metrics": {
+    "passed": 4.0,
+    "pass_rate": 0.4,
+    "easy_passed": 1.0,
+    "hard_passed": 3.0,
+    "cost_usd": 0.7540544,
+    "duration_s": 453.585,
+    "errors": 1.0,
+    "turns_total": 90.0,
+    "input_tokens": 3115856.0,
+    "output_tokens": 44247.0,
+    "task_5": 1.0,
+    "task_49": 0.0,
+    "task_70": 0.0,
+    "task_1273": 0.0,
+    "task_1305": 1.0,
+    "task_1464": 1.0,
+    "task_1681": 0.0,
+    "task_1753": 0.0,
+    "task_1871": 1.0,
+    "task_2697": 0.0
+   }
+  }
+ ]
+}

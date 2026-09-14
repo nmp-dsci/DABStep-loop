@@ -89,6 +89,16 @@ def build_prompt(
             f"TRACE:\n{condense_trace(run_dir / 'traces' / f'{r.task_id}.json')}\n"
         )
     gold_lines = "\n".join(f"- {r.task_id}: {r.gold}" for r in failures)
+    held = held_challengers(champion.name)
+    held_block = (
+        "\n".join(
+            f"- `agents/{h['challenger']}/` (cycle {h['cycle']}, held: {h['reason']}; passes {h['passes']}; fixed {h['fixed']}; "
+            f"broke {h['broken']}). Its system.md and helper.py are on disk: read them, and copy what held — "
+            "a held challenger is a starting point, not a rejected one. Do not repeat what broke."
+            for h in held
+        )
+        or "none"
+    )
     return f"""You are the optimiser in a benchmark improvement loop for an agent that answers DABstep questions
 (tabular QA over a payments dataset) with a Claude Haiku 4.5 model and one tool: a stateful Python executor.
 
@@ -104,6 +114,9 @@ The data lives in `{context_dir()}/` (payments.csv, fees.json, merchant_data.jso
 
 # What was tried before
 {render_history([r.task_id for r in failures])}
+
+# Held challengers of this champion (their folders still exist)
+{held_block}
 
 # The champion's surfaces
 ## agents/{champion.name}/system.md
@@ -147,6 +160,32 @@ The data lives in `{context_dir()}/` (payments.csv, fees.json, merchant_data.jso
 Then stop. The harness evaluates `{new_name}` on the whole dev split, applies the gate (no task that passed may
 fail; the pass count must rise), and records the outcome next to your diagnosis in the ledger.
 """
+
+
+def held_challengers(champion_name: str) -> list[dict[str, Any]]:
+    """Earlier challengers of this champion that the gate held: real progress the next version may reuse."""
+    from dabstep_loop.loop.ledger import read_ledger
+
+    out: list[dict[str, Any]] = []
+    for e in read_ledger():
+        o = e.get("outcome") or {}
+        if (
+            e.get("kind", "cycle") == "cycle"
+            and e.get("champion") == champion_name
+            and o.get("verdict") == "hold"
+            and e.get("challenger")
+        ) and (AGENTS_DIR / str(e["challenger"])).exists():
+            out.append(
+                {
+                    "cycle": e.get("cycle"),
+                    "challenger": e["challenger"],
+                    "reason": o.get("reason"),
+                    "passes": o.get("passes"),
+                    "fixed": o.get("fixed"),
+                    "broken": o.get("broken"),
+                }
+            )
+    return out
 
 
 def _copy_champion(champion: AgentVersion, new_name: str) -> Path:

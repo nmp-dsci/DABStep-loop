@@ -9,10 +9,28 @@
   "passes": 1,
   "dry_run": false,
   "started_at": "2026-09-14T02:41:54.018428+00:00",
-  "finished_at": null,
+  "finished_at": "2026-09-14T02:44:54.948296+00:00",
   "code_sha": "unknown",
-  "summary": null,
-  "mlflow_run_id": null,
+  "summary": {
+    "n": 10,
+    "n_scored": 10,
+    "passed": 8,
+    "pass_rate": 0.8,
+    "easy_passed": 3,
+    "easy_n": 3,
+    "hard_passed": 5,
+    "hard_n": 7,
+    "failed_ids": [
+      "1871",
+      "2697"
+    ],
+    "errored_ids": [
+      "2697"
+    ],
+    "cost_usd": 0.6343671000000001,
+    "duration_ms": 403982
+  },
+  "mlflow_run_id": "466d34a27b634ee6ab4795d6e92bd911",
   "note": "loop cycle 1 challenger",
   "task_ids": [
     "5",

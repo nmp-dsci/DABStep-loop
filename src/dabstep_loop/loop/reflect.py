@@ -49,8 +49,8 @@ def build_prompt(run_id: str) -> str:
             + (f" · e.g. {g.get('sibling_example')!r}" if g.get("sibling_example") else "")
             + f"\nTRACE:\n{condense_trace(RUNS_DIR / run_id / 'traces' / f'{r.task_id}.json', limit=5000)}\n"
         )
-    return f"""You are reviewing the champion agent `{meta.agent}` of a DABstep benchmark loop after its scored run on the
-ten dev tasks. This is an offline reflection: you change nothing. You produce notes the next optimiser will read
+    return f"""You are reviewing agent `{meta.agent}` of a DABstep benchmark loop after its scored run on the ten dev
+tasks (run `{run_id}`). This is an offline reflection: you change nothing. You produce notes the next optimiser will read
 before it edits `system.md` or `helper.py`. The 450 leaderboard tasks are permutations of these questions over
 other merchants, months and fee rules, so the question for every task — passed or failed — is whether the
 solution generalises, not just whether it matched.
@@ -151,6 +151,7 @@ async def run_reflection(run_id: str | None = None, model: str = "sonnet") -> di
         "cycle": next_cycle_number(),
         "kind": "reflect",
         "champion": meta.agent,
+        "agent": meta.agent,
         "champion_run": run_id,
         "challenger": None,
         "model": model,
