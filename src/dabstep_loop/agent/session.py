@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -82,8 +83,13 @@ async def solve_task(
     model: str | None = None,
     effort: str | None = None,
     timeout_s: int | None = None,
+    on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> Solve:
-    """Run one task through the agent and return the answer plus the full trace."""
+    """Run one task through the agent and return the answer plus the full trace.
+
+    `on_event` receives each tool call, tool result and text as it happens, in
+    the same shape the demo pack replays — the live `/api/ask` streams these.
+    """
     require_live()
     cfg = version.config
     model_id = resolve_model(model or cfg.model)
@@ -126,9 +132,31 @@ async def solve_task(
                     texts = [b["text"] for b in blocks if b["type"] == "text"]
                     if texts:
                         final_text = texts[-1]
+                    if on_event:
+                        for b in blocks:
+                            if b["type"] == "tool_use":
+                                on_event(
+                                    {
+                                        "type": "tool_use",
+                                        "name": b["name"],
+                                        "code": str(b["input"].get("code", "")),
+                                    }
+                                )
+                            elif b["type"] == "text" and b["text"].strip():
+                                on_event({"type": "text", "text": b["text"]})
                 elif isinstance(msg, UserMessage) and not isinstance(msg.content, str):
                     blocks = [_block_to_dict(b) for b in msg.content]
                     solve.trace.append({"role": "tool", "content": blocks})
+                    if on_event:
+                        for b in blocks:
+                            if b["type"] == "tool_result":
+                                on_event(
+                                    {
+                                        "type": "tool_result",
+                                        "text": str(b.get("content", ""))[:4000],
+                                        "is_error": bool(b.get("is_error")),
+                                    }
+                                )
                 elif isinstance(msg, ResultMessage):
                     solve.n_turns = msg.num_turns
                     solve.cost_usd = msg.total_cost_usd

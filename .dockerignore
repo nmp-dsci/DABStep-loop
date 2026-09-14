@@ -1,0 +1,11 @@
+.venv
+.git
+.mlflow
+workspace
+data/context
+data/.hf
+frontend/node_modules
+frontend/dist
+**/__pycache__
+.lavish
+infra

@@ -1,0 +1,67 @@
+{
+  "diagnoses": [
+    {
+      "task_id": "49",
+      "symptom": "Ranked ip_country by raw fraud count (NL=2955 fraud txns) and answered A. NL.",
+      "root_cause": "manual.md section 7 defines fraud as a RATE (fraudulent volume / total volume), not a count. By count NL is highest, but by rate BE is highest (12.27% vs NL's 12.18%); the agent never considered normalizing by volume.",
+      "surface": "both",
+      "change": "Added helper.fraud_rate_by(df, group_col) and a system.md rule that ranking 'by fraud' means ranking by the manual's rate definition, not raw counts.",
+      "verified_in_session": true,
+      "verification": "uv run python -c with helper.fraud_rate_by(load_payments(), 'ip_country') -> BE 0.1227 highest, matches gold 'B. BE'."
+    },
+    {
+      "task_id": "70",
+      "symptom": "Answered 'yes' by treating the monthly_fraud_level fee bracket ('7.7%-8.3%') as evidence of a 'high-fraud rate fine'.",
+      "root_cause": "manual.md never defines any 'fine' or penalty tied to fraud rate — the only fraud-rate mechanism it defines is a higher fee-rate bracket (section 5), which is not a fine. The agent conflated 'more expensive fees' with 'a fine', a concept the manual doesn't contain, so the correct answer is Not Applicable.",
+      "surface": "system.md",
+      "change": "Added a rule: if a question references a mechanism manual.md never defines (e.g. a 'fine'), answer Not Applicable instead of inferring it from an adjacent concept.",
+      "verified_in_session": true,
+      "verification": "Grepped manual.md for fine|penalt: no fraud-rate fine/penalty exists anywhere in the document (only a PCI-DSS non-compliance penalty in section 7.4, unrelated to fraud rate); confirms gold 'Not Applicable' is correct and the fix is a prompt-level reasoning rule, not new data."
+    },
+    {
+      "task_id": "1273",
+      "symptom": "Averaged fee across only the 123 GlobalCard rules with is_credit == True, got 0.117667 instead of 0.120132.",
+      "root_cause": "manual.md's null-as-wildcard rule applies to is_credit too (and to card_scheme, capture_delay, etc.), not just the list-typed fields (account_type, aci, mcc). 21 additional GlobalCard rules have is_credit: null (apply to both credit and debit) and were wrongly excluded.",
+      "surface": "helper.py",
+      "change": "Added helper.fee_rule_matches/_field_matches with uniform null/[]-wildcard semantics across every field, and helper.average_fee_across_rules built on it.",
+      "verified_in_session": true,
+      "verification": "uv run python: helper.average_fee_across_rules(fees, 10, card_scheme='GlobalCard', is_credit=True) == 0.120132, exact match to gold (144 matching rules, not 123)."
+    },
+    {
+      "task_id": "1681",
+      "symptom": "Ran out of context/turns building an ad hoc matcher by hand; final matcher used a single hardcoded acquirer_country ('US') and missed 2 of 10 gold fee IDs (454, 473).",
+      "root_cause": "No reusable fee-matching helper existed in v0, so the agent reinvented rule matching from scratch inside execute_python each time, with an incomplete/inconsistent implementation (missing merchant-level monthly_fraud_level/monthly_volume bucketing derived correctly from natural-month volume-based fraud rate).",
+      "surface": "helper.py",
+      "change": "Added monthly_merchant_stats (natural-month volume + volume-based fraud-rate bucketing) and applicable_fee_ids (per-row card_scheme/is_credit/aci/intracountry combined with merchant-level filters) so this is one helper call instead of ad hoc looping.",
+      "verified_in_session": true,
+      "verification": "uv run python: helper.applicable_fee_ids(...) for Belles_cookbook_store day_of_year=10, 2023 == sorted([741,709,454,813,381,536,473,572,477,286]), exact match to gold."
+    },
+    {
+      "task_id": "1753",
+      "symptom": "Computed monthly fraud rate as a COUNT ratio (107/1277 = 8.38%, bucket 7.7%-8.3%) instead of a volume ratio, landing in the wrong fee bracket and producing 8 extra fee IDs plus 4 missing ones vs gold.",
+      "root_cause": "Same missing-helper root cause as 1681, compounded by using has_fraudulent_dispute.sum()/len() (a count ratio) instead of manual.md section 7's volume ratio, which changes the monthly_fraud_level bucket and therefore which fee rules match.",
+      "surface": "helper.py",
+      "change": "monthly_merchant_stats computes fraud_rate_pct via helper.fraud_rate (volume ratio) exclusively, so both fraud-rate ranking (task 49) and fee-bracket lookups use the same, manual-correct definition.",
+      "verified_in_session": true,
+      "verification": "uv run python: helper.applicable_fee_ids(...) for Belles_cookbook_store, March 2023 == sorted(gold 34-id list), exact match (rate computed as 10.25%, bucket '>8.3%')."
+    },
+    {
+      "task_id": "2697",
+      "symptom": "Required full coverage of all 94 fraud transactions by a candidate ACI's rules and minimized within that constraint, picking B:48.20 instead of gold E:13.57.",
+      "root_cause": "Partially diagnosed. With the corrected fee-rule matching (uniform wildcard semantics, volume-based fraud bucket, issuing_country/acquirer_country intracountry, most-specific-rule tie-break) the helper now agrees with gold on the ACI LETTER: E is the cheapest option among A-F for Belles_cookbook_store's 94 January fraud transactions (16.63 EUR total vs 33.56-89.05 for the others), matching gold's 'E'. The exact EUR total does not reproduce gold's 13.57 (got 16.63) after multiple attempted rule-selection variants (min-fee-among-matches, most-specific-with-tiebreak, average-across-matches, fixed-only, average-transaction-value); the remaining gap is not fully explained and no task-specific fudge factor was added to force a match.",
+      "surface": "helper.py",
+      "change": "best_matching_fee added (most-specific single-rule selection per transaction) as the general building block for 'simulate this transaction under a different attribute' questions; not tuned to this task's exact number.",
+      "verified_in_session": true,
+      "verification": "uv run python: summed best_matching_fee(...) per card-scheme over Belles' 94 Jan fraud transactions for aci in [A,B,C,D,E,F] -> E is the minimum (16.63) matching gold's letter; total EUR value does not match gold's 13.57 and is reported here as an open gap, not claimed fixed."
+    }
+  ],
+  "prompt_diff_summary": "Added four ground rules to system.md: manual.md-undefined mechanisms (e.g. 'fine') answer Not Applicable, 'fraud' means the volume-ratio rate not a raw count (use helper.fraud_rate_by), fee-rule null/[] wildcards apply to every field including is_credit/card_scheme, and use the new helper fee-matching functions instead of hand-looping over fees.json across many tool calls.",
+  "helper_diff_summary": "Added fraud_rate/fraud_rate_by (volume-ratio fraud rate), day_of_year_to_month/capture_delay_bucket/fraud_level_bucket/volume_bucket/monthly_merchant_stats (natural-month bucketing per manual.md section 5), is_intracountry (issuing_country vs acquirer_country), and fee_rule_matches/applicable_fee_ids/best_matching_fee/average_fee_across_rules (uniform null/[]-wildcard fee matching, replacing ad hoc per-task matching code).",
+  "expected_to_fix": ["49", "70", "1273", "1681", "1753"],
+  "risks": [
+    "fraud_rate_by uses DataFrameGroupBy.apply, which is O(groups) and re-sums eur_amount per group; fine at this dataset's scale (138k rows, <10 groups typically) but would need vectorizing if a future permutation groups by a very high-cardinality column.",
+    "capture_delay_bucket calls int() on any non-'immediate'/'manual' value; if a future permutation introduces a capture_delay bucket string not seen in this dev split it will raise instead of silently mismatching, which is a deliberate fail-loud choice but could surface as a new error mode.",
+    "2697-style 'simulate a different ACI/attribute' questions are not fully solved (see diagnosis for 2697): best_matching_fee's most-specific tie-break is a reasonable general rule but is unverified beyond getting the right letter on this one example, so other permutations of this question type may still miss on the exact numeric answer.",
+    "Nothing in agents/v0's previously-passing behavior was removed; calculate_fee, all load_* functions, and get_merchant_info keep identical signatures, so tasks that passed by using only those should be unaffected."
+  ]
+}

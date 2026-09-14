@@ -71,4 +71,4 @@ ignore_errors = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "-q"
+addopts = "-q -p no:warnings"
