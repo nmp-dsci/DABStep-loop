@@ -1,0 +1,78 @@
+{
+  "diagnoses": [
+    {
+      "task_id": "2697",
+      "symptom": "Agent computed E:77.68 for 'move fraud to a different ACI', gold is a different value for E.",
+      "root_cause": "Two distinct issues, verified separately: (1) the champion's cost model for a hypothetical per-transaction ACI override sums every fees.json rule matching each transaction (additive model) - this model is correct for 'what does the merchant actually pay under rule X' (task 1871) but reproduces the champion's own wrong number here, not gold. I tried two more cost models (single most-specific/cheapest matching rule per transaction; average across matching rules per transaction) in-session against this exact task and neither reproduced gold either. (2) Separately, probe evidence (tasks 2746/2755, not this dev task) showed some traces fail to exclude the fraud transactions' current ACI from the candidate set, re-selecting the status quo as 'a different ACI' - a clear logic bug independent of the cost-model question.",
+      "surface": "both",
+      "change": "Added helper.fraud_fee_by_aci/cheapest_alternative_aci (additive model, current-ACI excluded) plus a routing row, with docstrings explicitly flagging the cost model as unverified against this task's gold value.",
+      "verified_in_session": true,
+      "verification": "Ran cheapest_alternative_aci against Belles_cookbook_store/January fraud transactions: got E as the argmin alternative (matches the champion's own choice of letter) but the same additive-model dollar value the champion already had wrong. Also ran a most-specific-rule-per-transaction variant and an average-across-rules variant by hand for the same task; both gave different, still-wrong numbers. None of the three cost models reproduced gold - documented as unresolved rather than shipped as a claimed fix."
+    },
+    {
+      "task_id": "1681",
+      "symptom": "Held challenger v3 (cycle 5) answered 35 fee IDs for a single day (10th of Jan 2023) against a 10-id gold answer, breaking this previously-passing dev task.",
+      "root_cause": "Read v3's actual trace (runs/20260914T070028Z_v3_dev_haiku/traces/1681.json): the agent correctly bucketed capture_delay ('<3'), but then called applicable_fee_ids(transactions=stats['transactions'], ...) where stats['transactions'] is monthly_merchant_stats' WHOLE-MONTH transaction set, not the day-10-filtered rows. v3's system.md routing table row for this family said to call monthly_merchant_stats per month + applicable_fee_ids, but never told the agent to day-filter the transactions argument for a day-level question - only the champion's helper docstrings mentioned this, and the agent didn't read them closely enough under time pressure.",
+      "surface": "system.md",
+      "change": "Added an explicit ground-rule bullet and reinforced routing-table wording: transactions passed to applicable_fee_ids/total_fees_paid must be day/month-filtered for day/month questions, while the monthly_fraud_level/monthly_volume bucket always comes from the whole natural month.",
+      "verified_in_session": true,
+      "verification": "Ran a clean day/month/year invariant check for Rafa_AI (day 300 vs its month vs the full year) using the correct method (period-filtered transactions, month-derived buckets): day-ids were a strict subset of month-ids were a strict subset of year-ids, with zero ids in the finer period missing from the coarser one - confirming the fix direction removes exactly the failure mode seen in the F01 probe contradictions and in this task's regression."
+    },
+    {
+      "task_id": "49",
+      "symptom": "Held challenger v3 answered the correct content (Belgium/BE has the highest fraud rate) but ended with prose + markdown bold instead of the required exact {\"agent_answer\": ...} JSON, breaking a previously-passing dev task on format alone.",
+      "root_cause": "Not a data/logic bug - the computed fraud-rate ranking was correct. The model simply failed to close with the mandated output format after a discursive final turn. This is a known risk of growing the system prompt (v3 added a large routing table before the final output-format instruction), which can dilute the salience of the format contract on some passes.",
+      "surface": "system.md",
+      "change": "Kept the routing table concise (12 rows, one line each, no extra prose per row) rather than v3's denser version, and reworded the final output-format line to explicitly say 'even after a long analysis' to keep it salient regardless of how much reasoning precedes it.",
+      "verified_in_session": false,
+      "verification": "Could not verify this specific failure mode in-session since it depends on live model sampling behaviour, not a deterministic code path; flagged as a risk to watch in the dev-split results rather than a claimed fix."
+    },
+    {
+      "task_id": "n/a (F09 family, probe contradiction)",
+      "symptom": "Probe tasks 2766/2765 (same merchant/year/scheme) both flagged TransactPlus as the minimum AND the maximum fee scheme across two separate traces.",
+      "root_cause": "Task 2765's trace used a raw capture_delay string ('7') instead of capture_delay_bucket(...); task 2766's trace additionally diverged from the canonical per-scheme total_fees_paid loop. Re-derived the correct numbers in-session using get_merchant_info + capture_delay_bucket + full-month monthly_merchant_stats + total_fees_paid, scheme-filtered only at the transactions level (never at the bucket-derivation level).",
+      "surface": "system.md",
+      "change": "The steer-traffic routing row already existed in the champion via ground rules; reinforced it with the explicit capture_delay_bucket ground rule that now sits ahead of the table, and kept the 'full month, never scheme-filtered, for the bucket' wording in the row itself.",
+      "verified_in_session": true,
+      "verification": "Recomputed Rafa_AI's 2023 total fees per card scheme with the correct method: SwiftCharge came out lowest and TransactPlus came out highest, satisfying min != max cleanly (no contradiction) - matches one of the two probe traces (2765, which happened to get the max right despite the raw-capture_delay bug because none of TransactPlus's matching rules for this merchant filter on capture_delay) and corrects the other (2766)."
+    }
+  ],
+  "prompt_diff_summary": "Added two ground-rule bullets (always bucket capture_delay; day/month questions must period-filter the transactions argument while still using the whole-month bucket) and a 12-row 'Question families' routing table (one helper call + answer format per family, one blanked example), reusing v3's table shape but fixing the day-vs-period-filtering omission that broke task 1681 under v3.",
+  "helper_diff_summary": "Added fee_ids_by_attributes (F02, attribute-only fee lookup) and fraud_fee_by_aci/cheapest_alternative_aci (F10, per-ACI fee table excluding the current ACI) ported from the held v3 challenger, with docstrings corrected to honestly flag that the F10 cost model is unverified against dev task 2697's gold value rather than claiming it as fixed; no existing function changed or removed.",
+  "expected_to_fix": [],
+  "risks": [
+    "Task 2697 is expected to still fail: the new F10 helper's cost model was not verified against its gold value (three different models tried, none matched), so this is a documented non-fix, not a regression risk.",
+    "The new routing table increases system.md length versus the champion (v2); v3's version of a similar table coincided with one dev task (49) losing output-format compliance on an otherwise-correct answer. Mitigated by keeping the table to one line per family (no extra prose rows) and restating the output-format instruction more emphatically, but this risk could not be verified deterministically in-session since it depends on live sampling behaviour.",
+    "The day/month transaction-filtering ground rule and F09 capture_delay-bucket reinforcement were verified via invariant checks (subset relationship, min != max) using the existing helper functions, not via new helper code - if an agent still ignores the prompt's period-filtering instruction, the underlying bug from v3's task-1681 regression could recur despite the fix being aimed correctly."
+  ],
+  "changes": [
+    {
+      "file": "helper.py",
+      "anchor": "def fee_ids_by_attributes(fees: list[dict[str, Any]], **filters: Any)",
+      "what": "Added a thin wrapper for attribute-only fee ID lookups (account_type/aci/etc, no merchant or transactions dataframe).",
+      "why": "F02 family card: applicable_fee_ids requires a transactions DataFrame and doesn't fit attribute-only questions, forcing agents to hand-loop fee_rule_matches; this family was already 'verified' via hand-looping in the probe, so the wrapper just removes the duplication risk the family card flagged.",
+      "task_ids": []
+    },
+    {
+      "file": "helper.py",
+      "anchor": "KNOWN_ACIS = (\"A\", \"B\", \"C\", \"D\", \"E\", \"F\", \"G\")",
+      "what": "Added fraud_fee_by_aci (per-candidate-ACI additive cost table for a fraud-transaction subset) and cheapest_alternative_aci (argmin over alternatives, excluding the current ACI(s) in use).",
+      "why": "F10 family card: probe tasks 2746/2755 re-selected the status quo ACI as their 'different' choice because nothing excluded it from the candidate set - confirmed as a real logic bug independent of the (still-unresolved) cost-model question for dev task 2697.",
+      "task_ids": ["2697"]
+    },
+    {
+      "file": "system.md",
+      "anchor": "ALWAYS convert a merchant's raw",
+      "what": "Added a ground-rule bullet requiring capture_delay_bucket before any fee-matching call, and a second bullet requiring day/month-filtered transactions (while keeping whole-month buckets) for day/month-level questions.",
+      "why": "Read the held v3 challenger's actual failing traces for tasks 1681 (whole-month transactions passed for a day-level question) and 2765 (raw capture_delay string) - both are prompt-level omissions, not helper bugs, since the correct helper calls already existed and produced the right invariant-passing numbers when I re-ran them correctly in-session.",
+      "task_ids": ["1681"]
+    },
+    {
+      "file": "system.md",
+      "anchor": "## Question families (route first, then compute)",
+      "what": "Added a 12-row routing table (one helper call + answer format per family) covering F01-F12, condensed from the held v3 challenger's version.",
+      "why": "Per the optimiser instructions (4b), every family needs one routing row; kept the table to one line per family with no extra prose to reduce the prompt-bloat risk that coincided with task 49's format-compliance failure under v3.",
+      "task_ids": []
+    }
+  ]
+}

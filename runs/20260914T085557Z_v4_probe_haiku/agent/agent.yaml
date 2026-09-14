@@ -1,0 +1,7 @@
+# Frozen across a loop cycle: the optimiser may not edit this file.
+model: haiku
+max_turns: 20
+tools: [mcp__py__execute_python]
+effort: null
+timeout_s: 270
+exec_timeout_s: 120
