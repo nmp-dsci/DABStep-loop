@@ -5,6 +5,7 @@ MODEL ?=
 SPLIT ?= dev
 WORKERS ?= 2
 PASSES ?= 1
+HARNESS ?= lean
 CYCLES ?= 1
 K ?= 3
 SEED ?= 0
@@ -28,8 +29,8 @@ mlflow-up: ## start the self-hosted MLflow tracking server on :$(MLFLOW_PORT)
 	uv run mlflow server --host 127.0.0.1 --port $(MLFLOW_PORT) \
 	  --backend-store-uri sqlite:///.mlflow/mlflow.db --artifacts-destination .mlflow/artifacts
 
-eval: ## run AGENT on SPLIT (MODEL=, WORKERS=, PASSES=)
-	uv run dabstep eval --agent $(AGENT) --split $(SPLIT) --workers $(WORKERS) --passes $(PASSES) $(MODEL_FLAG)
+eval: ## run AGENT on SPLIT (MODEL=, WORKERS=, PASSES=, HARNESS=lean|baseline|lean-prune)
+	uv run dabstep eval --agent $(AGENT) --split $(SPLIT) --workers $(WORKERS) --passes $(PASSES) --harness $(HARNESS) $(MODEL_FLAG)
 
 smoke: ## the dev-10 with Haiku, the build's only live eval
 	uv run dabstep eval --agent $(AGENT) --split dev --workers $(WORKERS)
@@ -60,6 +61,13 @@ lenses: ## lenses 2+3: local embeddings + one Sonnet membership pass → loop/fa
 
 probe: ## unscored probe of the 450 by family (AGENT=v2 K=3 SEED=0 PROBE_PASSES=2 PROBE_WORKERS=3)
 	uv run dabstep probe $(if $(filter-out v0,$(AGENT)),--agent $(AGENT),) --k $(K) --seed $(SEED) --passes $(PROBE_PASSES) --workers $(PROBE_WORKERS)
+
+harness-experiment: ## s02: v2 on dev-10 under baseline, lean and lean-prune, two passes each, then compare
+	for h in baseline lean lean-prune; do for p in 1 2; do uv run dabstep eval --agent $(AGENT) --split dev --workers 3 --harness $$h --note "s02 harness experiment $$h pass $$p"; done; done
+	uv run dabstep harness-compare --agent $(AGENT)
+
+harness-compare: ## compare the s02 arms already in runs/
+	uv run dabstep harness-compare --agent $(AGENT)
 
 ureflect: ## unsupervised reflection over a probe RUN=<run id> → loop/families/Fnn.json
 	uv run dabstep ureflect $(RUN)

@@ -29,6 +29,7 @@ from claude_agent_sdk import (
 )
 
 from dabstep_loop.agent.answer import extract_agent_answer
+from dabstep_loop.agent.harness import DEFAULT, Harness, harness_env, prune_rule
 from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.prompt import build_task_prompt
 from dabstep_loop.agent.tools.python_executor import ExecutorState, make_executor_server
@@ -52,6 +53,7 @@ class Solve:
     terminal_reason: str | None = None
     session_id: str | None = None
     model: str = ""
+    harness: str = DEFAULT.name
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -84,11 +86,14 @@ async def solve_task(
     effort: str | None = None,
     timeout_s: int | None = None,
     on_event: Callable[[dict[str, Any]], None] | None = None,
+    harness: Harness = DEFAULT,
 ) -> Solve:
     """Run one task through the agent and return the answer plus the full trace.
 
     `on_event` receives each tool call, tool result and text as it happens, in
     the same shape the demo pack replays — the live `/api/ask` streams these.
+    `harness` is the profile (`agent/harness.py`): what the session carries
+    besides the agent's files; it is recorded on the run, not in the fingerprint.
     """
     require_live()
     cfg = version.config
@@ -98,7 +103,11 @@ async def solve_task(
     workdir = WORKSPACE_DIR / "tasks" / task.task_id
     workdir.mkdir(parents=True, exist_ok=True)
 
-    state = ExecutorState(helper_path=version.helper_path)
+    state = ExecutorState(
+        helper_path=version.helper_path,
+        prune_cap=harness.prune_cap,
+        prune_head=harness.prune_head,
+    )
     server = make_executor_server(state, cwd=ROOT, timeout_s=cfg.exec_timeout_s)
 
     options = ClaudeAgentOptions(
@@ -107,15 +116,18 @@ async def solve_task(
         tools=[],  # no built-in tools: the executor is the whole toolbox
         allowed_tools=list(cfg.tools),
         mcp_servers={"py": server},
+        strict_mcp_config=harness.strict_mcp,  # False inherits the user's connector tools
         permission_mode="bypassPermissions",
         max_turns=cfg.max_turns,
         cwd=str(ROOT),
-        env=subscription_env(),
+        env={**subscription_env(), **harness_env(harness)},
         setting_sources=[],
         effort=effort or cfg.effort or EFFORT,  # type: ignore[arg-type]
     )
-    prompt = build_task_prompt(version, task, data_dir)
-    solve = Solve(task_id=task.task_id, agent_answer="", final_text="", model=model_id)
+    prompt = build_task_prompt(version, task, data_dir, harness_rule=prune_rule(harness))
+    solve = Solve(
+        task_id=task.task_id, agent_answer="", final_text="", model=model_id, harness=harness.name
+    )
     solve.trace.append({"role": "system", "content": version.system_prompt})
     solve.trace.append({"role": "user", "content": prompt})
     started = time.time()

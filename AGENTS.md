@@ -143,6 +143,30 @@ The `eval` command refuses `SPLIT=all` without an interactive confirmation.
    only say how far to trust lens 1 per task; the family id on a card is
    always the regex family.
 
+## 5c · The harness, precisely
+
+- `agent/harness.py` — `Harness(name, strict_mcp, title_call, prune_cap,
+  prune_head)`; profiles `baseline`, `lean`, `lean-prune`; `harness_env()`
+  (`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` when the title call is off);
+  `prune_rule()` (the one task-prompt line a pruning profile adds).
+- `session.solve_task(..., harness=)` sets `strict_mcp_config`, the env, the
+  executor's cap; `Solve.harness` and `RunMeta.harness` record it; a
+  non-baseline harness is in the run id (`…_haiku_lean`), and a run id that
+  already exists gets a `-2` suffix (two arms once started in the same second).
+- `tools/python_executor.py` — under a cap, a long result becomes its head plus
+  `[out#k: n chars …]`; `show(ref, start, n, find)` prints a window that stays
+  under the cap; the executor history keeps `full_output` so traces lose
+  nothing. No cap: byte-identical to before.
+- `eval/harness_compare.py` — groups the experiment runs by harness, sums the
+  cache classes from the CLI transcripts (`~/.claude/projects/*/<session>.jsonl`),
+  and rules per task: adoptable when nothing that passed on every baseline
+  pass fails on every arm pass and total passes are not below the baseline.
+- `tracking/gate.check_harness` — every `ClaudeAgentOptions(` in the package
+  names `strict_mcp_config`.
+- Measuring: `scripts/request_log_proxy.py` forwards to the API and logs the
+  size of `system`, `tools` and `messages` per request; point the CLI at it
+  with `ANTHROPIC_BASE_URL=http://127.0.0.1:8787`.
+
 ## 6 · Conventions
 
 - `uv` for everything Python; Ruff (line 100); mypy strict; pytest offline only.

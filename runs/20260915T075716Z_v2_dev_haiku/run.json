@@ -1,0 +1,47 @@
+{
+  "run_id": "20260915T075716Z_v2_dev_haiku",
+  "agent": "v2",
+  "fingerprint": "665f5ffa88eb",
+  "model": "claude-haiku-4-5",
+  "split": "dev",
+  "n_tasks": 10,
+  "workers": 3,
+  "passes": 1,
+  "dry_run": false,
+  "started_at": "2026-09-15T07:57:16.512654+00:00",
+  "finished_at": "2026-09-15T08:00:15.503698+00:00",
+  "code_sha": "unknown",
+  "summary": {
+    "n": 10,
+    "n_scored": 10,
+    "passed": 9,
+    "pass_rate": 0.9,
+    "easy_passed": 3,
+    "easy_n": 3,
+    "hard_passed": 6,
+    "hard_n": 7,
+    "failed_ids": [
+      "2697"
+    ],
+    "errored_ids": [],
+    "cost_usd": 0.5472212,
+    "duration_ms": 340748
+  },
+  "mlflow_run_id": "b5922c56cde841599b3d16d1a158f05c",
+  "note": "s02 harness experiment baseline pass 2",
+  "task_ids": [
+    "5",
+    "49",
+    "70",
+    "1273",
+    "1305",
+    "1464",
+    "1681",
+    "1753",
+    "1871",
+    "2697"
+  ],
+  "kind": "eval",
+  "sample": null,
+  "harness": "baseline"
+}

@@ -47,6 +47,31 @@ def check() -> list[str]:
         if (e.get("outcome") or {}).get("verdict") == "pending":
             problems.append(f"ledger cycle {e.get('cycle')} is still pending")
     problems += check_families(version)
+    problems += check_harness()
+    return problems
+
+
+def check_harness() -> list[str]:
+    """Every SDK session in the package names `strict_mcp_config` (s02).
+
+    Without it the CLI loads the user's claude.ai connector tools into every
+    call — measured at 27k tokens per call, 91% of the champion's prefix. The
+    task session takes it from its harness profile; the loop sessions must set
+    it explicitly, so a new session cannot inherit the bloat by omission."""
+    import re
+    from pathlib import Path
+
+    src = Path(__file__).resolve().parents[1]
+    problems: list[str] = []
+    for f in sorted(src.rglob("*.py")):
+        text = f.read_text(encoding="utf-8")
+        for m in re.finditer(r"ClaudeAgentOptions\(", text):
+            block = text[m.end() : m.end() + 1500].split("\n)")[0]
+            if "strict_mcp_config" not in block:
+                line = text.count("\n", 0, m.start()) + 1
+                problems.append(
+                    f"{f.relative_to(src)}:{line} ClaudeAgentOptions without strict_mcp_config"
+                )
     return problems
 
 

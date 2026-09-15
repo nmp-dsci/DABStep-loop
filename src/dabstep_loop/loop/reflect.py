@@ -23,6 +23,7 @@ from claude_agent_sdk import (
     TextBlock,
 )
 
+from dabstep_loop.agent.harness import LOOP_STRICT_MCP
 from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import load_version
 from dabstep_loop.config import ROOT, RUNS_DIR
@@ -100,6 +101,7 @@ async def run_reflection(run_id: str | None = None, model: str = "sonnet") -> di
     from claude_agent_sdk import HookMatcher
 
     options = ClaudeAgentOptions(
+        strict_mcp_config=LOOP_STRICT_MCP,  # no inherited connector tools (s02)
         model=resolve_model(model),
         effort=EFFORT,
         allowed_tools=["Read", "Bash", "Glob", "Grep"],

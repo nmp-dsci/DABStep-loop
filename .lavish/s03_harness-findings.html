@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>s03 · DABstep-loop — harness experiment findings: adopt lean, reject prune</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Design source (2): the project's own system — DESIGN.md, a port of
+   nmp-dsci.github.io/assets/css/tokens.css ("Field Guide"). Tokens verbatim. */
+:root{
+  --bg:#F7F6F2; --panel:#FFFFFF; --band:#EFEEE8;
+  --ink:#1A1D1B; --ink-2:#3B403D; --muted:#4A514D; --faint:#5C635E;
+  --line:#DCDAD2; --line-2:#C7C5BC; --line-3:#8A8880;
+  --accent:#0A6552; --accent-ink:#FFFFFF; --accent-soft:#DFEFE8;
+  --amber:#8A5006; --amber-soft:#F6E6CF;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --t-2:0.8rem; --t-1:0.875rem; --t0:1rem; --t1:1.125rem; --t2:1.406rem; --t3:1.758rem; --t4:2.197rem;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --r:10px; --r-sm:6px;
+  --shadow:0 1px 2px rgb(20 25 22 / .05), 0 12px 28px -18px rgb(20 25 22 / .22);
+  --dur:300ms; --ease:cubic-bezier(.2,.7,.2,1); --focus:var(--accent);
+  --w:1140px; --measure:68ch; --track-label:.08em;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --panel:#191E1B; --band:#161A18;
+    --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+    --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+    --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+    --amber:#D99A4E; --amber-soft:#3A2A14;
+    --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#191E1B; --band:#161A18;
+  --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+  --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+  --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+  --amber:#D99A4E; --amber-soft:#3A2A14;
+  --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+}
+@media (prefers-reduced-motion: reduce){ :root{ --dur:0.01ms; } }
+*,*::before,*::after{box-sizing:border-box}
+:where(.grid,.flex,.kpi,.cards)>*{min-width:0}
+:where(p,h1,h2,h3,h4,li,dd,figcaption,td,th,.chip,.label){overflow-wrap:anywhere}
+:where(img,svg,video,iframe){max-width:100%;height:auto}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:var(--t0);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.15;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:var(--t4);font-family:var(--serif);font-weight:400} h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+h2{font-size:var(--t3)} h3{font-size:var(--t1)} h4{font-size:var(--t0)}
+p{margin:0 0 var(--s4);text-wrap:pretty}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:.2em} a:hover{text-decoration-thickness:2px}
+strong,b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:max(var(--t-2),.86em);background:var(--band);padding:.08em .32em;border-radius:var(--r-sm);color:var(--ink-2)}
+.wrap{max-width:var(--w);margin-inline:auto;padding-inline:var(--s5)}
+.label{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0}
+.lead{font-family:var(--serif);font-size:var(--t1);line-height:1.5;color:var(--ink-2);max-width:72ch}
+.small{font-size:var(--t-1);color:var(--muted)}
+.top{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--w);margin-inline:auto;padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.top b{font-family:var(--mono);font-size:var(--t-1);color:var(--ink);white-space:nowrap}
+.top nav{display:flex;gap:var(--s4);margin-left:auto;flex-wrap:wrap;font-size:var(--t-1);font-weight:500}
+.top nav a{color:var(--ink-2);text-decoration:none;padding:var(--s1) 0} .top nav a:hover{color:var(--accent)}
+header.hero{padding:var(--s7) 0 var(--s5)}
+.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) 0 0}
+.chip{font-family:var(--mono);font-size:var(--t-2);padding:.3em .6em;border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--ink-2);background:var(--panel)}
+.chip.ok{border-color:var(--accent);color:var(--accent)} .chip.warn{border-color:var(--amber);color:var(--amber)}
+section.blk{padding-top:var(--s8)} section.blk:last-of-type{padding-bottom:var(--s9)}
+section.band-sec{background:var(--band);margin-top:var(--s8);padding:var(--s7) 0}
+section.band-sec + section.blk{padding-top:var(--s7)}
+.hd{margin-bottom:var(--s5);max-width:80ch} .hd ul.tight{margin-top:var(--s2)} .hd .label{margin-bottom:var(--s2)} .hd h2{margin-bottom:var(--s3)}
+.panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5)}
+.grid{display:grid;gap:var(--s4)} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){.g3,.g2{grid-template-columns:minmax(0,1fr)}}
+.card h3{margin-bottom:var(--s2)} .card p{margin-bottom:var(--s2);font-size:var(--t-1)} .card p:last-child{margin:0}
+.card.pro{box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);box-shadow:var(--shadow);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--t-1)}
+caption{text-align:left;padding:var(--s4) var(--s5) var(--s2);color:var(--muted);font-size:var(--t-1);caption-side:top}
+th,td{text-align:left;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+thead th{font-family:var(--mono);font-size:var(--t-2);font-weight:500;color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.sub{font-weight:600;color:var(--ink);white-space:nowrap}
+td.num{font-family:var(--mono);font-size:var(--t-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+td .path{display:block;font-family:var(--mono);font-size:var(--t-2);color:var(--faint);font-weight:400;margin-top:2px}
+tr.pro td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.v-ok{color:var(--accent);font-weight:600} .v-no{color:var(--muted)} .v-warn{color:var(--amber);font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4)}
+@media(max-width:900px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi .k{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s4)}
+.kpi .k b{display:block;font-family:var(--mono);font-size:var(--t3);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k span{display:block;font-size:var(--t-2);color:var(--muted);margin-top:var(--s2);line-height:1.4}
+blockquote{margin:0;padding:var(--s3) var(--s4);border-left:2px solid var(--accent);background:var(--band);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:var(--t-1)}
+blockquote.warn{border-left-color:var(--amber)}
+.fig{margin:var(--s5) 0 0}
+.fig-title{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0 0 var(--s3);text-wrap:balance}
+.dia-frame{background:var(--panel);border-radius:var(--r);padding:var(--s4);box-shadow:var(--shadow)}
+.fig figcaption{font-family:var(--sans);font-size:var(--t-1);color:var(--muted);line-height:1.5;margin-top:var(--s3)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+.dia{display:block;width:100%;height:auto;color:var(--ink-2);overflow:visible}
+.dia .tx{font-family:var(--mono);font-size:11.5px;fill:currentColor}
+.dia .tx.k{fill:var(--ink);font-weight:500;font-family:var(--sans);font-size:12.5px}
+.dia .tx.s{font-size:10.5px;fill:var(--faint)}
+.dia .bar{fill:var(--line-2)} .dia .bar.hi{fill:var(--accent)} .dia .bar.warn{fill:var(--amber)} .dia .bar.soft{fill:var(--accent-soft)}
+.dia .ax{stroke:var(--line-2);stroke-width:1}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:var(--s3)}
+.steps li{position:relative;padding-left:2.75rem;font-size:var(--t-1)}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;font-family:var(--mono);color:var(--accent);font-weight:500}
+form.q{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5);display:grid;gap:var(--s3);margin-top:var(--s4)}
+form.q h3{margin:0} form.q .why{font-size:var(--t-1);color:var(--muted);margin:0}
+form.q label{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;min-height:24px}
+form.q label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+form.q input[type=radio],form.q input[type=checkbox]{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px}
+form.q textarea{width:100%;font:inherit;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2);min-height:3.2rem;resize:vertical}
+form.q .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap}
+form.q.bare{box-shadow:none;padding:0;background:transparent;margin-top:var(--s3)}
+.btn{font:500 var(--t-1) var(--sans);background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;min-height:24px;transition:filter var(--dur) var(--ease)}
+.btn:hover{filter:brightness(1.08)} .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.queued{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);min-height:1.2em}
+.rec{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);margin-left:.4em}
+ul.tight{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.tight li{margin-bottom:var(--s2)}
+ul.qa{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.qa li{margin-bottom:var(--s2)}
+pre.md{font-family:var(--mono);font-size:var(--t-2);line-height:1.65;white-space:pre;overflow-x:auto;margin:0;background:var(--band);border-radius:var(--r);padding:var(--s4)}
+.insight{font-size:var(--t-1);color:var(--muted);margin:var(--s3) 0 0;max-width:var(--measure)}
+footer{border-top:1px solid var(--line);padding:var(--s5) 0;font-size:var(--t-2);color:var(--faint);font-family:var(--mono)}
+</style>
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in"><b>s03 · DABstep-loop · harness findings</b>
+<nav><a href="#result">Result</a><a href="#tasks">Per task</a><a href="#dollars">Dollars</a><a href="#prune">Prune</a><a href="#adopted">Adopted</a><a href="#next">Next</a><a href="#approve">Approve</a></nav></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="label">findings s03 · after plan s02 · 15 Sep 2026 · v2 on dev-10, three harnesses, eight runs</p>
+  <h1>Adopt <em>lean</em>: 227k → 49k input tokens per question with the same score over three passes each; reject lean-prune, which re-opened outputs, added a call per question and lost three list answers on one pass</h1>
+  <p class="lead">The experiment ran the champion's unchanged files under three harness profiles on the same ten questions. Removing the inherited connector tools and the title call cut the tokens per question by 78% and the per-question cost by 28%, and the ten tasks passed 24 of 30 times under both baseline and lean. Pruning tool output to a reference saved nothing over lean and cost accuracy, so it is not adopted. <code>lean</code> is now the default for every run and every loop session.</p>
+  <ul class="tight">
+    <li><b>Fixed:</b> <code>agents/v2</code>, Haiku 4.5, effort medium, 20 turns, dev-10, 3 workers, one pass per run.</li>
+    <li><b>Varied:</b> the harness only; recorded in <code>run.json.harness</code>; the fingerprint <code>665f5ffa88eb</code> is on every run.</li>
+    <li><b>Judged:</b> per task across passes, not by p-value: no task that passed on every baseline pass may fail on every lean pass, and mean passes per run must not drop.</li>
+  </ul>
+  <div class="chips"><span class="chip ok">lean adopted · default harness</span><span class="chip warn">lean-prune rejected</span><span class="chip ok">agent files untouched</span><span class="chip ok">8 runs, 0 session-limit hits</span><span class="chip">ledger entry 7 · loop/harness_experiment.json</span></div>
+</div></header>
+
+<section class="blk" id="result"><div class="wrap">
+  <div class="hd"><p class="label">1 · result</p>
+  <h2>1 · Lean is a 78% token cut at the same score; prune is a 75% cut at a lower one</h2>
+  <ul class="tight">
+    <li><b>Baseline, three passes:</b> 226,669 input tokens per question, 8 / 9 / 7 of 10 — the baseline itself moves by two tasks between passes.</li>
+    <li><b>Lean, three passes:</b> 49,108 per question (22% of baseline), 8 / 8 / 8 of 10, 6.5 calls per question against 6.7, 30 s against 34 s.</li>
+    <li><b>Lean-prune, two passes:</b> 56,580 per question (25%), 6 / 9 of 10, 8.0 calls per question, 34 outputs pruned and 10 re-opened.</li>
+  </ul></div>
+  <div class="kpi">
+    <div class="k"><b>227k → 49k</b><span>mean input tokens per question, baseline → lean · three passes each · <code>loop/harness_experiment.json</code></span></div>
+    <div class="k"><b>24 / 30 = 24 / 30</b><span>task passes over three passes, baseline = lean · no task lost on every pass, none gained</span></div>
+    <div class="k"><b>$0.044 → $0.032</b><span>per question at Haiku list rates from the CLI transcripts · −28%; the token cut is larger than the dollar cut (§3)</span></div>
+    <div class="k"><b>15 / 20 · 8.0 calls</b><span>lean-prune passes and calls per question, against 16 / 20 and 6.5 for lean's first two passes · rejected (§4)</span></div>
+  </div>
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>The three arms — every number is a mean over the arm's runs of v2 on dev-10; the runs are listed in §5</caption>
+    <thead><tr><th>Arm</th><th>Passes</th><th>Input / question</th><th>Share</th><th>Output / question</th><th>Calls / question</th><th>Seconds / question</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">T0 · baseline</td><td class="num">8 · 9 · 7</td><td class="num">226,669</td><td class="num">100%</td><td class="num">2,953</td><td class="num">6.7</td><td class="num">34</td><td class="v-no">reference</td></tr>
+      <tr class="pro"><td class="sub">T1 · lean</td><td class="num">8 · 8 · 8</td><td class="num">49,108</td><td class="num">22%</td><td class="num">2,774</td><td class="num">6.5</td><td class="num">30</td><td class="v-ok">adoptable · adopted</td></tr>
+      <tr><td class="sub">T2 · lean-prune</td><td class="num">6 · 9</td><td class="num">56,580</td><td class="num">25%</td><td class="num">3,163</td><td class="num">8.0</td><td class="num">35</td><td class="v-warn">not adoptable</td></tr>
+    </tbody></table></div>
+  <p class="insight">Lean's third pass was added after two: the plan's rule compared totals and lean was one pass short (16 vs 17) — then baseline's third pass dropped to 7, with the same task 49 failure lean had shown. The comparison now uses mean passes per run, which is what the ledger records.</p>
+</div></section>
+
+<section class="band-sec" id="tasks"><div class="wrap">
+  <div class="hd"><p class="label">2 · per task</p>
+  <h2>2 · Every flip is a task the baseline also flips; the token cut is on every task, 5× to 11×</h2></div>
+  <div class="tw"><table>
+    <caption>Pass / fail per pass and mean input tokens per task — ✓✗ in pass order; tokens are the mean over the arm's passes</caption>
+    <thead><tr><th>Task</th><th>Level</th><th>Baseline</th><th>Tokens</th><th>Lean</th><th>Tokens</th><th>Lean-prune</th><th>Tokens</th><th>Reading</th></tr></thead>
+    <tbody>
+      <tr><td class="num">5</td><td>easy</td><td class="num">✓✓✓</td><td class="num">60,908</td><td class="num">✓✓✓</td><td class="num">7,919</td><td class="num">✓✓</td><td class="num">8,117</td><td>2 calls; the 27k prefix was 90% of it</td></tr>
+      <tr><td class="num">49</td><td>easy</td><td class="num">✓✓✗</td><td class="num">92,888</td><td class="num">✗✓✓</td><td class="num">8,213</td><td class="num">✓✓</td><td class="num">8,311</td><td>the known failure: a prose answer with no <code>{"agent_answer"}</code> line — under both harnesses</td></tr>
+      <tr><td class="num">70</td><td>easy</td><td class="num">✓✓✓</td><td class="num">140,800</td><td class="num">✓✓✓</td><td class="num">27,489</td><td class="num">✓✓</td><td class="num">46,961</td><td>prune: manual.md reads (10k chars) pruned, re-opened 3×</td></tr>
+      <tr><td class="num">1273</td><td>hard</td><td class="num">✓✓✓</td><td class="num">95,458</td><td class="num">✓✓✓</td><td class="num">9,535</td><td class="num">✓✓</td><td class="num">16,256</td><td>stable</td></tr>
+      <tr><td class="num">1305</td><td>hard</td><td class="num">✓✓✓</td><td class="num">246,617</td><td class="num">✓✓✓</td><td class="num">34,997</td><td class="num">✓✓</td><td class="num">89,559</td><td>prune: 16 turns on one pass, 5 re-opens</td></tr>
+      <tr><td class="num">1464</td><td class="num">hard</td><td class="num">✓✓✓</td><td class="num">62,730</td><td class="num">✓✓✓</td><td class="num">15,062</td><td class="num">✗✓</td><td class="num">47,769</td><td>prune: a 2k-char fee-id list cut at 1.5k; the model re-queried 6× and returned a longer, wrong list</td></tr>
+      <tr><td class="num">1681</td><td>hard</td><td class="num">✗✓✗</td><td class="num">237,061</td><td class="num">✓✓✗</td><td class="num">70,219</td><td class="num">✗✓</td><td class="num">81,965</td><td>the agent's own coin-flip (day filter finds no transactions), every harness</td></tr>
+      <tr><td class="num">1753</td><td>hard</td><td class="num">✓✓✓</td><td class="num">326,644</td><td class="num">✓✗✓</td><td class="num">29,971</td><td class="num">✗✓</td><td class="num">44,173</td><td>lean p2: a wrong id list, 6 turns; baseline has the same failure in cycle history</td></tr>
+      <tr><td class="num">1871</td><td>hard</td><td class="num">✓✓✓</td><td class="num">432,385</td><td class="num">✓✓✓</td><td class="num">109,622</td><td class="num">✓✓</td><td class="num">103,571</td><td>the long task: 15–18 calls; lean's cut is 4×, the conversation now dominates</td></tr>
+      <tr><td class="num">2697</td><td>hard</td><td class="num">✗✗✗</td><td class="num">571,199</td><td class="num">✗✗✗</td><td class="num">178,046</td><td class="num">✗✗</td><td class="num">119,116</td><td>open since build 1 (E:77.68 vs E:13.57); one lean pass hit max turns</td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s5)">
+    <li><b>Lost tasks under lean: none.</b> 49, 1681 and 1753 each fail once under lean and 49 and 1681 also fail under baseline; nothing that baseline passes every time fails under lean every time.</li>
+    <li><b>Trajectories:</b> lean's calls per question (6.5) and output tokens (2,774) match baseline's (6.7, 2,953): the connector schemas were not steering the model, only being read.</li>
+    <li><b>The remaining cost is the long tail:</b> 1871 and 2697 are 110k and 178k under lean, 58% of the run; the six short tasks average 17k.</li>
+  </ul>
+</div></section>
+
+<section class="blk" id="dollars"><div class="wrap">
+  <div class="hd"><p class="label">3 · tokens vs dollars</p>
+  <h2>3 · 78% fewer tokens is 28% fewer dollars: the prefix was cached, and the lean prefix is too short to cache</h2></div>
+  <div class="tw"><table>
+    <caption>Cache classes per question from the CLI transcripts, priced at Haiku 4.5 list rates ($1 / $1.25 / $0.10 / $5 per M); dev runs bill the subscription</caption>
+    <thead><tr><th>Arm</th><th>Fresh input</th><th>Cache write</th><th>Cache read</th><th>Output</th><th>$ / question</th><th>$ / dev-10 run</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">baseline</td><td class="num">67</td><td class="num">5,700</td><td class="num">220,902</td><td class="num">2,953</td><td class="num">0.0440</td><td class="num">0.440</td></tr>
+      <tr class="pro"><td class="sub">lean</td><td class="num">3,840</td><td class="num">8,137</td><td class="num">37,130</td><td class="num">2,774</td><td class="num">0.0316</td><td class="num">0.316</td></tr>
+      <tr><td class="sub">lean-prune</td><td class="num">3,961</td><td class="num">8,517</td><td class="num">44,102</td><td class="num">3,163</td><td class="num">0.0348</td><td class="num">0.348</td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s5)">
+    <li><b>Why the dollar cut is smaller:</b> the 27k prefix cost $0.10 per M as a cache read; removing it removes 184k cheap tokens per question. What remains is dearer per token.</li>
+    <li><b>Fresh input went from 67 to 3,840 per question:</b> the lean prefix (system + tool ≈ 2.7k tokens) is under Haiku's minimum cacheable length, so the first call of every session is billed fresh; the cache only starts once the conversation is long enough.</li>
+    <li><b>Output is now 44% of the dollar:</b> 2,774 tokens × $5 = $0.014 of $0.032. The next dollar lever is turns, not context — which is an agent question, not a harness one.</li>
+    <li><b>At scale:</b> a dev-10 pass 2.3M → 0.5M tokens; the 47-task two-pass probe ≈ 24M → ≈ 5M; scoring the 450 ≈ 102M → ≈ 22M.</li>
+  </ul>
+</div></section>
+
+<section class="band-sec" id="prune"><div class="wrap">
+  <div class="hd"><p class="label">4 · why prune failed</p>
+  <h2>4 · Pruning cut through 2k-character pandas prints, so the model re-queried instead of reading — more calls, more tokens than lean, and three wrong lists</h2></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>What happened, from the traces</h3>
+      <ul class="qa">
+        <li><b>34 outputs pruned over 20 tasks, 10 re-opened.</b> Most pruned outputs were 2,000–2,100 characters: pandas' default display of a frame or a long list, just over the 1,500 cap.</li>
+        <li><b>Re-opening was the minority response.</b> On 1464 (pass 1) six outputs were pruned, none re-opened; the model ran the query six ways, took 9 turns against 2 on baseline, and returned a longer, wrong list. On 1305 it re-opened five times and took 16 turns.</li>
+        <li><b>The answer was the output.</b> 1464, 1681 and 1753 are "list every applicable fee id" tasks: the list is the long print. Hiding its tail hid the answer.</li>
+        <li><b>Net tokens rose against lean:</b> 56.6k vs 49.1k per question (+15%), because each extra turn re-sends the conversation; the pruned characters were 10–15% of it.</li>
+      </ul></div>
+    <div class="panel card"><h3>What it means for the NVIDIA idea</h3>
+      <ul class="tight">
+        <li><b>The mechanism works</b> — <code>show()</code> windows, references, full text kept in the trace — and it is content-blind, so it stays available as <code>lean-prune</code>.</li>
+        <li><b>It is the wrong lever here.</b> Tool results are a small share of a short conversation once the prefix is gone; the model's re-query habit costs more than the saving.</li>
+        <li><b>If revisited:</b> a cap of 3,000+ with a 1,500 head would leave pandas prints intact and prune only the manual.md reads (10k chars) — a few tasks, a small saving.</li>
+        <li><b>Not adopted; nothing to undo.</b> The default is <code>lean</code>; <code>HARNESS=lean-prune</code> remains selectable for a future experiment.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="blk" id="adopted"><div class="wrap">
+  <div class="hd"><p class="label">5 · what changed</p>
+  <h2>5 · Lean is the default for every task session and every loop session; baseline stays selectable and the gate keeps the fix in</h2></div>
+  <div class="tw"><table>
+    <caption>Code and data on the branch — the two optimiser files and agent.yaml are untouched</caption>
+    <thead><tr><th>Where</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td class="sub"><code>agent/harness.py</code></td><td>profiles <code>baseline</code> · <code>lean</code> · <code>lean-prune</code>; <code>DEFAULT = LEAN</code>; <code>harness_env()</code> sets <code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</code>; <code>prune_rule()</code></td></tr>
+      <tr><td class="sub"><code>agent/session.py</code></td><td><code>solve_task(..., harness=)</code>: <code>strict_mcp_config</code>, env, executor cap; <code>Solve.harness</code></td></tr>
+      <tr><td class="sub"><code>agent/tools/python_executor.py</code></td><td>pruning by reference, <code>show()</code>, <code>full_output</code> kept in the trace; byte-identical without a cap</td></tr>
+      <tr><td class="sub"><code>eval/runner.py</code></td><td><code>RunMeta.harness</code>; run id carries a non-baseline harness and gets <code>-2</code> on a clash (two arms once shared a folder)</td></tr>
+      <tr><td class="sub"><code>eval/harness_compare.py</code> · <code>dabstep harness-compare [--ledger]</code></td><td>arms from the run folders, cache classes from the CLI transcripts, per-task verdict, <code>loop/harness_experiment.json</code>, ledger entry 7 (kind <code>harness</code>)</td></tr>
+      <tr><td class="sub"><code>loop/optimiser.py · ureflect.py · reflect.py · lenses.py · annotate.py</code></td><td><code>strict_mcp_config=LOOP_STRICT_MCP</code> on every session</td></tr>
+      <tr><td class="sub"><code>tracking/gate.check_harness</code></td><td>CI fails on any <code>ClaudeAgentOptions(</code> without <code>strict_mcp_config</code></td></tr>
+      <tr><td class="sub"><code>scripts/request_log_proxy.py</code></td><td>the measurement, kept: <code>ANTHROPIC_BASE_URL=http://127.0.0.1:8787</code> logs system / tools / messages sizes per request</td></tr>
+      <tr><td class="sub"><code>cli.py · Makefile</code></td><td><code>eval --harness</code> (default lean), <code>make harness-experiment</code>, <code>make harness-compare</code></td></tr>
+      <tr><td class="sub">viewer</td><td>Runs: harness under the split; Overview "tokens per question" reads the champion's latest lean dev run with the baseline beside it</td></tr>
+      <tr><td class="sub"><code>README §2c · AGENTS §5c</code></td><td>the finding, the profiles, the rule</td></tr>
+      <tr><td class="sub">runs</td><td>8 folders: <code>20260915T075454Z</code>, <code>075716Z</code>, <code>080417Z</code> (baseline); the same stamps <code>_lean</code>; <code>075716Z</code>, <code>080017Z</code> <code>_lean-prune</code></td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s5)">
+    <li><b>Champion unchanged:</b> v2, fingerprint <code>665f5ffa88eb</code>, registry run <code>20260914T034447Z</code> (9/10, baseline). The harness is not part of what a champion is.</li>
+    <li><b>Tests:</b> 61 pass — profiles, pruning both ways, <code>show()</code> windows, the verdict rule, the gate check; mypy strict and ruff clean.</li>
+  </ul>
+</div></section>
+
+<section class="blk" id="next"><div class="wrap">
+  <div class="hd"><p class="label">6 · next lever</p>
+  <h2>6 · After the harness, the cost is turns — and the flips are the answer contract, both agent questions</h2></div>
+  <div class="grid g2">
+    <div class="panel card pro"><h3>Recommended next</h3>
+      <ul class="tight">
+        <li><b>Answer-contract enforcement in the harness:</b> 49 failed twice in these eight runs by answering in prose with no <code>{"agent_answer"}</code> line; a final message without it should be bounced back once ("reply with the JSON line only"). Harness-owned, content-blind, and the fix that v3/v4's holds pointed at.</li>
+        <li><b>Turn cost on the long tail:</b> 1871 and 2697 are 58% of lean's tokens; output tokens are 44% of the dollar. The unsupervised loop's routing table is the mechanism for fewer calls; it is an optimiser cycle, not a setting.</li>
+      </ul></div>
+    <div class="panel card"><h3>Not worth another run</h3>
+      <ul class="tight">
+        <li><b>Prune cap tuning:</b> a 3,000 cap would prune ~4 outputs across dev-10 — a saving under 5%.</li>
+        <li><b>Manual digest (T3):</b> only 2697 read manual.md heavily; the tokens are there but so is the risk of a systematic wrong digest.</li>
+        <li><b>A cacheable prefix pad:</b> padding the system prompt to Haiku's cache minimum would trade fresh tokens for cache writes at the same price; nothing to gain.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="blk" id="approve"><div class="wrap">
+  <div class="hd"><p class="label">7 · approve</p>
+  <h2>7 · Approve — merge the branch with lean as the default and deploy; or hold it for a change</h2>
+  <ul class="tight">
+    <li><b>What merging does:</b> every <code>make smoke</code>, probe and loop session runs lean; the viewer shows 49k with the 262k beside it; CI enforces <code>strict_mcp_config</code>.</li>
+    <li><b>What it does not do:</b> change the champion, its run, or any agent file; score the 450.</li>
+  </ul></div>
+  <form class="q" data-lavish-question="approve" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const d=fd.get('decision'); if(!d) return; window.lavish.queuePrompt('Decision on s03 findings: ' + d, {tag:'approve', text:'s03: '+d, element:event.currentTarget, data:{question:'approve', answer:d}}); event.currentTarget.querySelector('.queued').textContent='queued: '+d;">
+    <h3>Decision</h3>
+    <label><input type="radio" name="decision" value="merge and deploy with lean as the default harness" checked><span>Merge and deploy: lean is the default<span class="rec">recommended</span></span></label>
+    <label><input type="radio" name="decision" value="merge and deploy, and also build the answer-contract bounce in the harness first"><span>Merge, and add the answer-contract bounce before deploying</span></label>
+    <label><input type="radio" name="decision" value="hold the branch; do not merge yet"><span>Hold the branch</span></label>
+    <div class="row"><button type="submit" class="btn">Queue decision</button><span class="queued"></span></div>
+  </form>
+  <p class="small" style="margin-top:var(--s5)">Verified this session: eight run folders under <code>runs/20260915T*</code> with <code>harness</code> in each <code>run.json</code>, zero "session limit" rows; <code>loop/harness_experiment.json</code> written by <code>dabstep harness-compare</code> from those folders and the CLI transcripts under <code>~/.claude/projects</code>; ledger entry 7; the title-call switch confirmed through the proxy (two requests per session under lean, three under baseline); 61 tests, mypy strict, ruff.</p>
+</div></section>
+
+<footer><div class="wrap">s03 · DABstep-loop · design source: DESIGN.md, ported from nmp-dsci.github.io (Field Guide) · one em, in the h1</div></footer>
+</body>
+</html>

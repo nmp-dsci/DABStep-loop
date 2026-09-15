@@ -45,6 +45,7 @@ export function Runs() {
                 <td>
                   {r.split}
                   {r.kind === 'probe' && <span className="path">unscored · {r.sample?.n ?? r.n_tasks} of the 450 · seed {r.sample?.seed}</span>}
+                  {r.harness && r.harness !== 'baseline' && <span className="path">harness {r.harness}</span>}
                 </td>
                 <td className="num">{r.kind === 'probe' ? 'n/a' : r.summary?.n_scored ? `${r.summary.passed}/${r.summary.n_scored}` : '—'}</td>
                 <td className="num">{r.summary ? `${r.summary.easy_passed}/${r.summary.easy_n}` : '—'}</td>
