@@ -37,14 +37,26 @@ def eval(  # noqa: A001 - the Makefile target is `eval`
     task: Annotated[list[str] | None, typer.Option("--task", "-t")] = None,
     note: str = "",
     no_track: bool = False,
+    harness: str = "lean",
 ) -> None:
-    """Run an agent version over a split and score it."""
+    """Run an agent version over a split and score it (HARNESS: lean, baseline, lean-prune)."""
     from dabstep_loop.eval.runner import run_eval
 
     if split in {"all", "default"} and not dry_run:
         typer.confirm("This scores the 450 — a full leaderboard run. Continue?", abort=True)
     meta, _ = asyncio.run(
-        run_eval(agent, split, model, workers, passes, dry_run, task, note, track=not no_track)
+        run_eval(
+            agent,
+            split,
+            model,
+            workers,
+            passes,
+            dry_run,
+            task,
+            note,
+            track=not no_track,
+            harness_name=harness,
+        )
     )
     console.print(f"run: runs/{meta.run_id}")
 
@@ -288,6 +300,29 @@ def ledger() -> None:
 
     for e in read_ledger():
         console.print(json.dumps(e, indent=1)[:2000])
+
+
+@app.command()
+def harness_compare(agent: str = "v2", split: str = "dev", ledger: bool = False) -> None:
+    """Compare the s02 harness experiment arms (tokens per question, passes per task)."""
+    from dabstep_loop.eval.harness_compare import compare, record_in_ledger, write
+
+    exp = compare(agent, split)
+    console.print(str(write(exp)))
+    if ledger:
+        console.print(f"ledger entry {record_in_ledger(exp)['cycle']} (kind harness)")
+    for h, a in exp.arms.items():
+        console.print(
+            f"{h:<11} runs={len(a.runs)} in/q={a.input_tokens_mean:>9,.0f} "
+            f"out/q={a.output_tokens_mean:>6,.0f} calls={a.calls_mean:.1f} "
+            f"passes={a.passes_per_run} reopens={a.reopens}"
+        )
+    for h, v in exp.verdicts.items():
+        console.print(
+            f"  {h}: adoptable={v.adoptable} lost={v.lost_tasks} gained={v.gained_tasks} "
+            f"tokens={v.tokens_share:.0%} of baseline"
+        )
+    console.print(f"recommended: {exp.recommended or 'none'}")
 
 
 @app.command()

@@ -187,10 +187,12 @@ async def _ask(prompt: str, model: str) -> tuple[str, dict[str, int]]:
         TextBlock,
     )
 
+    from dabstep_loop.agent.harness import LOOP_STRICT_MCP
     from dabstep_loop.agent.llm import EFFORT, resolve_model, subscription_env
     from dabstep_loop.config import ROOT
 
     options = ClaudeAgentOptions(
+        strict_mcp_config=LOOP_STRICT_MCP,  # no inherited connector tools (s02)
         model=resolve_model(model),
         effort=EFFORT,
         tools=[],

@@ -17,6 +17,7 @@ from typing import Any
 
 from rich.console import Console
 
+from dabstep_loop.agent.harness import DEFAULT, Harness, harness
 from dabstep_loop.agent.llm import resolve_model, short_model
 from dabstep_loop.agent.session import Solve, save_trace, solve_task
 from dabstep_loop.agent.versions import AgentVersion, load_version
@@ -55,11 +56,25 @@ class RunMeta:
     task_ids: list[str] = field(default_factory=list)
     kind: str = "eval"  # "eval" scores against gold; "probe" runs unscored tasks from the 450
     sample: dict[str, Any] | None = None  # probe only: the sampler's seed, k and per-family draw
+    harness: str = "baseline"  # agent/harness.py profile; runs before s02 were all baseline
 
 
-def new_run_id(version: AgentVersion, model: str, split: str) -> str:
+def new_run_id(
+    version: AgentVersion, model: str, split: str, harness_name: str = DEFAULT.name
+) -> str:
+    """`<ts>_<agent>_<split>_<model>[_<harness>]`, unique on disk.
+
+    Two runs started in the same second once shared a folder (s02, two arms in
+    parallel); a non-baseline harness is named in the id and a clash gets a suffix."""
     ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    return f"{ts}_{version.name}_{split}_{short_model(model)}"
+    base = f"{ts}_{version.name}_{split}_{short_model(model)}"
+    if harness_name != "baseline":
+        base += f"_{harness_name}"
+    run_id, n = base, 1
+    while (RUNS_DIR / run_id).exists():
+        n += 1
+        run_id = f"{base}-{n}"
+    return run_id
 
 
 def _unscored(task: Task) -> Task:
@@ -76,7 +91,13 @@ def _vote(answers: list[str]) -> str:
 
 
 async def _solve_with_passes(
-    version: AgentVersion, task: Task, model: str, passes: int, run_dir: Path, dry_run: bool
+    version: AgentVersion,
+    task: Task,
+    model: str,
+    passes: int,
+    run_dir: Path,
+    dry_run: bool,
+    h: Harness = DEFAULT,
 ) -> tuple[TaskResult, Solve | None]:
     """One task, `passes` sessions, the majority answer; every pass's trace is saved.
 
@@ -94,7 +115,7 @@ async def _solve_with_passes(
         return r, None
     solves: list[Solve] = []
     for p in range(passes):
-        s = await solve_task(version, task, model=model)
+        s = await solve_task(version, task, model=model, harness=h)
         solves.append(s)
         save_trace(
             run_dir
@@ -136,10 +157,12 @@ async def run_eval(
     track: bool = True,
     score: bool = True,
     sample: dict[str, Any] | None = None,
+    harness_name: str = DEFAULT.name,
 ) -> tuple[RunMeta, list[TaskResult]]:
     """`score=False` is a probe: gold is blanked, `correct` is None on every row, no
     submission file is written, and the run folder is marked `kind: probe`."""
     version = load_version(agent)
+    h = harness(harness_name)
     model_id = resolve_model(model or version.config.model)
     tasks = load_tasks(split)
     if task_ids:
@@ -147,7 +170,7 @@ async def run_eval(
         tasks = [t for t in tasks if t.task_id in wanted]
     if not score:
         tasks = [_unscored(t) for t in tasks]
-    run_id = new_run_id(version, model_id, "probe" if not score else split)
+    run_id = new_run_id(version, model_id, "probe" if not score else split, h.name)
     run_dir = RUNS_DIR / run_id
     (run_dir / "traces").mkdir(parents=True, exist_ok=True)
     meta = RunMeta(
@@ -166,13 +189,16 @@ async def run_eval(
         task_ids=[t.task_id for t in tasks],
         kind="eval" if score else "probe",
         sample=sample,
+        harness=h.name,
     )
     _write_meta(run_dir, meta)
     for name, text in version.files().items():
         (run_dir / "agent").mkdir(exist_ok=True)
         (run_dir / "agent" / name).write_text(text)
 
-    console.rule(f"[bold]{run_id}[/] · {len(tasks)} tasks · {model_id} · workers={workers}")
+    console.rule(
+        f"[bold]{run_id}[/] · {len(tasks)} tasks · {model_id} · workers={workers} · harness={h.name}"
+    )
     sem = asyncio.Semaphore(max(1, workers))
     results: dict[str, TaskResult] = {}
     traces_text: dict[str, str] = {}
@@ -180,7 +206,7 @@ async def run_eval(
     async def one(task: Task) -> None:
         async with sem:
             t0 = time.time()
-            r, s = await _solve_with_passes(version, task, model_id, passes, run_dir, dry_run)
+            r, s = await _solve_with_passes(version, task, model_id, passes, run_dir, dry_run, h)
             results[task.task_id] = r
             if s is not None:
                 traces_text[task.task_id] = s.final_text

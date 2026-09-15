@@ -14,7 +14,9 @@ from dabstep_loop.data.file_structures import render
 from dabstep_loop.data.tasks import Task
 
 
-def build_task_prompt(version: AgentVersion, task: Task, data_dir: Path) -> str:
+def build_task_prompt(
+    version: AgentVersion, task: Task, data_dir: Path, harness_rule: str = ""
+) -> str:
     parts = [
         f"Available data files in '{data_dir}/':",
         render(),
@@ -30,6 +32,8 @@ def build_task_prompt(version: AgentVersion, task: Task, data_dir: Path) -> str:
             "re-deriving the rules; its functions:",
             helper_signatures(version.helper),
         ]
+    if harness_rule:
+        parts += ["", harness_rule]
     parts += [
         "",
         f"QUESTION: {task.question}",

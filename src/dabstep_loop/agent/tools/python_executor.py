@@ -4,6 +4,11 @@ One namespace per task, reset between tasks; pandas preloaded; a timeout per
 call; and NVIDIA's loop-breaker — the same code run three times returns an
 instruction to answer, not a fourth result. A REPL-style auto-print of a bare
 final expression saves the model a `print()` on every exploration step.
+
+Under a pruning harness (`agent/harness.py`) a long output is not returned in
+full: the model sees its head plus a reference (`out#3`) and a `show()` function
+re-opens any window of it. NVIDIA's "an ID where the function was" — the full
+text never rides along in every later turn, but nothing is lost to the model.
 """
 
 from __future__ import annotations
@@ -33,10 +38,14 @@ class ExecutorState:
     history: list[dict[str, Any]] = field(default_factory=list)
     calls: int = 0
     helper_path: Path | None = None
+    prune_cap: int | None = None  # None: today's 12k truncation only
+    prune_head: int = 600
+    outputs: dict[str, str] = field(default_factory=dict)  # out#k → full text, when pruned
 
     def reset(self) -> None:
         self.namespace.clear()
         self.history.clear()
+        self.outputs.clear()
         self.calls = 0
 
 
@@ -82,6 +91,8 @@ def _init_namespace(state: ExecutorState) -> None:
 
     state.namespace["pd"] = pd
     state.namespace["__name__"] = "__task__"
+    if state.prune_cap:
+        state.namespace["show"] = _make_show(state)
     if state.helper_path and state.helper_path.exists():
         spec = importlib.util.spec_from_file_location("helper", state.helper_path)
         if spec and spec.loader:
@@ -89,6 +100,51 @@ def _init_namespace(state: ExecutorState) -> None:
             sys.modules["helper"] = mod
             spec.loader.exec_module(mod)
             state.namespace["helper"] = mod
+
+
+def _make_show(state: ExecutorState):  # type: ignore[no-untyped-def]
+    """`show(ref, start=0, n=cap, find=None)`: a window of a pruned output, never over the cap."""
+    cap = int(state.prune_cap or 1500)
+
+    def show(ref: str, start: int = 0, n: int | None = None, find: str | None = None) -> None:
+        key = str(ref).strip().lstrip("[").rstrip("]").split(":")[0].strip()
+        if key not in state.outputs:
+            print(f"no output {ref!r}; known: {', '.join(sorted(state.outputs)) or 'none'}")
+            return
+        full = state.outputs[key]
+        width = max(
+            100, min(int(n or cap), cap) - 160
+        )  # the window plus its footer stays under the cap
+        if find is not None:
+            at = full.find(str(find), max(0, int(start)))
+            if at < 0:
+                print(f"{key}: {find!r} not found after {start}")
+                return
+            start = max(0, at - 80)
+        start = max(0, int(start))
+        end = min(len(full), start + width)
+        print(full[start:end])
+        if end < len(full):
+            print(f"[{key} · chars {start}–{end} of {len(full)} · show({key!r}, start={end})]")
+        else:
+            print(f"[{key} · chars {start}–{end} of {len(full)} · end]")
+
+    return show
+
+
+def prune(body: str, state: ExecutorState) -> str:
+    """Head plus a reference, when the body is over the profile's cap; else the body."""
+    cap = state.prune_cap
+    if not cap or len(body) <= cap:
+        return body
+    key = f"out#{len(state.outputs) + 1}"
+    state.outputs[key] = body
+    head = body[: state.prune_head]
+    lines = body.count("\n") + 1
+    return (
+        f"{head}\n…[{key}: {len(body)} chars, {lines} lines — pruned; "
+        f"show({key!r}) or show({key!r}, find='…') to read more]"
+    )
 
 
 def run_code(code: str, state: ExecutorState, timeout_s: int, cwd: Path) -> str:
@@ -137,8 +193,18 @@ def run_code(code: str, state: ExecutorState, timeout_s: int, cwd: Path) -> str:
             parts.append(out.getvalue())
         if err.getvalue():
             parts.append(f"[stderr] {err.getvalue()}")
-        parts.append(f"[executed in {elapsed:.2f}s]")
-        text = "\n".join(parts)
+        text = "\n".join(parts).rstrip()
+        if len(text) > 12000:
+            text = text[:6000] + "\n…[truncated]…\n" + text[-4000:]
+        full = text
+        text = prune(text, state)
+        text = (text + "\n" if text else "") + f"[executed in {elapsed:.2f}s]"
+        state.calls += 1
+        entry: dict[str, Any] = {"code": code, "output": text, "elapsed_s": round(elapsed, 3)}
+        if text != full + f"\n[executed in {elapsed:.2f}s]":
+            entry["full_output"] = full
+        state.history.append(entry)
+        return text
     if len(text) > 12000:
         text = text[:6000] + "\n…[truncated]…\n" + text[-4000:]
     state.calls += 1

@@ -23,6 +23,12 @@ export function Overview() {
   const best = runs?.filter((r) => r.split === 'dev' && r.summary?.n_scored).sort((a, b) => (b.summary?.passed ?? 0) - (a.summary?.passed ?? 0))[0];
   const optTokens = cycles.reduce((n, e) => n + (e.tokens?.optimiser_in ?? 0) + (e.tokens?.optimiser_out ?? 0), 0);
   const { data: champDetail } = useGet<{ results: TaskResult[] }>(champ ? `/api/runs/${champ.run_id}` : null);
+  // The latest dev run of the champion under a non-baseline harness (s02): the same agent, a leaner session.
+  const leanRun = runs
+    ?.filter((r) => r.agent === champ?.agent && r.split === 'dev' && r.kind !== 'probe' && !r.dry_run && r.harness && r.harness !== 'baseline' && r.summary?.n_scored)
+    .sort((a, b) => b.started_at.localeCompare(a.started_at))[0];
+  const { data: leanDetail } = useGet<{ results: TaskResult[] }>(leanRun ? `/api/runs/${leanRun.run_id}` : null);
+  const leanTokens = leanDetail ? Math.round(leanDetail.results.reduce((n, r) => n + r.input_tokens + r.output_tokens, 0) / leanDetail.results.length) : null;
   const { data: fam } = useGet<{ with_entry_point: number; dev_anchored: number; families: { status: string }[] }>('/api/families');
   const ucycles = (ledger ?? []).filter((e) => e.kind === 'ucycle');
   const champRun = champDetail
@@ -70,9 +76,13 @@ export function Overview() {
         </div>
         <div className="kpi">
           <div className="label">tokens per question</div>
-          <div className="n">{champRun ? fmtK(Math.round(champRun.results_tokens / champRun.n)) : '—'}</div>
+          <div className="n">{leanTokens != null ? fmtK(leanTokens) : champRun ? fmtK(Math.round(champRun.results_tokens / champRun.n)) : '—'}</div>
           <div className="b">
-            {champRun ? `${champ?.agent} on dev-10 · ${fmtK(champRun.in)} in / ${fmtK(champRun.out)} out over ${champRun.n} tasks · ${champRun.turns} turns` : '—'}
+            {leanTokens != null && champRun && leanRun
+              ? `${champ?.agent} under the ${leanRun.harness} harness, ${leanRun.summary?.passed}/${leanRun.summary?.n_scored} on dev-10 · was ${fmtK(Math.round(champRun.results_tokens / champRun.n))} under baseline (${champRun.turns} turns)`
+              : champRun
+                ? `${champ?.agent} on dev-10 · ${fmtK(champRun.in)} in / ${fmtK(champRun.out)} out over ${champRun.n} tasks · ${champRun.turns} turns`
+                : '—'}
           </div>
         </div>
       </div>

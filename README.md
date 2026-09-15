@@ -45,6 +45,18 @@ make uloop        probe champion → cards → optimiser (cards in its prompt) �
 - **Gate A** (`eval/compare.gate_a`): promote when no dev task broke *and* the paired gold-free composite improved on the same seeded sample (invariants passed up with failures not up, or S1 up with S3 not worse; S5 and errors not worse). The McNemar p is recorded, not required: with one dev failure left it cannot clear 0.05.
 - A probe run has `correct: null` on every row and writes no submission; the CI gate refuses a version whose prompt quotes a leaderboard question verbatim. The viewer's **Families** page shows the coverage, the cards, the three-lens confusion matrix and each family's paired signals across cycles.
 
+## 2c · The harness — where the tokens went, and the profile that stops it
+
+The "tokens per question" number was never the agent. Logging the request bodies of one dev task showed every API call carrying **95,810 characters of tool schemas for 49 Gmail, Calendar and Drive connectors** the CLI loads from the user-level claude.ai config — 27k tokens beside our 2.7k of prompt and tool, 91% of every call, never called. `agent/harness.py` names what a session carries besides the agent's files:
+
+| profile | strict MCP | title call | tool output | when |
+|---|---|---|---|---|
+| `baseline` | inherits the user's connectors | yes | 12k-char truncation | how every run before s02 was made |
+| `lean` | only our `py` server | off | as baseline | the fix; same answers, same trajectories |
+| `lean-prune` | only ours | off | over 1,500 chars → head + `out#k`, `show()` re-opens | NVIDIA's "an id where the output was" |
+
+`make eval HARNESS=lean` records the profile in `run.json`; the fingerprint is untouched. `make harness-experiment` runs v2 on dev-10 under all three, twice each, and `dabstep harness-compare` writes `loop/harness_experiment.json` (§2c of the findings in `.lavish/s03_*`). The loop's own sessions (optimiser, reflectors, lenses) set `strict_mcp_config` too, and the CI gate refuses a `ClaudeAgentOptions` without it.
+
 ## 3 · The agent — Haiku 4.5, one tool, two editable files
 
 `agents/vN/system.md` (prompt) · `agents/vN/helper.py` (importable as `helper` inside the tool) · `agents/vN/agent.yaml` (frozen: `max_turns 20`, `timeout_s 270`, `tools [mcp__py__execute_python]`). The tool is an in-process MCP server: a persistent namespace with pandas preloaded, 120s per call, and NVIDIA's loop-breaker. Answers are scored with `question_scorer` vendored verbatim from the benchmark space.

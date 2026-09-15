@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>s02 · DABstep-loop — tokens per question: where 262k goes and the experiment to cut it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Design source (2): the project's own system — DESIGN.md, a port of
+   nmp-dsci.github.io/assets/css/tokens.css ("Field Guide"). Tokens verbatim. */
+:root{
+  --bg:#F7F6F2; --panel:#FFFFFF; --band:#EFEEE8;
+  --ink:#1A1D1B; --ink-2:#3B403D; --muted:#4A514D; --faint:#5C635E;
+  --line:#DCDAD2; --line-2:#C7C5BC; --line-3:#8A8880;
+  --accent:#0A6552; --accent-ink:#FFFFFF; --accent-soft:#DFEFE8;
+  --amber:#8A5006; --amber-soft:#F6E6CF;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --t-2:0.8rem; --t-1:0.875rem; --t0:1rem; --t1:1.125rem; --t2:1.406rem; --t3:1.758rem; --t4:2.197rem;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --r:10px; --r-sm:6px;
+  --shadow:0 1px 2px rgb(20 25 22 / .05), 0 12px 28px -18px rgb(20 25 22 / .22);
+  --dur:300ms; --ease:cubic-bezier(.2,.7,.2,1); --focus:var(--accent);
+  --w:1140px; --measure:68ch; --track-label:.08em;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --panel:#191E1B; --band:#161A18;
+    --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+    --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+    --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+    --amber:#D99A4E; --amber-soft:#3A2A14;
+    --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --panel:#191E1B; --band:#161A18;
+  --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
+  --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
+  --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+  --amber:#D99A4E; --amber-soft:#3A2A14;
+  --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
+}
+@media (prefers-reduced-motion: reduce){ :root{ --dur:0.01ms; } }
+*,*::before,*::after{box-sizing:border-box}
+:where(.grid,.flex,.kpi,.cards)>*{min-width:0}
+:where(p,h1,h2,h3,h4,li,dd,figcaption,td,th,.chip,.label){overflow-wrap:anywhere}
+:where(img,svg,video,iframe){max-width:100%;height:auto}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink-2);font-family:var(--sans);font-size:var(--t0);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{color:var(--ink);margin:0;line-height:1.15;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:var(--t4);font-family:var(--serif);font-weight:400} h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+h2{font-size:var(--t3)} h3{font-size:var(--t1)} h4{font-size:var(--t0)}
+p{margin:0 0 var(--s4);text-wrap:pretty}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:.2em} a:hover{text-decoration-thickness:2px}
+strong,b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:max(var(--t-2),.86em);background:var(--band);padding:.08em .32em;border-radius:var(--r-sm);color:var(--ink-2)}
+.wrap{max-width:var(--w);margin-inline:auto;padding-inline:var(--s5)}
+.label{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0}
+.lead{font-family:var(--serif);font-size:var(--t1);line-height:1.5;color:var(--ink-2);max-width:72ch}
+.small{font-size:var(--t-1);color:var(--muted)}
+.top{position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--w);margin-inline:auto;padding:var(--s3) var(--s5);display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
+.top b{font-family:var(--mono);font-size:var(--t-1);color:var(--ink);white-space:nowrap}
+.top nav{display:flex;gap:var(--s4);margin-left:auto;flex-wrap:wrap;font-size:var(--t-1);font-weight:500}
+.top nav a{color:var(--ink-2);text-decoration:none;padding:var(--s1) 0} .top nav a:hover{color:var(--accent)}
+header.hero{padding:var(--s7) 0 var(--s5)}
+.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) 0 0}
+.chip{font-family:var(--mono);font-size:var(--t-2);padding:.3em .6em;border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--ink-2);background:var(--panel)}
+.chip.ok{border-color:var(--accent);color:var(--accent)} .chip.warn{border-color:var(--amber);color:var(--amber)}
+section.blk{padding-top:var(--s8)} section.blk:last-of-type{padding-bottom:var(--s9)}
+section.band-sec{background:var(--band);margin-top:var(--s8);padding:var(--s7) 0}
+section.band-sec + section.blk{padding-top:var(--s7)}
+.hd{margin-bottom:var(--s5);max-width:80ch} .hd ul.tight{margin-top:var(--s2)} .hd .label{margin-bottom:var(--s2)} .hd h2{margin-bottom:var(--s3)}
+.panel{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5)}
+.grid{display:grid;gap:var(--s4)} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){.g3,.g2{grid-template-columns:minmax(0,1fr)}}
+.card h3{margin-bottom:var(--s2)} .card p{margin-bottom:var(--s2);font-size:var(--t-1)} .card p:last-child{margin:0}
+.card.pro{box-shadow:var(--shadow),inset 0 0 0 1.5px var(--accent)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);box-shadow:var(--shadow);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:var(--t-1)}
+caption{text-align:left;padding:var(--s4) var(--s5) var(--s2);color:var(--muted);font-size:var(--t-1);caption-side:top}
+th,td{text-align:left;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+thead th{font-family:var(--mono);font-size:var(--t-2);font-weight:500;color:var(--faint);letter-spacing:var(--track-label);text-transform:uppercase;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.sub{font-weight:600;color:var(--ink);white-space:nowrap}
+td.num{font-family:var(--mono);font-size:var(--t-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+td .path{display:block;font-family:var(--mono);font-size:var(--t-2);color:var(--faint);font-weight:400;margin-top:2px}
+tr.pro td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.v-ok{color:var(--accent);font-weight:600} .v-no{color:var(--muted)} .v-warn{color:var(--amber);font-weight:600}
+.kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4)}
+@media(max-width:900px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi .k{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s4)}
+.kpi .k b{display:block;font-family:var(--mono);font-size:var(--t3);color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k span{display:block;font-size:var(--t-2);color:var(--muted);margin-top:var(--s2);line-height:1.4}
+blockquote{margin:0;padding:var(--s3) var(--s4);border-left:2px solid var(--accent);background:var(--band);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:var(--t-1)}
+blockquote.warn{border-left-color:var(--amber)}
+.fig{margin:var(--s5) 0 0}
+.fig-title{font-family:var(--mono);font-size:var(--t-2);font-weight:500;letter-spacing:var(--track-label);text-transform:uppercase;color:var(--faint);margin:0 0 var(--s3);text-wrap:balance}
+.dia-frame{background:var(--panel);border-radius:var(--r);padding:var(--s4);box-shadow:var(--shadow)}
+.fig figcaption{font-family:var(--sans);font-size:var(--t-1);color:var(--muted);line-height:1.5;margin-top:var(--s3)}
+.fig figcaption b{color:var(--ink);font-weight:600}
+.dia{display:block;width:100%;height:auto;color:var(--ink-2);overflow:visible}
+.dia .tx{font-family:var(--mono);font-size:11.5px;fill:currentColor}
+.dia .tx.k{fill:var(--ink);font-weight:500;font-family:var(--sans);font-size:12.5px}
+.dia .tx.s{font-size:10.5px;fill:var(--faint)}
+.dia .bar{fill:var(--line-2)} .dia .bar.hi{fill:var(--accent)} .dia .bar.warn{fill:var(--amber)} .dia .bar.soft{fill:var(--accent-soft)}
+.dia .ax{stroke:var(--line-2);stroke-width:1}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:var(--s3)}
+.steps li{position:relative;padding-left:2.75rem;font-size:var(--t-1)}
+.steps li::before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;font-family:var(--mono);color:var(--accent);font-weight:500}
+form.q{background:var(--panel);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--s5);display:grid;gap:var(--s3);margin-top:var(--s4)}
+form.q h3{margin:0} form.q .why{font-size:var(--t-1);color:var(--muted);margin:0}
+form.q label{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;min-height:24px}
+form.q label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+form.q input[type=radio],form.q input[type=checkbox]{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px}
+form.q textarea{width:100%;font:inherit;font-size:var(--t-1);padding:var(--s2) var(--s3);border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);color:var(--ink-2);min-height:3.2rem;resize:vertical}
+form.q .row{display:flex;gap:var(--s3);align-items:center;flex-wrap:wrap}
+form.q.bare{box-shadow:none;padding:0;background:transparent;margin-top:var(--s3)}
+.btn{font:500 var(--t-1) var(--sans);background:var(--accent);color:var(--accent-ink);border:0;border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;min-height:24px;transition:filter var(--dur) var(--ease)}
+.btn:hover{filter:brightness(1.08)} .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.queued{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);min-height:1.2em}
+.rec{font-family:var(--mono);font-size:var(--t-2);color:var(--accent);margin-left:.4em}
+ul.tight{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.tight li{margin-bottom:var(--s2)}
+ul.qa{margin:0;padding-left:1.1em;font-size:var(--t-1)} ul.qa li{margin-bottom:var(--s2)}
+pre.md{font-family:var(--mono);font-size:var(--t-2);line-height:1.65;white-space:pre;overflow-x:auto;margin:0;background:var(--band);border-radius:var(--r);padding:var(--s4)}
+.insight{font-size:var(--t-1);color:var(--muted);margin:var(--s3) 0 0;max-width:var(--measure)}
+footer{border-top:1px solid var(--line);padding:var(--s5) 0;font-size:var(--t-2);color:var(--faint);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="top-in"><b>s02 · DABstep-loop · tokens per question</b>
+<nav><a href="#where">Where</a><a href="#nvidia">NVIDIA</a><a href="#levers">Levers</a><a href="#experiment">Experiment</a><a href="#build">Build</a><a href="#cost">Cost</a><a href="#risks">Risks</a><a href="#approve">Approve</a></nav></div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="label">plan s02 · after s01 · 15 Sep 2026 · champion v2, 9 of 10 on dev, 262k input tokens per question</p>
+  <h1>Nine of every ten tokens the agent pays for are <em>49 Gmail, Calendar and Drive tool schemas</em> it never calls: one harness option removes them, measured at −87% on the same question with the same answer</h1>
+  <p class="lead">The cost is not in the agent. Logging the actual request bodies shows every API call carries a 95,810-character block of connector tool definitions the CLI inherits from the user-level claude.ai config, beside our 3,504-character system prompt and 296-character <code>execute_python</code> schema. The second, smaller cost is the one NVIDIA describes: the whole conversation, tool outputs included, is re-sent on every turn. The plan fixes the first with a setting, tests the second as the NVIDIA "reference instead of output" pruning, and runs both against the baseline on the same 10 questions to prove accuracy holds.</p>
+  <ul class="tight">
+    <li><b>Measured, not inferred:</b> the request bodies were captured through a local logging proxy on dev task 5; the per-call cache usage comes from the SDK's own transcripts for all 10 tasks.</li>
+    <li><b>Same agent throughout:</b> v2 files, Haiku 4.5, effort medium, 20 turns. Only the harness changes.</li>
+    <li><b>Accuracy is the gate:</b> a lean harness is adopted only if it passes what the baseline passes on the same questions, run side by side.</li>
+  </ul>
+  <div class="chips"><span class="chip ok">agent files untouched</span><span class="chip ok">dev-10 only, never the 450</span><span class="chip ok">one measured fix already in hand</span><span class="chip warn">n = 10, so accuracy is checked per task, not by p-value</span><span class="chip">design source: DESIGN.md (Field Guide)</span></div>
+</div></header>
+
+<section class="blk" id="where"><div class="wrap">
+  <div class="hd"><p class="label">1 · where the cost is</p>
+  <h2>1 · The 262k is a 27k-token prefix re-read on each of ~10 calls, and the prefix is not ours</h2>
+  <ul class="tight">
+    <li><b>The KPI:</b> "tokens per question" on the demo Overview is the SDK's <code>input_tokens</code> per task — fresh + cache-read + cache-write summed over every API call in the session. v2 dev-10: 2,623,426 over 10 tasks, mean 262k, range 60k (task 5, 2 calls) to 726k (task 2697, 19 calls).</li>
+    <li><b>Flat per call:</b> 30–38k input per call whatever the task — a fixed prefix, not growing tool output.</li>
+    <li><b>The prefix is 27,382 tokens of cache reads on the very first call</b>, before our own prompt (2,655 tokens, the first call's cache write) exists in the cache.</li>
+    <li><b>What it is:</b> 49 MCP tools — <code>mcp__claude_ai_Gmail__*</code> (29), <code>Google_Calendar__*</code> (9), <code>Google_Drive__*</code> (11) — 95,810 characters of JSON schema, loaded by the CLI from the user-level connector config although the session passes <code>tools=[]</code>, <code>setting_sources=[]</code> and one MCP server of its own.</li>
+  </ul></div>
+  <div class="kpi">
+    <div class="k"><b>262k</b><span>mean input tokens per dev question today · <code>runs/20260914T034447Z_v2_dev_haiku</code>, the KPI on the demo</span></div>
+    <div class="k"><b>27.4k / 2.7k</b><span>tokens per call: inherited connector schemas vs our system.md + task prompt + tool · first call of task 1273, SDK transcript</span></div>
+    <div class="k"><b>60,754 → 8,080</b><span>input tokens on task 5 with <code>strict_mcp_config=True</code>, same answer "NL", 2 calls both times · measured this session</span></div>
+    <div class="k"><b>≈ 46k</b><span>modelled mean per question after the fix, from the 10 traces (18% of today); the experiment measures it</span></div>
+  </div>
+
+  <figure class="fig">
+    <p class="fig-title">fig 1 · one API call, task 5, turn 1: what the model reads (tokens, log-free linear scale)</p>
+    <div class="dia-frame">
+      <svg class="dia" viewBox="0 0 900 190" role="img" aria-label="Two stacked bars comparing the per-call prefix before and after strict_mcp_config">
+        <text class="tx k" x="0" y="22">today</text>
+        <rect class="bar warn" x="90" y="8" width="684" height="26"/>
+        <rect class="bar hi" x="774" y="8" width="20" height="26"/>
+        <rect class="bar" x="794" y="8" width="45" height="26"/>
+        <text class="tx" x="96" y="26" style="fill:#fff">connector tool schemas · 27.4k</text>
+        <text class="tx s" x="774" y="52">ours 2.7k</text>
+        <text class="tx s" x="812" y="52" style="text-anchor:start">msgs</text>
+        <text class="tx k" x="0" y="108">strict_mcp_config</text>
+        <rect class="bar hi" x="90" y="94" width="68" height="26"/>
+        <rect class="bar" x="158" y="94" width="45" height="26"/>
+        <text class="tx s" x="90" y="138">system.md + prompt + execute_python · 2.7k</text>
+        <text class="tx s" x="212" y="112">conversation · grows per turn</text>
+        <line class="ax" x1="90" y1="160" x2="840" y2="160"/>
+        <text class="tx s" x="90" y="178">0</text><text class="tx s" x="465" y="178">15k</text><text class="tx s" x="828" y="178">30k</text>
+      </svg>
+    </div>
+    <figcaption><b>The amber block is 91% of every call and never used:</b> no dev trace calls a connector tool; the agent's only tool is <code>execute_python</code> (296 characters). Removing it changes nothing the model needs. Source: request bodies logged on 15 Sep, <code>scratchpad/proxy/req.log</code>.</figcaption>
+  </figure>
+
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>Anatomy of one request, task 5, call 1 — logged through the proxy, characters as sent</caption>
+    <thead><tr><th>Block</th><th>Characters</th><th>≈ tokens</th><th>Owner</th><th>Needed?</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">tools · 49 connector schemas</td><td class="num">95,512</td><td class="num">≈ 26,600</td><td>CLI, from the user-level claude.ai MCP config</td><td class="v-warn">no — never called</td></tr>
+      <tr><td class="sub">system · our system.md</td><td class="num">3,065</td><td class="num">766</td><td><code>agents/v2/system.md</code> (optimiser's file)</td><td class="v-ok">yes</td></tr>
+      <tr><td class="sub">system · CLI preamble + billing header</td><td class="num">135</td><td class="num">≈ 40</td><td>CLI ("You are a Claude agent…")</td><td class="v-no">harmless</td></tr>
+      <tr><td class="sub">messages · task prompt</td><td class="num">5,372</td><td class="num">≈ 1,300</td><td><code>agent/prompt.py</code>: file listing, helper signatures, question, guidelines</td><td class="v-ok">yes</td></tr>
+      <tr><td class="sub">tools · execute_python</td><td class="num">296</td><td class="num">≈ 75</td><td><code>agent/tools/python_executor.py</code></td><td class="v-ok">yes</td></tr>
+      <tr><td class="sub">extra call · session title</td><td class="num">≈ 7,500</td><td class="num">≈ 1,900 per session</td><td>CLI names the session with a separate Haiku call</td><td class="v-warn">no — 25% of what remains on a 2-call task</td></tr>
+    </tbody></table></div>
+
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>Dollars, not tokens — the v2 dev-10 run priced at Haiku 4.5 list rates from the SDK transcripts (est. $0.54 vs $0.63 reported)</caption>
+    <thead><tr><th>Class</th><th>Tokens</th><th>Rate $/M</th><th>Cost</th><th>Share</th><th>Reading</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">cache read</td><td class="num">2,537,052</td><td class="num">0.10</td><td class="num">$0.254</td><td class="num">47%</td><td>the prefix, ten times per task — cheap per token, dominant by volume</td></tr>
+      <tr><td class="sub">output</td><td class="num">35,977</td><td class="num">5.00</td><td class="num">$0.180</td><td class="num">33%</td><td>code the agent writes; 11.5k on 2697 alone</td></tr>
+      <tr><td class="sub">cache write</td><td class="num">85,624</td><td class="num">1.25</td><td class="num">$0.107</td><td class="num">20%</td><td>each new turn's suffix written once</td></tr>
+      <tr><td class="sub">fresh input</td><td class="num">750</td><td class="num">1.00</td><td class="num">$0.001</td><td class="num">&lt;1%</td><td>caching already works; there is no "uncached" problem</td></tr>
+    </tbody></table></div>
+  <p class="insight">The prefix is 91% of the tokens but only about 37% of the dollars, because it is cached. So the fix cuts the KPI by ~80% and the bill by ~35–40%; the next dollar lever after that is output tokens, which only fewer turns can reduce.</p>
+</div></section>
+
+<section class="band-sec" id="nvidia"><div class="wrap">
+  <div class="hd"><p class="label">2 · nvidia's two ideas, checked against our traces</p>
+  <h2>2 · "Summarise the tools" is already done; "an ID instead of the output" is the real second lever</h2></div>
+  <div class="tw"><table>
+    <caption>Each NVIDIA cost claim, what this harness does today, and whether it applies</caption>
+    <thead><tr><th>NVIDIA post</th><th>Here today</th><th>Applies?</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">Signatures only<span class="path">the inference model sees helper signatures, not bodies</span></td><td><code>helper_signatures()</code> in the task prompt; the body is never sent</td><td class="v-ok">done</td><td>task prompt is 5,372 chars with 14 signatures; helper.py is 17k chars</td></tr>
+      <tr><td class="sub">Tool summarisation<span class="path">shrink tool descriptions</span></td><td>our one tool is 296 chars — nothing to shrink; the bloat is <em>other</em> tools we never asked for</td><td class="v-warn">misdirected</td><td>§1 table: 95,512 vs 296</td></tr>
+      <tr><td class="sub">Prune history<span class="path">drop old tool outputs, keep a reference id the model can re-open</span></td><td>nothing pruned: the CLI's <code>context_management</code> only sends <code>clear_thinking</code>; every tool result stays in every later call</td><td class="v-ok">the second lever</td><td>after the fix 1871 and 2697 are still 140–170k: 19 calls × a conversation that reaches 12k tokens</td></tr>
+      <tr><td class="sub">Condensed manual<span class="path">a distilled guide in the prompt so the agent does not read manual.md</span></td><td>task prompt says "Read manual.md … first"; 2697 read it in 6 chunks (5k tokens), re-sent on each of its 13 later calls</td><td class="v-warn">third lever, changes behaviour</td><td>manual reads: 70 → 2 chunks, 1273 → 1, 1871 → 1, 2697 → 6</td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s5)">
+    <li><b>Where the conversation goes after the fix:</b> per task, calls × (2k base + conversation so far). The two 18–19-call tasks account for 67% of the modelled post-fix total; the six ≤ 6-call tasks average 12k.</li>
+    <li><b>What grows it:</b> tool results (2697: 7.3k tokens over 19 results, max ≈ 920), the agent's code echoed in <code>tool_use</code> (3.3k), and text. Thinking is already cleared by the CLI.</li>
+    <li><b>So pruning helps the long tail only</b> — which is also where the wrong answers are. It cannot hurt an easy task and it cannot be measured on one.</li>
+  </ul>
+</div></section>
+
+<section class="blk" id="levers"><div class="wrap">
+  <div class="hd"><p class="label">3 · levers</p>
+  <h2>3 · Three harness levers, in order of certainty; none touches system.md or helper.py</h2></div>
+  <div class="tw"><table>
+    <caption>Levers ranked by measured or modelled saving on the v2 dev-10 run; A is measured, B and C are the experiment</caption>
+    <thead><tr><th>Lever</th><th>Change</th><th>Tokens saved</th><th>Behaviour change</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr class="pro"><td class="sub">A1 · strict MCP<span class="path">session.py</span></td><td><code>ClaudeAgentOptions(strict_mcp_config=True)</code>: only the <code>py</code> server we pass; the connector tools never load</td><td class="num">−87% on task 5 (measured)<br>−82% run-wide (modelled)</td><td>none: the tools were never callable by intent (<code>allowed_tools</code> lists only ours) and never called</td><td class="v-ok">verified 2× this session</td></tr>
+      <tr class="pro"><td class="sub">A2 · no title call<span class="path">llm.subscription_env()</span></td><td><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</code>, or a fixed <code>CLAUDE_CODE_SESSION_NAME</code> so the CLI adopts a supplied title; verify which suppresses the extra Haiku call</td><td class="num">≈ 1.9k per session · 25% of a 2-call task after A1</td><td>none</td><td class="v-warn">candidate switches found in the CLI binary; to verify in T1</td></tr>
+      <tr><td class="sub">A3 · same for the loop<span class="path">optimiser, reflector, lenses sessions</span></td><td>A1 + A2 in every <code>ClaudeAgentOptions</code> in the repo — the optimiser and probe pay the same prefix (cycle 6: 5.1M tokens over 50 turns; v2 probe 24.3M)</td><td class="num">≈ −25k per turn in those sessions</td><td>none</td><td class="v-ok">same setting</td></tr>
+      <tr><td class="sub">B · output by reference<span class="path">python_executor.py</span></td><td>NVIDIA pruning at the tool boundary: a result over N chars returns its head + <code>[out#7 · 3,679 chars · show("out#7")]</code>; the full text is kept in the executor state and re-openable; later turns no longer carry it</td><td class="num">expected −20 to −40% on 1681 / 1871 / 2697; ≈ 0 on easy</td><td>the agent must ask for a window of a long output instead of scrolling; a harness rule line in the task prompt explains <code>show()</code></td><td class="v-warn">experiment arm</td></tr>
+      <tr><td class="sub">C · manual digest in prompt<span class="path">agent/prompt.py</span></td><td>a harness-owned, cached digest of manual.md's fee/fraud/ACI sections replaces "read manual.md first"; the file stays readable on demand</td><td class="num">fewer turns on manual-heavy tasks (2697: −6 calls)</td><td>yes — the agent reads a summary written by us, not the source; the wrong digest is a systematic error</td><td class="v-warn">optional arm, off by default</td></tr>
+    </tbody></table></div>
+  <div class="grid g2" style="margin-top:var(--s5)">
+    <div class="panel card"><h3>Why B is harness, not helper.py</h3>
+      <ul class="tight">
+        <li><b>The optimiser owns two files;</b> pruning is a property of the tool result, which lives in the executor.</li>
+        <li><b>It is content-blind:</b> a head + reference for anything over the cap, whatever the family. No answer key can hide in it.</li>
+        <li><b>It is reversible per run:</b> a harness profile flag, recorded in <code>run.json</code>, nothing in the agent fingerprint.</li>
+      </ul></div>
+    <div class="panel card"><h3>What is not on the list</h3>
+      <ul class="tight">
+        <li><b>A smaller max_turns:</b> it caps the long tail by failing it; the 19-call task is the one we most want answered.</li>
+        <li><b>Lower effort:</b> medium is the fixed setting of the experiment, by your instruction.</li>
+        <li><b>Shorter system.md:</b> it is 766 tokens and the optimiser's file; not a harness change.</li>
+        <li><b>Batching across tasks:</b> the SDK is one session per task; sharing a prefix already happens through the cache.</li>
+      </ul></div>
+  </div>
+</div></section>
+
+<section class="blk" id="experiment"><div class="wrap">
+  <div class="hd"><p class="label">4 · experiment</p>
+  <h2>4 · Same 10 questions, same agent, three harnesses in parallel — the lean one wins only if it loses no task</h2>
+  <ul class="tight">
+    <li><b>Fixed:</b> <code>agents/v2</code>, Haiku 4.5, effort medium, 20 turns, 270 s, dev-10, 3 workers.</li>
+    <li><b>Varied:</b> the harness profile, a new <code>--harness</code> flag on <code>eval</code>, recorded in <code>run.json</code> and shown on the Runs page.</li>
+    <li><b>Repeated:</b> two passes per arm, so a flip on a single task can be told from run-to-run noise (v2 has 9/10 on one pass; its second pass in the probe showed S2 agreement 0.66 on the 450, so noise exists).</li>
+  </ul></div>
+  <div class="tw"><table>
+    <caption>Arms — each is a run folder; the baseline is re-run rather than reused so all arms share a day and a CLI version</caption>
+    <thead><tr><th>Arm</th><th>Harness</th><th>Runs</th><th>Expected tokens per question</th><th>Expected passes</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">T0 · baseline</td><td><code>baseline</code>: today's options, connector tools inherited</td><td class="num">2 × dev-10</td><td class="num">≈ 262k</td><td class="num">9 of 10 (2697 open)</td></tr>
+      <tr class="pro"><td class="sub">T1 · lean</td><td><code>lean</code>: A1 + A2</td><td class="num">2 × dev-10</td><td class="num">≈ 46k (18%)</td><td class="num">9 of 10 — identical trajectories expected; a change is a finding</td></tr>
+      <tr class="pro"><td class="sub">T2 · lean + prune</td><td><code>lean-prune</code>: A1 + A2 + B (cap 1,500 chars, head 600 + reference)</td><td class="num">2 × dev-10</td><td class="num">≈ 30–38k</td><td class="num">≥ T1 on every task, or the arm is rejected</td></tr>
+      <tr><td class="sub">T3 · lean + digest</td><td><code>lean-digest</code>: A1 + A2 + C</td><td class="num">optional, 2 × dev-10</td><td class="num">≈ 30–40k with fewer calls</td><td class="num">unknown — the only arm that can plausibly change answers</td></tr>
+    </tbody></table></div>
+
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>What is compared, per arm, from the run folders — nothing new to invent, the fields exist</caption>
+    <thead><tr><th>Measure</th><th>Source</th><th>Decision rule</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">tokens per question</td><td><code>results.jsonl · input_tokens</code>, mean and per task; cache classes from the SDK transcript</td><td>the headline; also as a share of T0 per task</td></tr>
+      <tr><td class="sub">passes, per task, per pass</td><td><code>results.jsonl · correct</code></td><td><b>adopt if:</b> no task correct in both T0 passes is wrong in both T1/T2 passes, and total passes ≥ T0's. McNemar p is recorded for the ledger but with n = 10 it cannot reach 0.05 on a one-task change, so it does not decide</td></tr>
+      <tr><td class="sub">calls, output tokens, duration</td><td><code>n_turns</code>, <code>output_tokens</code>, <code>duration_ms</code></td><td>output tokens are the dollar lever after A; a pruned arm that adds turns to re-open outputs shows it here</td></tr>
+      <tr><td class="sub">trajectory identity (T1 vs T0)</td><td>tool calls compared in order between traces</td><td>T1 should differ only by sampling; a systematic difference means the connector tools were influencing the model, which is itself worth writing down</td></tr>
+      <tr><td class="sub">re-opens (T2)</td><td>count of <code>show("out#…")</code> calls in traces</td><td>a high count on easy tasks means the cap is too low</td></tr>
+    </tbody></table></div>
+  <p class="insight">Decision rule for adoption is per task on two passes, not a p-value: with ten questions the only honest test is "did anything that used to pass stop passing, twice".</p>
+
+  <form class="q" data-lavish-question="arms" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const a=fd.get('arms'); if(!a) return; window.lavish.queuePrompt('Experiment arms: ' + a, {tag:'decision', text:'Arms: '+a, element:event.currentTarget, data:{question:'arms', answer:a}}); event.currentTarget.querySelector('.queued').textContent='queued: '+a;">
+    <h3>Which arms run?</h3>
+    <p class="why">T0 and T1 answer your question about the baseline; T2 is the NVIDIA pruning; T3 is the only arm that can change what the agent reads.</p>
+    <label><input type="radio" name="arms" value="T0 + T1 + T2 (baseline, lean, lean-prune), two passes each" checked><span>T0 + T1 + T2, two passes each<span class="rec">recommended</span></span></label>
+    <label><input type="radio" name="arms" value="T0 + T1 only (baseline vs lean), two passes each"><span>T0 + T1 only — just the harness fix, measured</span></label>
+    <label><input type="radio" name="arms" value="T0 + T1 + T2 + T3 (also the manual digest), two passes each"><span>All four, including the manual digest</span></label>
+  </form>
+  <form class="q" data-lavish-question="passes" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const p=fd.get('passes'); if(!p) return; window.lavish.queuePrompt('Passes per arm: ' + p, {tag:'decision', text:'Passes: '+p, element:event.currentTarget, data:{question:'passes', answer:p}}); event.currentTarget.querySelector('.queued').textContent='queued: '+p;">
+    <h3>Passes per arm</h3>
+    <label><input type="radio" name="passes" value="2 passes per arm" checked><span>2 — enough to separate a flip from noise<span class="rec">recommended</span></span></label>
+    <label><input type="radio" name="passes" value="1 pass per arm"><span>1 — cheapest, every flip is ambiguous</span></label>
+    <label><input type="radio" name="passes" value="3 passes per arm"><span>3 — majority per task; triples the baseline arm's 5M tokens</span></label>
+  </form>
+</div></section>
+
+<section class="band-sec" id="build"><div class="wrap">
+  <div class="hd"><p class="label">5 · build</p>
+  <h2>5 · Five steps, one branch, harness only — the agent files and the fingerprint do not move</h2></div>
+  <ol class="steps">
+    <li><b>H0 · harness profiles.</b> <code>agent/harness.py</code>: a frozen <code>Harness</code> dataclass (name, strict_mcp, title_call, prune_cap, prune_head, digest) with <code>baseline</code>, <code>lean</code>, <code>lean-prune</code>, <code>lean-digest</code>; <code>solve_task(..., harness=)</code>; <code>run.json</code> gains <code>harness</code>; <code>eval --harness</code>; default stays <code>baseline</code> until §7 adopts. Tests: options built per profile, the baseline profile is byte-identical to today's options.</li>
+    <li><b>H1 · T0 and T1.</b> Two passes each of dev-10 on v2, 3 workers, in parallel (six worker sessions — within the subscription session limit seen in cycle 5, checked with the <code>grep -c "session limit"</code> guard after each run). Verify the A2 switch on one task through the proxy first; keep the proxy script in the repo under <code>scripts/request_log_proxy.py</code> so the measurement is repeatable.</li>
+    <li><b>H2 · pruning (B).</b> <code>python_executor.py</code>: results over <code>prune_cap</code> return head + <code>[out#k · n chars]</code>; <code>show(id, start=0, n=1500)</code> is a second executor-side function, not in helper.py; one rule line in the task prompt under the <code>lean-prune</code> profile only. Tests: cap, reference round-trip, no change under <code>baseline</code>.</li>
+    <li><b>H3 · T2 (and T3 if chosen).</b> Same runs; the comparison script <code>eval/harness_compare.py</code> writes <code>loop/harness_experiment.json</code>: per task per arm per pass tokens, calls, output, correct, cache split, re-opens; a ledger entry of kind <code>harness</code>.</li>
+    <li><b>H4 · viewer + docs + adopt.</b> Runs page: harness chip and tokens-per-question column; Overview KPI reads the champion's latest run under the adopted harness with the baseline number beside it ("46k, was 262k"); README §2c and AGENTS.md note the finding and the rule "every <code>ClaudeAgentOptions</code> sets <code>strict_mcp_config=True</code>", enforced by a CI grep in <code>tracking/gate.py</code>. Deploy.</li>
+  </ol>
+  <div class="tw" style="margin-top:var(--s5)"><table>
+    <caption>Files touched — harness, viewer, docs; the two optimiser files and agent.yaml are not on the list</caption>
+    <thead><tr><th>File</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td class="sub"><code>agent/harness.py</code></td><td>new — profiles and the options builder</td></tr>
+      <tr><td class="sub"><code>agent/session.py</code></td><td>takes a profile; sets <code>strict_mcp_config</code>, env, executor cap from it</td></tr>
+      <tr><td class="sub"><code>agent/llm.py</code></td><td><code>subscription_env()</code> adds the title-call switch when the profile says so</td></tr>
+      <tr><td class="sub"><code>agent/tools/python_executor.py</code></td><td>reference store, <code>show()</code>, cap from the profile</td></tr>
+      <tr><td class="sub"><code>agent/prompt.py</code></td><td>one rule line under <code>lean-prune</code>; digest block under <code>lean-digest</code></td></tr>
+      <tr><td class="sub"><code>loop/optimiser.py · ureflect.py · reflect.py · lenses.py</code></td><td><code>strict_mcp_config=True</code> in every options object (A3)</td></tr>
+      <tr><td class="sub"><code>eval/runner.py · cli.py · Makefile</code></td><td><code>--harness</code>, <code>run.json.harness</code>, <code>make harness-experiment</code></td></tr>
+      <tr><td class="sub"><code>eval/harness_compare.py</code></td><td>new — the arm comparison and ledger entry</td></tr>
+      <tr><td class="sub"><code>tracking/gate.py</code></td><td>CI check: no <code>ClaudeAgentOptions(</code> without <code>strict_mcp_config=True</code></td></tr>
+      <tr><td class="sub"><code>frontend · Runs.tsx · Overview.tsx · api.ts</code></td><td>harness chip, tokens column, KPI with baseline</td></tr>
+      <tr><td class="sub"><code>README.md · AGENTS.md</code></td><td>§2c the finding and the rule</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section class="blk" id="cost"><div class="wrap">
+  <div class="hd"><p class="label">6 · cost of the experiment</p>
+  <h2>6 · The baseline arm is the expensive one: 5.2M of the 7M tokens the experiment spends</h2></div>
+  <div class="tw"><table>
+    <caption>Token and dollar budget per arm, two passes, from v2's measured run and the task-5 measurement; dollars at Haiku list rates for reference, billed to the subscription in dev</caption>
+    <thead><tr><th>Arm</th><th>Input tokens</th><th>Output tokens</th><th>≈ $ at list</th><th>Wall clock (3 workers)</th></tr></thead>
+    <tbody>
+      <tr><td class="sub">T0 · baseline ×2</td><td class="num">5.2M</td><td class="num">72k</td><td class="num">$1.10</td><td class="num">≈ 12 min</td></tr>
+      <tr><td class="sub">T1 · lean ×2</td><td class="num">≈ 0.9M</td><td class="num">72k</td><td class="num">$0.45</td><td class="num">≈ 12 min</td></tr>
+      <tr><td class="sub">T2 · lean-prune ×2</td><td class="num">≈ 0.7M</td><td class="num">≈ 75k</td><td class="num">$0.42</td><td class="num">≈ 12 min</td></tr>
+      <tr><td class="sub">T3 · lean-digest ×2 (optional)</td><td class="num">≈ 0.7M</td><td class="num">≈ 60k</td><td class="num">$0.38</td><td class="num">≈ 10 min</td></tr>
+      <tr><td class="sub">proxy checks (A2 verify)</td><td class="num">≈ 20k</td><td class="num">1k</td><td class="num">$0.02</td><td class="num">2 min</td></tr>
+      <tr class="pro"><td class="sub">total, recommended arms</td><td class="num">≈ 6.8M</td><td class="num">≈ 220k</td><td class="num">≈ $2.00</td><td class="num">≈ 40 min, arms in parallel ≈ 15 min</td></tr>
+    </tbody></table></div>
+  <ul class="tight" style="margin-top:var(--s5)">
+    <li><b>Afterwards, every run is cheaper:</b> a dev-10 pass drops from 2.6M to ≈ 0.5M tokens; the 47-task two-pass probe from 24.3M to ≈ 4.5M; an optimiser cycle loses ≈ 25k per turn of prefix.</li>
+    <li><b>The 450, when scored (M8):</b> 118M tokens at today's rate, ≈ 21M after A — the number to put on the README.</li>
+  </ul>
+</div></section>
+
+<section class="blk" id="risks"><div class="wrap">
+  <div class="hd"><p class="label">7 · risks &amp; open questions</p>
+  <h2>7 · Risks — the fix is safe; the pruning is the part that can change an answer</h2></div>
+  <div class="grid g2">
+    <div class="panel card"><h3>Failure modes and the mechanism for each</h3>
+      <ul class="qa">
+        <li><b>The lean arm changes trajectories.</b> Then the connector schemas were steering Haiku; the trajectory diff in §4 shows it, and the arm is still adopted if passes hold — a model that reads less is not a regression.</li>
+        <li><b>Pruning hides the number the agent needed.</b> The reference re-opens it; the re-open count is measured; a task that used to pass and now re-opens more than twice flags the cap for raising, not the arm for rejecting.</li>
+        <li><b>The title switch has a side effect.</b> Verified through the proxy on one task before any arm runs; if neither switch suppresses the call, A2 is dropped and the plan loses 1.9k per session, nothing else.</li>
+        <li><b>The connector config differs per machine.</b> It does — this is user-level state; the CI image has no connectors, which is why the KPI was never questioned. <code>strict_mcp_config</code> makes the prefix identical everywhere; the gate check keeps it so.</li>
+        <li><b>Champion fingerprint.</b> Unchanged: the fingerprint hashes the agent files, not the harness; the run records the harness beside it, so the two are never confused.</li>
+        <li><b>Session limit mid-arm.</b> The cycle-5 guard: <code>grep -c "session limit"</code> on each <code>results.jsonl</code>; a poisoned arm is discarded and re-run, never mixed.</li>
+      </ul></div>
+    <div class="panel card"><h3>Open questions</h3>
+      <ul class="tight">
+        <li><b>Prune cap:</b> 1,500 characters with a 600-character head (≈ 4 of 2697's 19 results would be cut) or 3,000 (≈ 1)? Default 1,500.</li>
+        <li><b>Adopt the lean harness for the loop sessions before or after the experiment?</b> They cannot change an answer on dev-10 (they never run it); default before, so cycle 7 is already cheap.</li>
+        <li><b>Re-baseline the champion?</b> After adoption, one lean run of v2 becomes the run the Overview KPI reads; the old 262k stays as the "was".</li>
+        <li><b>Branch:</b> <code>harness-cost</code>, one PR for H0–H1, one for H2–H4.</li>
+      </ul>
+      <form class="q bare" data-lavish-question="open" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const t=fd.get('answers'); if(!t) return; window.lavish.queuePrompt('Answers to open questions (s02): ' + t, {tag:'decision', text:'Open questions answered', element:event.currentTarget, data:{question:'open', answer:t}}); event.currentTarget.querySelector('.queued').textContent='queued';">
+        <textarea name="answers" placeholder="e.g. cap 1500; lean for loop sessions now; re-baseline v2; branch harness-cost"></textarea>
+        <div class="row"><button type="submit" class="btn">Queue answers</button><span class="queued"></span></div>
+      </form></div>
+  </div>
+</div></section>
+
+<section class="blk" id="approve"><div class="wrap">
+  <div class="hd"><p class="label">8 · approve</p>
+  <h2>8 · Approve — H0 to H4, the arms you chose, adoption only on equal passes</h2>
+  <ul class="tight">
+    <li><b>Queue the scope</b> and the build starts on <code>harness-cost</code>.</li>
+    <li><b>Nothing in the agent changes;</b> the optimiser keeps its two files; dev-10 is the only split run; the 450 are not touched.</li>
+    <li><b>Defaults</b> where no decision is queued: arms T0 + T1 + T2, two passes, cap 1,500, lean harness for the loop sessions from now.</li>
+  </ul></div>
+  <form class="q" data-lavish-question="approve" onsubmit="event.preventDefault(); const fd=new FormData(event.currentTarget); const scope=fd.get('scope'); if(!scope) return; window.lavish.queuePrompt('Approved: build ' + scope + ' of the token-cost plan (s02). Use the queued decisions, or the defaults (arms T0+T1+T2, two passes, prune cap 1500, lean harness for loop sessions) where none was queued.', {tag:'approve', text:'Approve: '+scope, element:event.currentTarget, data:{question:'approve', scope:scope}}); event.currentTarget.querySelector('.queued').textContent='queued: '+scope;">
+    <h3>Scope to build now</h3>
+    <label><input type="radio" name="scope" value="H0-H4 (harness profiles, the experiment arms chosen above, pruning, comparison, viewer, docs, adoption on equal passes, deploy)" checked><span>H0 to H4: profiles, the experiment, adoption if passes hold, deployed<span class="rec">this build</span></span></label>
+    <label><input type="radio" name="scope" value="H0-H1 only (harness profiles, T0 and T1 runs, the comparison; no pruning yet)"><span>H0 to H1: measure the fix alone on dev-10, stop before pruning</span></label>
+    <label><input type="radio" name="scope" value="H0 only (profiles and tests, no runs)"><span>H0 only, no model calls</span></label>
+    <div class="row"><button type="submit" class="btn">Queue approval</button><span class="queued"></span></div>
+  </form>
+  <p class="small" style="margin-top:var(--s5)">Verified this session: request bodies of dev task 5 on v2 logged through a local forwarding proxy, twice — once as today (tools block 95,810 chars, 50 tools) and once with <code>strict_mcp_config=True</code> (298 chars, 1 tool), same answer, 60,754 → 8,080 input tokens; per-call cache classes for all 10 tasks of <code>runs/20260914T034447Z_v2_dev_haiku</code> and v0's run from the SDK transcripts (27,382 cache-read tokens on every task's first call); the CLI's <code>context_management</code> block (<code>clear_thinking</code> only); candidate switches <code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC</code> and <code>CLAUDE_CODE_SESSION_NAME</code> present in the CLI 2.1.271 binary; the executor's existing 6,000 + 4,000-character truncation.</p>
+</div></section>
+
+<footer><div class="wrap">s02 · DABstep-loop · design source: DESIGN.md, ported from nmp-dsci.github.io (Field Guide) · one em, in the h1</div></footer>
+</body>
+</html>

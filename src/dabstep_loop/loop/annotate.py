@@ -24,6 +24,7 @@ from claude_agent_sdk import (
     TextBlock,
 )
 
+from dabstep_loop.agent.harness import LOOP_STRICT_MCP
 from dabstep_loop.agent.llm import EFFORT, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import load_version
 from dabstep_loop.config import AGENTS_DIR, ROOT
@@ -108,6 +109,7 @@ Every hunk in the diff must be covered by at least one entry."""
         }
 
     options = ClaudeAgentOptions(
+        strict_mcp_config=LOOP_STRICT_MCP,  # no inherited connector tools (s02)
         model=resolve_model(model),
         effort=EFFORT,
         allowed_tools=["Read", "Grep"],

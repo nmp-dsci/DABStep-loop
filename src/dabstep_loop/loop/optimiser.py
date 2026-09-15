@@ -27,6 +27,7 @@ from claude_agent_sdk import (
     ToolUseBlock,
 )
 
+from dabstep_loop.agent.harness import LOOP_STRICT_MCP
 from dabstep_loop.agent.llm import EFFORT, Effort, require_live, resolve_model, subscription_env
 from dabstep_loop.agent.versions import SURFACES, AgentVersion, load_version, next_version_name
 from dabstep_loop.config import AGENTS_DIR, ROOT, RUNS_DIR, context_dir
@@ -400,6 +401,7 @@ async def run_optimiser(
         }
 
     options = ClaudeAgentOptions(
+        strict_mcp_config=LOOP_STRICT_MCP,  # no inherited connector tools (s02)
         model=resolve_model(model),
         effort=effort,
         allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep"],
