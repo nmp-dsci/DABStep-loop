@@ -40,6 +40,16 @@ baseline, full runs and a leaderboard submission are the deferred M8.
 | Region | `ap-southeast-1` | `ap-southeast-2` is at this account's two-service App Runner cap |
 | Frontend | React 18 + Vite + TS, plain CSS on `tokens.css` | the Field Guide brief (`DESIGN.md`); no Tailwind/DaisyUI |
 
+**Platform migration (2026-09-21).** Tracking moved from this repo's own MLflow (`make mlflow-up`, sqlite
+under `.mlflow/`, `:5600`) to the portfolio's central server in `../nmp-central-ai` (experiment `dabstep-loop`,
+`http://localhost:5000`; `MLFLOW_TRACKING_URI` overrides). The
+only coupling is that env var — nothing here imports the platform. Old runs stay in `.mlflow/` as a read-only
+archive (platform decision D2; set `MLFLOW_TRACKING_URI=sqlite:///.mlflow/mlflow.db` to read them, never to
+log). The platform's `registry/projects.yaml` lists this project and `make -C ../nmp-central-ai check
+ARGS="--only P2"` re-logs one committed run as proof; run `make snapshot` only after real runs have been
+re-logged, or it will overwrite `loop/mlflow_snapshot.json` with an empty index. Contract:
+`../nmp-central-ai/PLATFORM.md`; receipt: `../nmp-central-ai/ai_specs/s01_m0_m1_build_receipt.md`.
+
 ## 3 · Layout
 
 ```
