@@ -65,7 +65,7 @@ The "tokens per question" number was never the agent. Logging the request bodies
 
 ```
 make setup && make data          # uv + npm; downloads the dataset (payments.csv is gitignored)
-make mlflow-up                   # self-hosted MLflow on :5600
+make platform-up                 # central MLflow (make -C ../nmp-central-ai up) → http://localhost:5000
 cp .env.example .env             # BILLING=subscription, no key: dev runs bill the Claude subscription
 make smoke                       # needs `claude login`
 make loop CYCLES=1

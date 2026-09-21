@@ -37,7 +37,7 @@ class Settings(BaseModel):
 
     billing: str = "subscription"
     demo_mode: bool = False
-    mlflow_tracking_uri: str = "http://127.0.0.1:5600"
+    mlflow_tracking_uri: str = "http://localhost:5000"
     code_sha: str = "unknown"
 
     @classmethod
@@ -45,7 +45,7 @@ class Settings(BaseModel):
         return cls(
             billing=os.environ.get("BILLING", "subscription").strip().lower(),
             demo_mode=os.environ.get("DEMO_MODE", "").strip() in {"1", "true", "yes"},
-            mlflow_tracking_uri=os.environ.get("MLFLOW_TRACKING_URI", "http://127.0.0.1:5600"),
+            mlflow_tracking_uri=os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000"),
             code_sha=os.environ.get("DABSTEP_CODE_SHA", "unknown"),
         )
 

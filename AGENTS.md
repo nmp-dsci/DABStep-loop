@@ -12,8 +12,8 @@ The 450 have no published answers; a `dev` split of 10 does. This project:
 
 1. runs a Claude Agent SDK agent (Haiku 4.5, one stateful Python tool) over the
    dev split and scores it with the leaderboard's own scorer, vendored verbatim;
-2. tracks every run as a folder under `runs/` and indexes it in a self-hosted
-   MLflow;
+2. tracks every run as a folder under `runs/` and indexes it in the central
+   MLflow (nmp-central-ai);
 3. runs an **error loop**: one optimiser session (Sonnet) reads every failed
    trace and the ledger of earlier attempts, writes `agents/v(N+1)/{system.md,
    helper.py}`, and a gate promotes it when a one-sided McNemar test on the paired
@@ -34,7 +34,7 @@ baseline, full runs and a leaderboard submission are the deferred M8.
 | Model under test | `claude-haiku-4-5` | the recipe being replicated; the cheap model is the one worth improving |
 | Optimiser | `claude-sonnet-5`, effort medium (`llm.EFFORT`, shared by every SDK session), one session per cycle | must read ~10 traces and the manual and verify a helper in one context |
 | Optimiser surfaces | `system.md`, `helper.py` only; `agent.yaml` frozen | a comparison is between prompts and helpers, not budgets |
-| Tracking | MLflow 3, sqlite, `:5600`, self-hosted | the user's requirement; the run folder is the record, MLflow the index |
+| Tracking | MLflow 3 on the central platform (`nmp-central-ai`, http://localhost:5000; `MLFLOW_TRACKING_URI` overrides) | one server for the portfolio; the run folder is the record, MLflow the index; the old sqlite store under `.mlflow/` is an archive |
 | Billing | subscription in dev via the CLI; demo image cannot call a model | `llm.py` blanks `ANTHROPIC_API_KEY`, strips `CLAUDE_CODE_*`, refuses if both a key and `BILLING=subscription` are set |
 | Deploy | ConvFinQA's pattern: ECR + App Runner, OIDC role, `workflow_run` after CI, `DEMO_MODE=1` in the Dockerfile | keyless by construction |
 | Region | `ap-southeast-1` | `ap-southeast-2` is at this account's two-service App Runner cap |
@@ -72,7 +72,8 @@ infra/terraform/      bootstrap (OIDC role, run once locally) · demo (ECR + App
 ```
 make setup            uv sync + npm ci
 make data             download the dataset; regenerate data/samples and file_structures.json
-make mlflow-up        MLflow on :5600 (sqlite under .mlflow/)
+make platform-up      central MLflow (make -C ../nmp-central-ai up) → http://localhost:5000
+make platform-status  preflight: is the central MLflow up? (eval/smoke/loop run it first)
 make smoke            v0-style Haiku run on the dev split → runs/<id>/, logged to MLflow
 make eval AGENT=v1 SPLIT=dev WORKERS=3 [MODEL=sonnet] [PASSES=3]
 make compare CHAMPION=<run> CHALLENGER=<run>

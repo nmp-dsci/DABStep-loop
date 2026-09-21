@@ -8,7 +8,7 @@
 
 - `make smoke` · `make loop CYCLES=1` · `make dev` + `cd frontend && npm run dev`
 - `uv run pytest -q` · `make lint` · `uv run python -m dabstep_loop.tracking.gate`
-- MLflow: `make mlflow-up` → http://127.0.0.1:5600
+- MLflow: central (`make platform-up` → `make -C ../nmp-central-ai up`) → http://localhost:5000; `MLFLOW_TRACKING_URI` overrides
 
 ## Rules
 

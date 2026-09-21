@@ -503,7 +503,7 @@ requires-dist = [
     { name = "datasets", specifier = ">=3.0" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "huggingface-hub", specifier = ">=0.30" },
-    { name = "mlflow", specifier = ">=3.5" },
+    { name = "mlflow", specifier = ">=3.12,<4" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=17" },

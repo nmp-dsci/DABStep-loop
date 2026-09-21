@@ -56,8 +56,8 @@ export function Architecture() {
             <title>Tracking plane</title>
             <rect className="nd" x="800" y="40" width="180" height="120" rx="10" />
             <text className="tx k" x="816" y="64">tracking</text>
-            <text className="tx" x="816" y="90">MLflow 3 · sqlite</text>
-            <text className="tx s" x="816" y="112">self-hosted :5600</text>
+            <text className="tx" x="816" y="90">MLflow 3 · central</text>
+            <text className="tx s" x="816" y="112">nmp-central-ai :5000</text>
             <text className="tx s" x="816" y="134">registry.json aliases</text>
           </g>
           <g id="loop">

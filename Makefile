@@ -11,7 +11,7 @@ K ?= 3
 SEED ?= 0
 PROBE_PASSES ?= 2
 PROBE_WORKERS ?= 3
-MLFLOW_PORT ?= 5600
+MLFLOW_TRACKING_URI ?= http://localhost:5000
 MODEL_FLAG := $(if $(MODEL),--model $(MODEL),)
 
 help: ## list targets
@@ -24,15 +24,16 @@ setup: ## install python deps (uv) and frontend deps (npm)
 data: ## download the DABstep dataset into data/ (context is gitignored)
 	uv run dabstep data
 
-mlflow-up: ## start the self-hosted MLflow tracking server on :$(MLFLOW_PORT)
-	mkdir -p .mlflow
-	uv run mlflow server --host 127.0.0.1 --port $(MLFLOW_PORT) \
-	  --backend-store-uri sqlite:///.mlflow/mlflow.db --artifacts-destination .mlflow/artifacts
+platform-up: ## start the central MLflow (nmp-central-ai: postgres + minio + mlflow on :5000)
+	$(MAKE) -C ../nmp-central-ai up
 
-eval: ## run AGENT on SPLIT (MODEL=, WORKERS=, PASSES=, HARNESS=lean|baseline|lean-prune)
+platform-status: ## preflight: the central MLflow must answer /health (runs before every tracked eval)
+	@curl -fsS $(MLFLOW_TRACKING_URI)/health >/dev/null || (echo "central MLflow down at $(MLFLOW_TRACKING_URI): run make platform-up"; exit 1)
+
+eval: platform-status ## run AGENT on SPLIT (MODEL=, WORKERS=, PASSES=, HARNESS=lean|baseline|lean-prune)
 	uv run dabstep eval --agent $(AGENT) --split $(SPLIT) --workers $(WORKERS) --passes $(PASSES) --harness $(HARNESS) $(MODEL_FLAG)
 
-smoke: ## the dev-10 with Haiku, the build's only live eval
+smoke: platform-status ## the dev-10 with Haiku, the build's only live eval
 	uv run dabstep eval --agent $(AGENT) --split dev --workers $(WORKERS)
 
 score: ## re-score RUN=<run id>
@@ -50,7 +51,7 @@ promote: ## promote RUN=<run id> to champion
 submit: ## validate RUN=<run id> submission for the leaderboard form
 	uv run dabstep submit $(RUN)
 
-loop: ## the error loop: CYCLES=1 cycles of eval → diagnose → new version → gate
+loop: platform-status ## the error loop: CYCLES=1 cycles of eval → diagnose → new version → gate
 	uv run dabstep loop --cycles $(CYCLES) --workers $(WORKERS)
 
 families: ## lens 1: the 450 by operation family → loop/families/families.json
@@ -62,7 +63,7 @@ lenses: ## lenses 2+3: local embeddings + one Sonnet membership pass → loop/fa
 probe: ## unscored probe of the 450 by family (AGENT=v2 K=3 SEED=0 PROBE_PASSES=2 PROBE_WORKERS=3)
 	uv run dabstep probe $(if $(filter-out v0,$(AGENT)),--agent $(AGENT),) --k $(K) --seed $(SEED) --passes $(PROBE_PASSES) --workers $(PROBE_WORKERS)
 
-harness-experiment: ## s02: v2 on dev-10 under baseline, lean and lean-prune, two passes each, then compare
+harness-experiment: platform-status ## s02: v2 on dev-10 under baseline, lean and lean-prune, two passes each, then compare
 	for h in baseline lean lean-prune; do for p in 1 2; do uv run dabstep eval --agent $(AGENT) --split dev --workers 3 --harness $$h --note "s02 harness experiment $$h pass $$p"; done; done
 	uv run dabstep harness-compare --agent $(AGENT)
 
@@ -72,7 +73,7 @@ harness-compare: ## compare the s02 arms already in runs/
 ureflect: ## unsupervised reflection over a probe RUN=<run id> → loop/families/Fnn.json
 	uv run dabstep ureflect $(RUN)
 
-uloop: ## the unsupervised loop: CYCLES=1 of probe → cards → optimiser → paired eval → gate A
+uloop: platform-status ## the unsupervised loop: CYCLES=1 of probe → cards → optimiser → paired eval → gate A
 	uv run dabstep uloop --cycles $(CYCLES) --k $(K) --seed $(SEED) --passes $(PROBE_PASSES) --workers $(PROBE_WORKERS)
 
 reflect: ## one offline reflection pass over the champion's traces
@@ -81,7 +82,7 @@ reflect: ## one offline reflection pass over the champion's traces
 ledger: ## print the loop ledger
 	uv run dabstep ledger
 
-snapshot: ## export MLflow to loop/mlflow_snapshot.json
+snapshot: platform-status ## export MLflow to loop/mlflow_snapshot.json
 	uv run dabstep snapshot
 
 demo-pack: ## record the champion's dev-10 as the demo replay pack
@@ -103,4 +104,4 @@ lint: ## ruff + mypy (+ frontend design lint when node_modules exist)
 fmt: ## ruff format + fix
 	uv run ruff format src tests scripts && uv run ruff check --fix src tests scripts
 
-.PHONY: help setup data mlflow-up eval smoke score compare register promote submit loop reflect ledger snapshot demo-pack dev demo-up test lint fmt
+.PHONY: help setup data platform-up platform-status eval smoke score compare register promote submit loop reflect ledger snapshot demo-pack dev demo-up test lint fmt
