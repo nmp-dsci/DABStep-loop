@@ -169,7 +169,7 @@ follows it. Fonts load from Google Fonts in artifacts (the site self-hosts).
   --bg:#F7F6F2; --panel:#FFFFFF; --band:#EFEEE8;
   --ink:#1A1D1B; --ink-2:#3B403D; --muted:#4A514D; --faint:#5C635E;
   --line:#DCDAD2; --line-2:#C7C5BC; --line-3:#8A8880;
-  --accent:#0A6552; --accent-ink:#FFFFFF; --accent-soft:#DFEFE8;
+  --accent:#5B2E8C; --accent-ink:#FFFFFF; --accent-soft:#E9E2F3;
   --amber:#8A5006; --amber-soft:#F6E6CF;
   --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
   --serif:'IBM Plex Serif',Georgia,'Times New Roman',serif;
@@ -185,7 +185,7 @@ follows it. Fonts load from Google Fonts in artifacts (the site self-hosts).
   --bg:#121614; --panel:#191E1B; --band:#161A18;
   --ink:#E8EBE7; --ink-2:#C9CFC9; --muted:#AEB6B0; --faint:#98A09A;
   --line:#28302B; --line-2:#3A443E; --line-3:#727E77;
-  --accent:#43C29A; --accent-ink:#0E1512; --accent-soft:#17382C;
+  --accent:#A78BFA; --accent-ink:#160E1E; --accent-soft:#2C2145;
   --amber:#D99A4E; --amber-soft:#3A2A14;
   --shadow:0 1px 2px rgb(0 0 0 / .4), 0 12px 28px -18px rgb(0 0 0 / .65);
 }}
